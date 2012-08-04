@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 public class MyFirstActivity extends Activity {
 	
+	// adding comment to see difference
 	public final static String EXTRA_MESSAGE = "com.example.myapp.MESSAGE";
 	public static long time_msg_sent = 0;
 	public static long time_msg_returned = 0;
