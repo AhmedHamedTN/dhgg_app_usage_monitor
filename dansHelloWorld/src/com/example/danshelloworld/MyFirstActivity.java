@@ -11,7 +11,7 @@ import android.widget.TextView;
 public class MyFirstActivity extends Activity {
 	
 	// adding comment to see difference
-	public final static String EXTRA_MESSAGE = "com.example.myapp.MESSAGE";
+	public final static String MESSAGE_KEY = "com.example.myapp.MESSAGE";
 	public static long time_msg_sent = 0;
 	public static long time_msg_returned = 0;
 
@@ -21,6 +21,8 @@ public class MyFirstActivity extends Activity {
         
         // see res/layout/activity_my_first.xml
         setContentView(R.layout.activity_my_first);
+
+        logMsg("onCreate.");
     }
 
     @Override
@@ -32,6 +34,7 @@ public class MyFirstActivity extends Activity {
     @Override
     public void onResume()
     {
+        logMsg("onResume.");
         System.out.println("onResume");
         
         // if we've already sent a message, 
@@ -41,16 +44,10 @@ public class MyFirstActivity extends Activity {
         	time_msg_returned = System.currentTimeMillis();
         	
         	long time_diff_s = (time_msg_returned - time_msg_sent) / 1000;
+        	logMsg("onResume: "+time_diff_s+"s since msg sent.");
         	
-
-        	String message = "You took "+time_diff_s+" seconds to return to this page";
-        	System.out.println(message);
-        	
-        	time_msg_sent = 0;
-        	
-        	// Get the input text to send to the intent
-        	TextView textView = (TextView) findViewById(R.id.time_info_text_view);
-            textView.setText(message);
+            // reset
+            time_msg_sent = 0;        	
         }
         super.onResume();
     }
@@ -60,7 +57,7 @@ public class MyFirstActivity extends Activity {
     	
     	// initial time sent
     	time_msg_sent = System.currentTimeMillis();
-    	System.out.println("Sending message at " + time_msg_sent);
+    	logMsg("Sending message at " + time_msg_sent);
     	
     	// Intent is a class that provides runtime binding between 
     	// separate components.
@@ -72,10 +69,16 @@ public class MyFirstActivity extends Activity {
     	String message = editText.getText().toString();
     	
     	// Add the message as a key-value pair
-    	intent.putExtra(EXTRA_MESSAGE, message);
+    	intent.putExtra(MESSAGE_KEY, message);
     	
     	// Start an activity, and pass in the intent
     	startActivity(intent);
+    }
+    
+    public void logMsg(String message) {
+    	// Get the input text to send to the intent
+    	TextView textView = (TextView) findViewById(R.id.time_info_text_view);
+        textView.setText( textView.getText() + message);
     }
     
 }
