@@ -1,7 +1,9 @@
 package com.example.danshelloworld;
 
+import android.R.string;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
@@ -12,17 +14,20 @@ public class MyFirstActivity extends Activity {
 	
 	// adding comment to see difference
 	public final static String MESSAGE_KEY = "com.example.myapp.MESSAGE";
+	public final static String PREFS_NAME = "myPrefsFile";
 	public static long time_msg_sent = 0;
-	public static long time_msg_returned = 0;
+	public static long time_on_resume = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // see res/layout/activity_my_first.xml
         setContentView(R.layout.activity_my_first);
 
-        logMsg("onCreate.");
+        // Retrieve the last message sent.
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        String lastMsg = settings.getString("lastMessage", "No previous messages");
+        logMsg("on Create lastMsg:"+lastMsg);
     }
 
     @Override
@@ -36,20 +41,28 @@ public class MyFirstActivity extends Activity {
     {
         logMsg("onResume.");
         System.out.println("onResume");
+        time_on_resume = System.currentTimeMillis();
         
         // if we've already sent a message, 
         // we must be receiving a message now
         if ( time_msg_sent != 0 )
-        {
-        	time_msg_returned = System.currentTimeMillis();
-        	
-        	long time_diff_s = (time_msg_returned - time_msg_sent) / 1000;
+        {	
+        	long time_diff_s = (System.currentTimeMillis() - time_msg_sent) / 1000;
         	logMsg("onResume: "+time_diff_s+"s since msg sent.");
         	
             // reset
             time_msg_sent = 0;        	
         }
+        
         super.onResume();
+    }
+    
+    public void onPause()
+    {
+        long time_diff = (System.currentTimeMillis() - time_on_resume) / 1000;
+        logMsg("onPause: time in foreground:"+time_diff+"s.");
+        
+        super.onPause();
     }
     
     /** Called when the user selects the Send button */
@@ -59,15 +72,18 @@ public class MyFirstActivity extends Activity {
     	time_msg_sent = System.currentTimeMillis();
     	logMsg("Sending message at " + time_msg_sent);
     	
-    	// Intent is a class that provides runtime binding between 
-    	// separate components.
-    	// Press CTRL+SHIFT+O to import classes automatically.
     	Intent intent = new Intent(this, DisplayMessageActivity.class);
     	
     	// Get the input text to send to the intent
     	EditText editText = (EditText) findViewById(R.id.edit_message);
     	String message = editText.getText().toString();
-    	
+
+        // Save the last message sent. 
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("lastMessage", message);
+        editor.commit();
+        
     	// Add the message as a key-value pair
     	intent.putExtra(MESSAGE_KEY, message);
     	
@@ -78,7 +94,8 @@ public class MyFirstActivity extends Activity {
     public void logMsg(String message) {
     	// Get the input text to send to the intent
     	TextView textView = (TextView) findViewById(R.id.time_info_text_view);
-        textView.setText( textView.getText() + message);
+        textView.setText( message + '\n' + textView.getText() );
     }
+    
     
 }
