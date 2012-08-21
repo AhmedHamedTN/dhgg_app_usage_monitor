@@ -1,6 +1,6 @@
 package com.example.danshelloworld;
 
-import android.R.string;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -40,7 +40,6 @@ public class MyFirstActivity extends Activity {
     public void onResume()
     {
         logMsg("onResume.");
-        System.out.println("onResume");
         time_on_resume = System.currentTimeMillis();
         
         // if we've already sent a message, 
@@ -50,6 +49,18 @@ public class MyFirstActivity extends Activity {
         	long time_diff_s = (System.currentTimeMillis() - time_msg_sent) / 1000;
         	logMsg("onResume: "+time_diff_s+"s since msg sent.");
         	
+
+            // Retrieve the last message sent.
+            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+            String lastMsg = settings.getString("lastMessage", "No previous messages");
+
+            // Create a database handler
+            Db_handler db_handler = new Db_handler( this );
+            db_handler.addData(lastMsg, (int) time_diff_s );
+            
+            // Dump out all the records
+            db_handler.dumpAllData();
+            
             // reset
             time_msg_sent = 0;        	
         }
@@ -95,6 +106,8 @@ public class MyFirstActivity extends Activity {
     	// Get the input text to send to the intent
     	TextView textView = (TextView) findViewById(R.id.time_info_text_view);
         textView.setText( message + '\n' + textView.getText() );
+
+        System.out.println(message);
     }
     
     
