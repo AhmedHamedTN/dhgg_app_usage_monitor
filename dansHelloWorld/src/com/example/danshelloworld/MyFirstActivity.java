@@ -95,6 +95,11 @@ public class MyFirstActivity extends Activity {
         editor.putString("lastMessage", message);
         editor.commit();
         
+        // Start a service
+      	Intent myIntent = new Intent(getApplicationContext(), Service_handler.class);
+       	myIntent.putExtra("log_msg", message + "_from_activity");
+       	startService(myIntent);
+        
     	// Add the message as a key-value pair
     	intent.putExtra(MESSAGE_KEY, message);
     	
