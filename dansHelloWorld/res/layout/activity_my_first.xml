@@ -8,24 +8,29 @@
 	    android:layout_height="wrap_content"
 	    android:orientation="horizontal" >
 	    
-		<EditText android:id="@+id/edit_message"
-		    android:layout_weight="1"
-		    android:layout_width="0dp"
+		<Button
+		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
-		    android:hint="@string/edit_message" />
+		    android:text="@string/button_start"
+		    android:onClick="startMessage" />
 		
 		<Button
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
-		    android:text="@string/button_send"
-		    android:onClick="sendMessage" />
-
+		    android:text="@string/button_stop"
+		    android:onClick="stopMessage" />		
 	</LinearLayout>
+	
 
-	<TextView 
-	   android:id="@+id/time_info_text_view"
-	   android:layout_width="wrap_content"
-	   android:layout_height="wrap_content"
-	   android:text="@string/blank_message" />
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:orientation="vertical" >
+		
+		<ListView android:id="@+id/task_list_view"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content" />
+	</LinearLayout>
+	
 
 </LinearLayout>

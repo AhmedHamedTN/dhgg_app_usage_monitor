@@ -27,7 +27,12 @@ public class Service_handler extends Service {
         ActivityManager am = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
         String shortName = am.getRunningTasks(1).get(0).topActivity.getShortClassName();
         System.out.println("onStart shortName of top app "+shortName);
+
+        // Get database handler
+        Db_handler db_handler = new Db_handler( this );
         
         // Save to the database
+        long time_on = System.currentTimeMillis();
+        db_handler.addData(shortName, (int) time_on);        
 	}
 }

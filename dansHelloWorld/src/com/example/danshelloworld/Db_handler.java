@@ -1,5 +1,7 @@
 package com.example.danshelloworld;
 
+import java.util.ArrayList;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -75,6 +77,29 @@ public class Db_handler extends SQLiteOpenHelper {
                 System.out.println("VALUE: "+Integer.parseInt(cursor.getString(2)));
             } while (cursor.moveToNext());
         }
+    }
+	
+    public ArrayList<String> getAllData() 
+    {
+        // Select All Query
+        String selectQuery = "SELECT  * FROM " + TABLE_NAME;
+ 
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+ 
+        // looping through all rows and dumping out the info
+        ArrayList <String> data = new ArrayList<String>();
+        
+        if (cursor.moveToFirst()) {
+            do {
+            	String text = "ID: "+cursor.getString(0);
+            	text += " Name: "+cursor.getString(1);
+            	text += " VALUE: "+cursor.getString(2);
+            	data.add(text);
+            } while (cursor.moveToNext());
+        }
+        
+        return data;
     }
 	
 
