@@ -1,8 +1,11 @@
 package com.example.danshelloworld;
 
+import java.util.List;
+
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.IBinder;
 
 public class Service_handler extends Service {
@@ -23,16 +26,36 @@ public class Service_handler extends Service {
 
         System.out.println("Service_handler onStart");
         
+	
         // Get info about running application
         ActivityManager am = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
-        String shortName = am.getRunningTasks(1).get(0).topActivity.getShortClassName();
-        System.out.println("onStart shortName of top app "+shortName);
+        List<ActivityManager.RunningAppProcessInfo> list = am.getRunningAppProcesses();
 
-        // Get database handler
-        Db_handler db_handler = new Db_handler( this );
-        
-        // Save to the database
-        long time_on = System.currentTimeMillis();
-        db_handler.addData(shortName, (int) time_on);        
+        if ( !list.isEmpty() )
+        {
+        	PackageManager pm = this.getPackageManager();
+        	ActivityManager.RunningAppProcessInfo info = 
+        	    (ActivityManager.RunningAppProcessInfo)(list.get(0));
+        	
+        	String name = "";
+        	try 
+        	{
+        		CharSequence c = pm.getApplicationLabel(pm.getApplicationInfo(info.processName, PackageManager.GET_META_DATA));
+        		name = c.toString();
+        	} 
+        	catch (Exception e)
+        	{
+        	}
+	        
+	        // Get database handler
+	        Db_handler db_handler = new Db_handler( this );
+	        
+	        // Save to the database
+	        long time_on = System.currentTimeMillis();
+	        if (name.length() > 0)
+	        {
+	        	db_handler.addData(name, (int) time_on);
+	        }
+        }
 	}
 }

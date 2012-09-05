@@ -50,7 +50,11 @@ public class MyFirstActivity extends Activity {
         ArrayList<String> data = db_handler.getAllData();
         
         // Set up rows for adding to the list view    
-        ArrayAdapter<String> list_adapter = new ArrayAdapter<String>(this,R.layout.name_value_row,R.id.label, data);
+        ArrayAdapter<String> list_adapter = 
+        		new ArrayAdapter<String>(this,
+        				                 R.layout.name_value_row,
+        				                 R.id.name, 
+        				                 data);
         
         // Add rows to the list view.
         ListView list_view = (ListView) findViewById(R.id.task_list_view);        
@@ -63,4 +67,14 @@ public class MyFirstActivity extends Activity {
     {   
         super.onPause();
     }
+    
+    public void startService(View view)
+    {
+    }
+    
+    public void stopService(View view)
+    {
+    }
+    
+    
 }

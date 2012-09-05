@@ -95,7 +95,7 @@ public class Db_handler extends SQLiteOpenHelper {
             	String text = "ID: "+cursor.getString(0);
             	text += " Name: "+cursor.getString(1);
             	text += " VALUE: "+cursor.getString(2);
-            	data.add(text);
+            	data.add(0,text);
             } while (cursor.moveToNext());
         }
         

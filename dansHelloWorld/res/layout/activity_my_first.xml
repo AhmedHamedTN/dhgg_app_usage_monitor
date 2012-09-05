@@ -12,13 +12,13 @@
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:text="@string/button_start"
-		    android:onClick="startMessage" />
+		    android:onClick="startService" />
 		
 		<Button
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:text="@string/button_stop"
-		    android:onClick="stopMessage" />		
+		    android:onClick="stopService" />		
 	</LinearLayout>
 	
 
