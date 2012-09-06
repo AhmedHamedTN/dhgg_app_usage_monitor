@@ -32,8 +32,10 @@ public class MyFirstActivity extends Activity {
         // Initialize broadcast receiver
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction("com.blah.blah.somemessage");
+
         BroadcastReceiver mReceiver = new Broadcast_receiver_handler();
-        registerReceiver(mReceiver, filter);        
+        registerReceiver(mReceiver, filter);
     }
 
     @Override

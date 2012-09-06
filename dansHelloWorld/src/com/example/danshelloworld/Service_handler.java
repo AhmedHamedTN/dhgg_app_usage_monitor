@@ -8,25 +8,33 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
 
-public class Service_handler extends Service {
+public class Service_handler extends Service 
+{
 	
-	public IBinder onBind(Intent intent) {
-	return null;
+	public IBinder onBind(Intent intent) 
+	{
+		return null;
 	}
 	
-	public void onCreate() {
-        System.out.println("onCreate");
+	public void onCreate() 
+	{
 	}
 	
-	public void onDestroy() {
-        System.out.println("onDestroy");
+	public void onDestroy() 
+	{
 	}
 	
-	public void onStart(Intent intent, int startid) {
-
+	public void onStart(Intent intent, int startid) 
+	{
         System.out.println("Service_handler onStart");
+                
+        logAppInfo();
+
+        this.onDestroy();
+	}
         
-	
+	public void logAppInfo()
+	{
         // Get info about running application
         ActivityManager am = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> list = am.getRunningAppProcesses();
