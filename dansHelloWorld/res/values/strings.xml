@@ -9,4 +9,5 @@
     <string name="blank_message"></string>
     <string name="button_start">Start</string>
     <string name="button_stop">Stop</string>
+    <string name="button_refresh">Refresh</string>
 </resources>

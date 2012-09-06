@@ -24,18 +24,14 @@ public class MyFirstActivity extends Activity {
 	public static long time_msg_sent = 0;
 	public static long time_on_resume = 0;
 
+    BroadcastReceiver mReceiver = new Broadcast_receiver_handler();
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);        
         setContentView(R.layout.activity_my_first);
         
-        // Initialize broadcast receiver
-        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction("com.blah.blah.somemessage");
-
-        BroadcastReceiver mReceiver = new Broadcast_receiver_handler();
-        registerReceiver(mReceiver, filter);
+        this.startService();
     }
 
     @Override
@@ -46,6 +42,41 @@ public class MyFirstActivity extends Activity {
     
     @Override
     public void onResume()
+    {
+    	refreshScreen();
+        super.onResume();
+    }
+    
+    public void onPause()
+    {   
+        super.onPause();
+    }
+    
+    public void startService(View view)
+    {
+    	this.startService();
+    }
+    
+    public void startService()
+    {
+    	// Initialize broadcast receiver
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction("com.blah.blah.somemessage");
+        registerReceiver(mReceiver, filter);
+    }
+    
+    public void stopService(View view)
+    {
+        unregisterReceiver(mReceiver);
+    }
+
+    public void refreshScreen(View view)
+    {
+    	refreshScreen();
+    }
+
+    public void refreshScreen()
     {
     	// Get data to display
     	Db_handler db_handler = new Db_handler( this );
@@ -59,24 +90,7 @@ public class MyFirstActivity extends Activity {
         				                 data);
         
         // Add rows to the list view.
-        ListView list_view = (ListView) findViewById(R.id.task_list_view);        
+        ListView list_view = (ListView) findViewById(R.id.task_list_view);
         list_view.setAdapter(list_adapter);
-    
-        super.onResume();
     }
-    
-    public void onPause()
-    {   
-        super.onPause();
-    }
-    
-    public void startService(View view)
-    {
-    }
-    
-    public void stopService(View view)
-    {
-    }
-    
-    
 }
