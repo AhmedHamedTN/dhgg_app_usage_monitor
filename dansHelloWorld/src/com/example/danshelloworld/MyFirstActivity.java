@@ -5,39 +5,32 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
-public class MyFirstActivity extends Activity {
-	
-	// adding comment to see difference
-	public final static String MESSAGE_KEY = "com.example.myapp.MESSAGE";
-	public final static String PREFS_NAME = "myPrefsFile";
-	public static long time_msg_sent = 0;
-	public static long time_on_resume = 0;
-
-    BroadcastReceiver mReceiver = new Broadcast_receiver_handler();
+public class MyFirstActivity extends Activity 
+{
+    public static BroadcastReceiver mReceiver;
+    public static String PREFS_REGISTERED = "prefs_registered";
     
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) 
+    {	
         super.onCreate(savedInstanceState);        
         setContentView(R.layout.activity_my_first);
         
-        this.startService();
+        startService();
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_my_first, menu);
-        return true;
+    public void onDestroy() 
+    {
+    	super.onDestroy();
     }
     
     @Override
@@ -59,16 +52,55 @@ public class MyFirstActivity extends Activity {
     
     public void startService()
     {
-    	// Initialize broadcast receiver
-        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction("com.blah.blah.somemessage");
-        registerReceiver(mReceiver, filter);
+    	SharedPreferences settings = getSharedPreferences( PREFS_REGISTERED, 0 );
+    	SharedPreferences.Editor editor = settings.edit();
+    	boolean is_registered = settings.getBoolean(PREFS_REGISTERED, false);
+    	if ( !is_registered )
+    	{
+    		System.out.println("registering broadcast receiver");
+    		
+    		// Initialize broadcast receiver
+    		mReceiver = new Broadcast_receiver_handler();
+            IntentFilter mfilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+            mfilter.addAction(Intent.ACTION_SCREEN_OFF);
+            mfilter.addAction("com.blah.blah.somemessage");
+            try 
+            {
+            	registerReceiver(mReceiver, mfilter);
+            } 
+            catch (Exception e) {}
+            	
+    		
+    		// Update the status
+    	    editor.putBoolean(PREFS_REGISTERED,true); 
+    	    editor.commit();
+    	}
+    	else
+    	{
+    		System.out.println("already registered");
+    	}
     }
     
     public void stopService(View view)
     {
-        unregisterReceiver(mReceiver);
+    	SharedPreferences settings = getSharedPreferences( PREFS_REGISTERED, 0 );
+    	SharedPreferences.Editor editor = settings.edit();
+    	boolean is_registered = settings.getBoolean(PREFS_REGISTERED, true);
+    	if ( is_registered )
+    	{
+    		System.out.println("Unregistering broadcast receiver");
+
+            try 
+            {
+            	unregisterReceiver(mReceiver);
+            }
+            catch (Exception e){}
+            
+
+    		// Update the status
+    	    editor.putBoolean(PREFS_REGISTERED,false); 
+    	    editor.commit();
+    	}
     }
 
     public void refreshScreen(View view)
@@ -78,19 +110,31 @@ public class MyFirstActivity extends Activity {
 
     public void refreshScreen()
     {
+    	System.out.println("refreshScreen");
+    	
     	// Get data to display
     	Db_handler db_handler = new Db_handler( this );
-        ArrayList<String> data = db_handler.getAllData();
+        ArrayList<Data_value> data = db_handler.getAllData();
         
-        // Set up rows for adding to the list view    
-        ArrayAdapter<String> list_adapter = 
-        		new ArrayAdapter<String>(this,
-        				                 R.layout.name_value_row,
-        				                 R.id.name, 
-        				                 data);
+        
+        Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
+        Data_value_adapter adapter = new Data_value_adapter(
+        							 this,
+        							 R.layout.name_value_row,
+        							 data_arr);
+                
+        
+        ListView list_view = (ListView) findViewById(R.id.task_list_view);
         
         // Add rows to the list view.
-        ListView list_view = (ListView) findViewById(R.id.task_list_view);
-        list_view.setAdapter(list_adapter);
+        list_view.setAdapter(adapter);
     }
+    
+    public void restartDb(View view)
+    {
+    	// Get data to display
+    	Db_handler db_handler = new Db_handler( this );
+    	db_handler.clear_data();
+    }
+
 }

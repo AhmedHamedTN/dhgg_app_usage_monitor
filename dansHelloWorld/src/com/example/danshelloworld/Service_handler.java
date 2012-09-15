@@ -26,8 +26,6 @@ public class Service_handler extends Service
 	
 	public void onStart(Intent intent, int startid) 
 	{
-        System.out.println("Service_handler onStart");
-                
         logAppInfo();
 
         this.onDestroy();
@@ -62,7 +60,7 @@ public class Service_handler extends Service
 	        long time_on = System.currentTimeMillis();
 	        if (name.length() > 0)
 	        {
-	        	db_handler.addData(name, (int) time_on);
+	        	db_handler.addData(name, (int) time_on, (int) time_on);
 	        }
         }
 	}

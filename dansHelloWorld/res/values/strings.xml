@@ -10,4 +10,5 @@
     <string name="button_start">Start</string>
     <string name="button_stop">Stop</string>
     <string name="button_refresh">Refresh</string>
+    <string name="button_restart">Restart</string>
 </resources>
