@@ -16,7 +16,7 @@ import android.widget.ListView;
 public class MyFirstActivity extends Activity 
 {
     public static BroadcastReceiver mReceiver;
-    public static String PREFS_REGISTERED = "prefs_registered";
+    public static String TURN_OFF_BROADCAST = "prefs_turn_off_broadcast";
     
     @Override
     public void onCreate(Bundle savedInstanceState) 
@@ -47,15 +47,19 @@ public class MyFirstActivity extends Activity
     
     public void startService(View view)
     {
+    	SharedPreferences settings = getSharedPreferences( TURN_OFF_BROADCAST, 0 );
+    	SharedPreferences.Editor editor = settings.edit();
+	    editor.putBoolean(TURN_OFF_BROADCAST,false);
+	    
     	this.startService();
     }
     
     public void startService()
     {
-    	SharedPreferences settings = getSharedPreferences( PREFS_REGISTERED, 0 );
-    	SharedPreferences.Editor editor = settings.edit();
-    	boolean is_registered = settings.getBoolean(PREFS_REGISTERED, false);
-    	if ( !is_registered )
+    	SharedPreferences settings = getSharedPreferences( TURN_OFF_BROADCAST, 0 );
+    	boolean is_broadcast_off = settings.getBoolean(TURN_OFF_BROADCAST, false);
+
+    	if ( !is_broadcast_off )
     	{
     		System.out.println("registering broadcast receiver");
     		
@@ -69,38 +73,23 @@ public class MyFirstActivity extends Activity
             	registerReceiver(mReceiver, mfilter);
             } 
             catch (Exception e) {}
-            	
-    		
-    		// Update the status
-    	    editor.putBoolean(PREFS_REGISTERED,true); 
-    	    editor.commit();
-    	}
-    	else
-    	{
-    		System.out.println("already registered");
     	}
     }
     
     public void stopService(View view)
     {
-    	SharedPreferences settings = getSharedPreferences( PREFS_REGISTERED, 0 );
+	    System.out.println("Unregistering broadcast receiver");
+	    
+	    SharedPreferences settings = getSharedPreferences( TURN_OFF_BROADCAST, 0 );
     	SharedPreferences.Editor editor = settings.edit();
-    	boolean is_registered = settings.getBoolean(PREFS_REGISTERED, true);
-    	if ( is_registered )
-    	{
-    		System.out.println("Unregistering broadcast receiver");
-
-            try 
-            {
-            	unregisterReceiver(mReceiver);
-            }
-            catch (Exception e){}
-            
-
-    		// Update the status
-    	    editor.putBoolean(PREFS_REGISTERED,false); 
-    	    editor.commit();
-    	}
+	    editor.putBoolean(TURN_OFF_BROADCAST,false); 
+	    editor.commit();
+	 
+	    try
+	    {
+	    	unregisterReceiver(mReceiver);
+	    }
+        catch (Exception e){}
     }
 
     public void refreshScreen(View view)

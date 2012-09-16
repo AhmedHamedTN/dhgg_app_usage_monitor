@@ -84,10 +84,10 @@ public class Db_handler extends SQLiteOpenHelper {
  
         // looping through all rows and dumping out the info
         Map <String, Integer> mp=new HashMap<String, Integer>();                
-        if (cursor.moveToFirst()) {
-            do {
-            	System.out.println("ID: "+cursor.getString(0));
-            		
+        if (cursor.moveToFirst()) 
+        {
+            do 
+            {
             	String app_name = cursor.getString(1);
             	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
             	{
@@ -156,7 +156,6 @@ public class Db_handler extends SQLiteOpenHelper {
         }
         
         String strFilter = "id=" + id;
-        System.out.println("updating with filter:"+strFilter);
         ContentValues args = new ContentValues();
         args.put(END_TIME_COLUMN, value);
         db.update(TABLE_NAME, args, strFilter, null);

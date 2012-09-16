@@ -60,18 +60,15 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		int date = gcalendar.get(Calendar.YEAR) * 10000 +
 				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
 				   gcalendar.get(Calendar.DATE) ;
-		System.out.println("date:"+date);
 		
 		
 		Db_handler db_handler = new Db_handler(context);
 		if ( db_handler.do_update( name ) )
 		{
-			System.out.println( "updating:"+ name);
 			db_handler.updateLast( (int) time_on );
 		}
 		else 
 		{
-			System.out.println( "adding:"+ name);
 			db_handler.addData(name, (int) time_on, (int) time_on);
 		}
 	}
