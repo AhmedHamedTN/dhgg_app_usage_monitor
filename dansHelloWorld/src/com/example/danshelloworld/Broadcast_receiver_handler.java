@@ -55,13 +55,6 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		{
 			return;
 		}
-
-		GregorianCalendar gcalendar = new GregorianCalendar();
-		int date = gcalendar.get(Calendar.YEAR) * 10000 +
-				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
-				   gcalendar.get(Calendar.DATE) ;
-		System.out.println("date:"+date);
-		
 		
 		Db_handler db_handler = new Db_handler(context);
 		System.out.println( "Adding:"+ name);

@@ -22,8 +22,6 @@ public class MyFirstActivity extends Activity
     {	
         super.onCreate(savedInstanceState);        
         setContentView(R.layout.activity_my_first);
-        
-        startService();
     }
 
     @Override
@@ -39,6 +37,8 @@ public class MyFirstActivity extends Activity
     	db.update_or_add("screen_on");
     	db.update_or_add( "dansHelloWorld" );
 		
+        startService();
+        
     	refreshScreen();
 
         super.onResume();

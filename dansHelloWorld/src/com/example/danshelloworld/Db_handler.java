@@ -1,6 +1,8 @@
 package com.example.danshelloworld;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,7 +17,7 @@ public class Db_handler extends SQLiteOpenHelper {
 	
     // Database Name and Version
     private static final String DATABASE_NAME = "test_database";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
  
     // Contacts table name
     private static final String TABLE_NAME = "test_table";
@@ -25,6 +27,8 @@ public class Db_handler extends SQLiteOpenHelper {
     private static final String NAME_COLUMN = "name";
     private static final String START_TIME_COLUMN = "start_time_col";
     private static final String END_TIME_COLUMN = "end_time_col";
+    private static final String PROCESS_NAME_COLUMN = "process_name_col";
+    private static final String DATE_COLUMN = "date_col";
  
     // Constructor
     public Db_handler(Context context) {
@@ -39,8 +43,10 @@ public class Db_handler extends SQLiteOpenHelper {
 	                           ID_COLUMN + " INTEGER PRIMARY KEY AUTOINCREMENT," + 
 	    		               NAME_COLUMN + " TEXT," +
 	                           START_TIME_COLUMN + " INTEGER," +
-	                           END_TIME_COLUMN + " INTEGER )";
-	    
+	                           END_TIME_COLUMN + " INTEGER, "+
+	                           PROCESS_NAME_COLUMN + " TEXT," +
+	                           DATE_COLUMN + " INTEGER )";
+	                           
 	    db.execSQL(CREATE_TABLE);
 	}
 	
@@ -70,6 +76,13 @@ public class Db_handler extends SQLiteOpenHelper {
 	    values.put(NAME_COLUMN, name);
 	    values.put(START_TIME_COLUMN, time);
 	    values.put(END_TIME_COLUMN, time);
+	    values.put(PROCESS_NAME_COLUMN,name);
+	 
+		GregorianCalendar gcalendar = new GregorianCalendar();
+		int date = gcalendar.get(Calendar.YEAR) * 10000 +
+				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
+				   gcalendar.get(Calendar.DATE) ;
+	    values.put(DATE_COLUMN, date);
 	 
 	    db.insert(TABLE_NAME, null, values);
 	    db.close(); 
@@ -81,6 +94,13 @@ public class Db_handler extends SQLiteOpenHelper {
  
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
+        
+
+		GregorianCalendar gcalendar = new GregorianCalendar();
+		int today_date = gcalendar.get(Calendar.YEAR) * 10000 +
+				         (gcalendar.get(Calendar.MONTH)+1)  * 100 +
+				         gcalendar.get(Calendar.DATE) ;
+	
  
         // looping through all rows and dumping out the info
         Map <String, Integer> mp=new HashMap<String, Integer>();                
@@ -88,6 +108,13 @@ public class Db_handler extends SQLiteOpenHelper {
             do {	
             	String app_name = cursor.getString(1);
             	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+            	{
+            		continue;
+            	}
+            	
+            	String process_name = cursor.getString(4);
+            	int date = cursor.getInt(5);
+            	if (today_date - date > 1)
             	{
             		continue;
             	}
