@@ -104,7 +104,10 @@ public class Db_handler extends SQLiteOpenHelper {
 	
  
         // looping through all rows and dumping out the info
-        Map <String, Integer> mp=new HashMap<String, Integer>();                
+        Map <String, Integer> mp=new HashMap<String, Integer>();
+
+        Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();  
+        
         if (cursor.moveToFirst()) {
             do {	
             	String app_name = cursor.getString(1);
@@ -122,6 +125,8 @@ public class Db_handler extends SQLiteOpenHelper {
             	
 
             	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ) /1000;
+            	
+            	// store name + value map
             	if (mp.containsKey(app_name))
             	{
             		int value = (Integer)(mp.get(app_name));
@@ -132,18 +137,38 @@ public class Db_handler extends SQLiteOpenHelper {
             		mp.put(app_name, time_diff);
             	}
 
+
+            	// store name + object value map
+            	if (mp_obj.containsKey(app_name))
+            	{
+            		Data_value dv = (mp_obj.get(app_name));
+            		mp_obj.put(app_name, new Data_value(app_name, process_name,
+            				                            dv.value + time_diff));
+            	}
+            	else
+            	{
+            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+            		mp_obj.put(app_name, dv );
+            	}
+
             } while (cursor.moveToNext());
         }
         db.close();
 
         ArrayList <Data_value> data = new ArrayList<Data_value>();
         
+        /*
         for (Map.Entry<String, Integer> entry : mp.entrySet()) 
         {
-        	Data_value dv = new Data_value( entry.getKey(), entry.getValue());
+        	Data_value dv = new Data_value( entry.getKey(), entry.getKey(), entry.getValue());
         	data.add(0,dv);
         }
-    	
+        */
+
+        for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
+        {
+        	data.add(0,entry.getValue());
+        }
         return data;
     }
 
