@@ -19,11 +19,11 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		System.out.println("onReceive: " + action);
 		if (action.equals(Intent.ACTION_SCREEN_ON)) 
 		{
-			save_to_db( context,"screen_on" );
+			save_to_db( context,"screen_on", "screen_on" );
 			SetAlarm(context);
 		} else if (action.equals(Intent.ACTION_SCREEN_OFF)) 
 		{
-			save_to_db( context, "screen_off" );
+			save_to_db( context, "screen_off", "screen_off" );
 			CancelAlarm(context);
 		} else if (action.equals("com.blah.blah.somemessage")) 
 		{
@@ -49,7 +49,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		alarmManager.cancel(sender);
 	}
 
-	public void save_to_db(Context context, String name) 
+	public void save_to_db(Context context, String name, String process_name) 
 	{	
 		if (name.length() <=0 || context == null || name.equals("dansHelloWorld"))
 		{
@@ -58,7 +58,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		
 		Db_handler db_handler = new Db_handler(context);
 		System.out.println( "Adding:"+ name);
-		db_handler.update_or_add( name );
+		db_handler.update_or_add( name, process_name );
 	}
 
 	public void logAppInfo(Context context) 
@@ -89,7 +89,6 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		{ 
 			ActivityManager.RunningAppProcessInfo info = (ActivityManager.RunningAppProcessInfo)(list2.get(i));
 
-			// save_to_db(context, name);
 			String process_name = info.processName;
 			if ( process_name != "" &&
 				 last_task != "" && 
@@ -104,7 +103,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 					name = c.toString(); 
 				} catch(Exception e) { }
 				
-				save_to_db( context, name );
+				save_to_db( context, name, info.processName );
 				break;
 			}
 		}

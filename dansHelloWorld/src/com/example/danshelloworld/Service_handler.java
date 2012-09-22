@@ -59,7 +59,7 @@ public class Service_handler extends Service
 	        // Save to the database
 	        if (name.length() > 0)
 	        {
-	        	db_handler.update_or_add(name);
+	        	db_handler.update_or_add(name, name);
 	        }
         }
 	}

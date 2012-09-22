@@ -68,15 +68,16 @@ public class Db_handler extends SQLiteOpenHelper {
 	    db.close();
 	}
 	
-	public void addData(String name, int time ) 
+	public void addData(String name, String process_name ) 
 	{	
 	    SQLiteDatabase db = this.getWritableDatabase();
-	 
+
+    	long time = System.currentTimeMillis();
 	    ContentValues values = new ContentValues();
 	    values.put(NAME_COLUMN, name);
 	    values.put(START_TIME_COLUMN, time);
 	    values.put(END_TIME_COLUMN, time);
-	    values.put(PROCESS_NAME_COLUMN,name);
+	    values.put(PROCESS_NAME_COLUMN,process_name);
 	 
 		GregorianCalendar gcalendar = new GregorianCalendar();
 		int date = gcalendar.get(Calendar.YEAR) * 10000 +
@@ -146,25 +147,7 @@ public class Db_handler extends SQLiteOpenHelper {
         return data;
     }
 
-    public String getLastRowName() 
-    {
-        String selectQuery = "SELECT Name FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
- 
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
- 
-        // looping through all rows and dumping out the info
-        String name = "";
-        if (cursor.moveToFirst()) 
-        {
-        	name = cursor.getString(0);
-        }
-        
-        db.close();
-        return name;
-    }
-
-    public void updateLast( int value ) 
+    public void updateLast( ) 
     {
         // Select All Query
         String selectQuery = "SELECT id FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
@@ -182,7 +165,9 @@ public class Db_handler extends SQLiteOpenHelper {
         String strFilter = "id=" + id;
         System.out.println("updating with filter:"+strFilter);
         ContentValues args = new ContentValues();
-        args.put(END_TIME_COLUMN, value);
+        
+        long time = System.currentTimeMillis();
+        args.put(END_TIME_COLUMN, time);
         db.update(TABLE_NAME, args, strFilter, null);
         
         db.close();
@@ -213,16 +198,15 @@ public class Db_handler extends SQLiteOpenHelper {
         return name.equals( prev_name );        
     }
        
-    public void update_or_add( String name )
+    public void update_or_add( String name, String process_name )
     {
-    	long time_on = System.currentTimeMillis();
     	if ( do_update(name) )
     	{
-    		updateLast( (int) time_on );
+    		updateLast( );
     	}
     	else
     	{
-    		addData( name, (int) time_on );
+    		addData( name, process_name );
     	}
     }
 }

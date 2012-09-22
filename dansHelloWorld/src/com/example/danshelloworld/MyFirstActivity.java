@@ -34,8 +34,8 @@ public class MyFirstActivity extends Activity
     public void onResume()
     {	
     	Db_handler db = new Db_handler(getApplicationContext());
-    	db.update_or_add("screen_on");
-    	db.update_or_add( "dansHelloWorld" );
+    	db.update_or_add("screen_on","screen_on");
+    	db.update_or_add( "dansHelloWorld","com.example.danshelloworld");
 		
         startService();
         
@@ -48,8 +48,8 @@ public class MyFirstActivity extends Activity
     {
 		Db_handler db = new Db_handler(getApplicationContext());
 
-		db.update_or_add("dansHelloWorld");
-		db.update_or_add("screen_off");
+		db.update_or_add("dansHelloWorld","com.example.danshelloworld");
+		db.update_or_add("screen_off","screen_off");
     	
         super.onPause();
     }
