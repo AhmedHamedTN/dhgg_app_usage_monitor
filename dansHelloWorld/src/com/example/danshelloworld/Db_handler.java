@@ -62,14 +62,14 @@ public class Db_handler extends SQLiteOpenHelper {
 	    db.close();
 	}
 	
-	public void addData(String name, int start, int end) 
-	{
+	public void addData(String name, int time ) 
+	{	
 	    SQLiteDatabase db = this.getWritableDatabase();
 	 
 	    ContentValues values = new ContentValues();
 	    values.put(NAME_COLUMN, name);
-	    values.put(START_TIME_COLUMN, start);
-	    values.put(END_TIME_COLUMN, end);
+	    values.put(START_TIME_COLUMN, time);
+	    values.put(END_TIME_COLUMN, time);
 	 
 	    db.insert(TABLE_NAME, null, values);
 	    db.close(); 
@@ -84,10 +84,8 @@ public class Db_handler extends SQLiteOpenHelper {
  
         // looping through all rows and dumping out the info
         Map <String, Integer> mp=new HashMap<String, Integer>();                
-        if (cursor.moveToFirst()) 
-        {
-            do 
-            {
+        if (cursor.moveToFirst()) {
+            do {	
             	String app_name = cursor.getString(1);
             	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
             	{
@@ -120,7 +118,6 @@ public class Db_handler extends SQLiteOpenHelper {
     	
         return data;
     }
-
 
     public String getLastRowName() 
     {
@@ -156,6 +153,7 @@ public class Db_handler extends SQLiteOpenHelper {
         }
         
         String strFilter = "id=" + id;
+        System.out.println("updating with filter:"+strFilter);
         ContentValues args = new ContentValues();
         args.put(END_TIME_COLUMN, value);
         db.update(TABLE_NAME, args, strFilter, null);
@@ -187,5 +185,17 @@ public class Db_handler extends SQLiteOpenHelper {
         
         return name.equals( prev_name );        
     }
-        
+       
+    public void update_or_add( String name )
+    {
+    	long time_on = System.currentTimeMillis();
+    	if ( do_update(name) )
+    	{
+    		updateLast( (int) time_on );
+    	}
+    	else
+    	{
+    		addData( name, (int) time_on );
+    	}
+    }
 }

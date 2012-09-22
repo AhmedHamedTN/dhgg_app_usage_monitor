@@ -57,10 +57,9 @@ public class Service_handler extends Service
 	        Db_handler db_handler = new Db_handler( this );
 	        
 	        // Save to the database
-	        long time_on = System.currentTimeMillis();
 	        if (name.length() > 0)
 	        {
-	        	db_handler.addData(name, (int) time_on, (int) time_on);
+	        	db_handler.update_or_add(name);
 	        }
         }
 	}

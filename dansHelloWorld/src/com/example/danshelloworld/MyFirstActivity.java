@@ -10,13 +10,12 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class MyFirstActivity extends Activity 
 {
     public static BroadcastReceiver mReceiver;
-    public static String TURN_OFF_BROADCAST = "prefs_turn_off_broadcast";
+    public static String TURN_OFF_UPDATES = "turn_off_updates";
     
     @Override
     public void onCreate(Bundle savedInstanceState) 
@@ -35,31 +34,45 @@ public class MyFirstActivity extends Activity
     
     @Override
     public void onResume()
-    {
+    {	
+    	Db_handler db = new Db_handler(getApplicationContext());
+    	db.update_or_add("screen_on");
+    	db.update_or_add( "dansHelloWorld" );
+		
     	refreshScreen();
+
         super.onResume();
     }
     
     public void onPause()
-    {   
+    {
+		Db_handler db = new Db_handler(getApplicationContext());
+
+		db.update_or_add("dansHelloWorld");
+		db.update_or_add("screen_off");
+    	
         super.onPause();
     }
     
     public void startService(View view)
     {
-    	SharedPreferences settings = getSharedPreferences( TURN_OFF_BROADCAST, 0 );
+    	// Update the saved preference.
+    	SharedPreferences settings = getSharedPreferences( TURN_OFF_UPDATES, 0 );
     	SharedPreferences.Editor editor = settings.edit();
-	    editor.putBoolean(TURN_OFF_BROADCAST,false);
+	    editor.putBoolean(TURN_OFF_UPDATES,false); 
+	    editor.commit();
 	    
     	this.startService();
+    	
+    	Broadcast_receiver_handler bh = new Broadcast_receiver_handler();
+    	bh.SetAlarm(getApplicationContext());
     }
     
     public void startService()
     {
-    	SharedPreferences settings = getSharedPreferences( TURN_OFF_BROADCAST, 0 );
-    	boolean is_broadcast_off = settings.getBoolean(TURN_OFF_BROADCAST, false);
-
-    	if ( !is_broadcast_off )
+    	SharedPreferences settings = getSharedPreferences( TURN_OFF_UPDATES, 0 );
+    	boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);
+    	if ( !updates_are_off )
     	{
     		System.out.println("registering broadcast receiver");
     		
@@ -78,13 +91,12 @@ public class MyFirstActivity extends Activity
     
     public void stopService(View view)
     {
-	    System.out.println("Unregistering broadcast receiver");
-	    
-	    SharedPreferences settings = getSharedPreferences( TURN_OFF_BROADCAST, 0 );
+		// Update the saved preference.
+    	SharedPreferences settings = getSharedPreferences( TURN_OFF_UPDATES, 0 );
     	SharedPreferences.Editor editor = settings.edit();
-	    editor.putBoolean(TURN_OFF_BROADCAST,false); 
+	    editor.putBoolean(TURN_OFF_UPDATES,true); 
 	    editor.commit();
-	 
+	    
 	    try
 	    {
 	    	unregisterReceiver(mReceiver);

@@ -34,10 +34,11 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 	public void SetAlarm(Context context) 
 	{
 		System.out.println("SetAlarm");
+		CancelAlarm(context);
 
 		PendingIntent pi = PendingIntent.getBroadcast(context, 0, new Intent("com.blah.blah.somemessage"), 0);
 		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),1000 * 6, pi); 
+		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),1000 * 5, pi); 
 	}
 
 	public void CancelAlarm(Context context) 
@@ -50,27 +51,21 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 
 	public void save_to_db(Context context, String name) 
 	{	
-		if (name.length() <=0 || context == null)
+		if (name.length() <=0 || context == null || name.equals("dansHelloWorld"))
 		{
 			return;
 		}
-		
-		long time_on = System.currentTimeMillis();
+
 		GregorianCalendar gcalendar = new GregorianCalendar();
 		int date = gcalendar.get(Calendar.YEAR) * 10000 +
 				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
 				   gcalendar.get(Calendar.DATE) ;
+		System.out.println("date:"+date);
 		
 		
 		Db_handler db_handler = new Db_handler(context);
-		if ( db_handler.do_update( name ) )
-		{
-			db_handler.updateLast( (int) time_on );
-		}
-		else 
-		{
-			db_handler.addData(name, (int) time_on, (int) time_on);
-		}
+		System.out.println( "Adding:"+ name);
+		db_handler.update_or_add( name );
 	}
 
 	public void logAppInfo(Context context) 
