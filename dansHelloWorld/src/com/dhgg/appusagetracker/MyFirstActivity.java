@@ -141,6 +141,7 @@ public class MyFirstActivity extends Activity {
 		ListView list_view = (ListView) findViewById(R.id.task_list_view);
 
 		// Add rows to the list view.
+		list_view.setAdapter(null);
 		list_view.setAdapter(adapter);
 	}
 

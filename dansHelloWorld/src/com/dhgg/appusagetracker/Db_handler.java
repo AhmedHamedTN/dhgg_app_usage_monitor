@@ -98,8 +98,7 @@ public class Db_handler extends SQLiteOpenHelper {
         String selectQuery = "SELECT  * FROM " + TABLE_NAME;
  
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-        
+        Cursor cursor = db.rawQuery(selectQuery, null);        
 
 		GregorianCalendar gcalendar = new GregorianCalendar();
 		int today_date = gcalendar.get(Calendar.YEAR) * 10000 +
@@ -107,9 +106,7 @@ public class Db_handler extends SQLiteOpenHelper {
 				         gcalendar.get(Calendar.DATE) ;
 	
  
-        // looping through all rows and dumping out the info
-        Map <String, Integer> mp=new HashMap<String, Integer>();
-
+        // Looping through all rows and dumping out the info
         Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();  
         
         if (cursor.moveToFirst()) {
@@ -129,18 +126,6 @@ public class Db_handler extends SQLiteOpenHelper {
             	
 
             	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ) /1000;
-            	
-            	// store name + value map
-            	if (mp.containsKey(app_name))
-            	{
-            		int value = (Integer)(mp.get(app_name));
-            		mp.put(app_name, new Integer(value + time_diff));
-            	}
-            	else
-            	{
-            		mp.put(app_name, time_diff);
-            	}
-
 
             	// store name + object value map
             	if (mp_obj.containsKey(app_name))
@@ -160,15 +145,6 @@ public class Db_handler extends SQLiteOpenHelper {
         db.close();
 
         ArrayList <Data_value> data = new ArrayList<Data_value>();
-        
-        /*
-        for (Map.Entry<String, Integer> entry : mp.entrySet()) 
-        {
-        	Data_value dv = new Data_value( entry.getKey(), entry.getKey(), entry.getValue());
-        	data.add(0,dv);
-        }
-        */
-
         for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
         {
         	data.add(0,entry.getValue());
