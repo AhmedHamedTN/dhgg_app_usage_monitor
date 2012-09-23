@@ -2,6 +2,7 @@ package com.dhgg.appusagetracker;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,6 +150,8 @@ public class Db_handler extends SQLiteOpenHelper {
         {
         	data.add(0,entry.getValue());
         }
+        
+        Collections.sort( data, new DataValueComparator());
         return data;
     }
 
