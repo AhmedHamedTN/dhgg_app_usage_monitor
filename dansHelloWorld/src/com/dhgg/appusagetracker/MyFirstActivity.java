@@ -48,7 +48,7 @@ public class MyFirstActivity extends Activity {
 			stopService();
 			break;
 		case R.id.item_start:
-			startService();
+			set_update_flag(false);
 			break;
 		}
 		return true;
@@ -81,57 +81,50 @@ public class MyFirstActivity extends Activity {
 		super.onPause();
 	}
 
-	public void startService(View view) {
+	public void set_update_flag( boolean flag) 
+	{
 		// Update the saved preference.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		SharedPreferences.Editor editor = settings.edit();
-		editor.putBoolean(TURN_OFF_UPDATES, false);
+		editor.putBoolean(TURN_OFF_UPDATES, flag);
 		editor.commit();
+	}
 
-		this.startService();
-
+	public void startService() 
+	{	
+		// Check if updates are turned off
+		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
+		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
+		if (updates_are_off) 
+		{
+			return;
+		}
+		
+		// Register the receiver.
+		System.out.println("registering broadcast receiver");
+		if (mReceiver == null)
+		{
+			mReceiver = new Broadcast_receiver_handler();
+		}
+		
+		IntentFilter mfilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+		mfilter.addAction(Intent.ACTION_SCREEN_OFF);
+		mfilter.addAction("com.blah.blah.somemessage");
+		
+		try { registerReceiver(mReceiver, mfilter); }
+		catch (Exception e) {}
+		
+		// Turn on the alarm to get data.
 		Broadcast_receiver_handler bh = new Broadcast_receiver_handler();
 		bh.SetAlarm(getApplicationContext());
 	}
 
-	public void startService() {
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);
-		if (!updates_are_off) {
-			System.out.println("registering broadcast receiver");
+	public void stopService() 
+	{
+		set_update_flag(true);
 
-			// Initialize broadcast receiver
-			if (mReceiver == null)
-			{
-				mReceiver = new Broadcast_receiver_handler();
-			
-				IntentFilter mfilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-				mfilter.addAction(Intent.ACTION_SCREEN_OFF);
-				mfilter.addAction("com.blah.blah.somemessage");
-
-				try {
-					registerReceiver(mReceiver, mfilter);
-				} 
-				catch (Exception e) {}
-			}
-			
-		}
-	}
-
-	public void stopService() {
-		// Update the saved preference.
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putBoolean(TURN_OFF_UPDATES, true);
-		editor.commit();
-
-		try {
-			unregisterReceiver(mReceiver);
-		} catch (Exception e) {	}
-	}
-
-	public void refreshScreen(View view) {
-		refreshScreen();
+		try {unregisterReceiver(mReceiver);} 
+		catch (Exception e) {	}
 	}
 
 	public void refreshScreen() {
