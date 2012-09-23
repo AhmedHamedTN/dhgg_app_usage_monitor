@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
@@ -33,6 +34,23 @@ public class MyFirstActivity extends Activity {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.main_menu, menu);
 		
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item){
+		// same as using a normal menu
+		switch(item.getItemId()) {
+		case R.id.item_restart:
+			restartDb();
+			break;
+		case R.id.item_stop:
+			stopService();
+			break;
+		case R.id.item_start:
+			startService();
+			break;
+		}
 		return true;
 	}
 
@@ -100,7 +118,7 @@ public class MyFirstActivity extends Activity {
 		}
 	}
 
-	public void stopService(View view) {
+	public void stopService() {
 		// Update the saved preference.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		SharedPreferences.Editor editor = settings.edit();
@@ -133,7 +151,7 @@ public class MyFirstActivity extends Activity {
 		list_view.setAdapter(adapter);
 	}
 
-	public void restartDb(View view) {
+	public void restartDb() {
 		// Get data to display
 		Db_handler db_handler = new Db_handler(this);
 		db_handler.clear_data();
