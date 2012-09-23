@@ -1,4 +1,4 @@
-package com.example.danshelloworld;
+package com.dhgg.appusagetracker;
 
 import java.util.List;
 

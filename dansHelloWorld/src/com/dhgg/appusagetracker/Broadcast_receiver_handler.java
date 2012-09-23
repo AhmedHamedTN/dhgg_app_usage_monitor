@@ -1,4 +1,4 @@
-package com.example.danshelloworld;
+package com.dhgg.appusagetracker;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -51,13 +51,12 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 
 	public void save_to_db(Context context, String name, String process_name) 
 	{	
-		if (name.length() <=0 || context == null || name.equals("dansHelloWorld"))
+		if (name.length() <=0 || context == null || name.equals("App Usage Tracker"))
 		{
 			return;
 		}
 		
 		Db_handler db_handler = new Db_handler(context);
-		System.out.println( "Adding:"+ name);
 		db_handler.update_or_add( name, process_name );
 	}
 

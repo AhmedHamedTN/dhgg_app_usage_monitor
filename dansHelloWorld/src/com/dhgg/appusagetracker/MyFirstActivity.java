@@ -1,4 +1,5 @@
-package com.example.danshelloworld;
+package com.dhgg.appusagetracker;
+
 
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class MyFirstActivity extends Activity
     {	
     	Db_handler db = new Db_handler(getApplicationContext());
     	db.update_or_add("screen_on","screen_on");
-    	db.update_or_add( "dansHelloWorld","com.example.danshelloworld");
+    	db.update_or_add( "App Usage Tracker","com.dhgg.appusagetracker");
 		
         startService();
         
@@ -48,7 +49,7 @@ public class MyFirstActivity extends Activity
     {
 		Db_handler db = new Db_handler(getApplicationContext());
 
-		db.update_or_add("dansHelloWorld","com.example.danshelloworld");
+    	db.update_or_add( "App Usage Tracker","com.dhgg.appusagetracker");
 		db.update_or_add("screen_off","screen_off");
     	
         super.onPause();

@@ -1,10 +1,9 @@
-package com.example.danshelloworld;
+package com.dhgg.appusagetracker;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import android.content.ContentValues;
@@ -70,21 +69,26 @@ public class Db_handler extends SQLiteOpenHelper {
 	
 	public void addData(String name, String process_name ) 
 	{	
+		System.out.println("addData:"+name+" process_name:"+process_name);
 	    SQLiteDatabase db = this.getWritableDatabase();
 
+	    // clear out old values
+		GregorianCalendar gcalendar = new GregorianCalendar();
+		int date = gcalendar.get(Calendar.YEAR) * 10000 +
+				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
+				   gcalendar.get(Calendar.DATE) ;
+	    db.delete(TABLE_NAME, DATE_COLUMN+" < "+(date-3), null);	 
+
+	    // Add new data
     	long time = System.currentTimeMillis();
 	    ContentValues values = new ContentValues();
 	    values.put(NAME_COLUMN, name);
 	    values.put(START_TIME_COLUMN, time);
 	    values.put(END_TIME_COLUMN, time);
-	    values.put(PROCESS_NAME_COLUMN,process_name);
-	 
-		GregorianCalendar gcalendar = new GregorianCalendar();
-		int date = gcalendar.get(Calendar.YEAR) * 10000 +
-				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
-				   gcalendar.get(Calendar.DATE) ;
+	    values.put(PROCESS_NAME_COLUMN,process_name);	 
 	    values.put(DATE_COLUMN, date);
-	 
+
+
 	    db.insert(TABLE_NAME, null, values);
 	    db.close(); 
 	}
@@ -188,7 +192,6 @@ public class Db_handler extends SQLiteOpenHelper {
         }
         
         String strFilter = "id=" + id;
-        System.out.println("updating with filter:"+strFilter);
         ContentValues args = new ContentValues();
         
         long time = System.currentTimeMillis();
@@ -200,6 +203,7 @@ public class Db_handler extends SQLiteOpenHelper {
     
     public boolean do_update( String name ) 
     {
+    	System.out.println("do_update:"+name);
         // Select All Query
         String selectQuery = "SELECT "+NAME_COLUMN+" FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
  
