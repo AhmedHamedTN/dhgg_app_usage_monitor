@@ -4,7 +4,10 @@ import java.util.ArrayList;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -15,21 +18,25 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
-public class MyFirstActivity extends Activity {
-	public static BroadcastReceiver mReceiver = null;
+public class MyFirstActivity extends Activity 
+{
+	public static Db_handler m_db_handler;
+    public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
+    
 	public static String TURN_OFF_UPDATES = "turn_off_updates";
+	
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) 
+	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_my_first);
 		
-		// gets the activity's default ActionBar
-		ActionBar actionBar = getActionBar();
-		actionBar.show();
+		m_db_handler = new Db_handler(getApplicationContext());
 	}
 	
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu) 
+	{
 		// use an inflater to populate the ActionBar with items
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.main_menu, menu);
@@ -38,7 +45,8 @@ public class MyFirstActivity extends Activity {
 	}
 	
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item){
+	public boolean onOptionsItemSelected(MenuItem item)
+	{	
 		// same as using a normal menu
 		switch(item.getItemId()) {
 		case R.id.item_restart:
@@ -55,43 +63,60 @@ public class MyFirstActivity extends Activity {
 	}
 
 	@Override
-	public void onDestroy() {
+	public void onDestroy() 
+	{
+		try {unregisterReceiver( receiver );} 
+		catch (Exception e) {	}
+		
 		super.onDestroy();
 	}
 
 	@Override
-	public void onResume() {
-		Db_handler db = new Db_handler(getApplicationContext());
-		db.update_or_add("screen_on", "screen_on");
-		db.update_or_add("App Usage Tracker", "com.dhgg.appusagetracker");
+	public void onResume() 
+	{
+		m_db_handler.update_or_add("screen_on", "screen_on");
+		m_db_handler.update_or_add("App Usage Tracker", "com.dhgg.appusagetracker");
 
 		refreshScreen();
+		
+		// Register a new receiver
+		IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+	    filter.addAction(Intent.ACTION_SCREEN_OFF);
+		filter.addAction("com.blah.blah.somemessage");
+		try { registerReceiver(receiver, filter); }
+		catch (Exception e) {}
+
+	    // Send an initial message
+		Intent intent=new Intent();
+		intent.setAction("com.blah.blah.somemessage");
+		sendBroadcast(intent);		
 
 		super.onResume();
 	}
 
-	public void onPause() {
-		Db_handler db = new Db_handler(getApplicationContext());
-
-		db.update_or_add("App Usage Tracker", "com.dhgg.appusagetracker");
-		db.update_or_add("screen_off", "screen_off");
-
-		this.startService();
+	public void onPause() 
+	{
+		m_db_handler.update_or_add("App Usage Tracker", "com.dhgg.appusagetracker");
+		m_db_handler.update_or_add("screen_off", "screen_off");
 
 		super.onPause();
 	}
 
 	public void set_update_flag( boolean flag) 
 	{
+		System.out.println("set_update_flag "+flag);
+		
 		// Update the saved preference.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putBoolean(TURN_OFF_UPDATES, flag);
-		editor.commit();
+		editor.commit();		
 	}
 
 	public void startService() 
 	{	
+		System.out.println("startService");
+		
 		// Check if updates are turned off
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
@@ -99,32 +124,11 @@ public class MyFirstActivity extends Activity {
 		{
 			return;
 		}
-		
-		// Register the receiver.
-		System.out.println("registering broadcast receiver");
-		if (mReceiver == null)
-		{
-			mReceiver = new Broadcast_receiver_handler();
-		}
-		
-		IntentFilter mfilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-		mfilter.addAction(Intent.ACTION_SCREEN_OFF);
-		mfilter.addAction("com.blah.blah.somemessage");
-		
-		try { registerReceiver(mReceiver, mfilter); }
-		catch (Exception e) {}
-		
-		// Turn on the alarm to get data.
-		Broadcast_receiver_handler bh = new Broadcast_receiver_handler();
-		bh.SetAlarm(getApplicationContext());
 	}
 
 	public void stopService() 
 	{
 		set_update_flag(true);
-
-		try {unregisterReceiver(mReceiver);} 
-		catch (Exception e) {	}
 	}
 
 	public void refreshScreen() {
