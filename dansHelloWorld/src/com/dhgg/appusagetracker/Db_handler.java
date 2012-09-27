@@ -182,7 +182,6 @@ public class Db_handler extends SQLiteOpenHelper {
     
     public boolean do_update( String name ) 
     {
-    	System.out.println("do_update:"+name);
         // Select All Query
         String selectQuery = "SELECT "+NAME_COLUMN+" FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
  

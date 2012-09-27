@@ -15,7 +15,6 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		String action = intent.getAction();
-		System.out.println("onReceive: " + action);
 		
 		PowerManager pManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		if (pManager.isScreenOn())
@@ -33,7 +32,9 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		}
 		else
 		{
-			int seconds = 15;
+			save_to_db( context, "screen_off", "screen_off");
+			
+			int seconds = 15;			
 			SetAlarm(context,seconds);
 		}
 	}
