@@ -53,6 +53,7 @@ public class MyFirstActivity extends Activity
 			restartDb();
 			break;
 		case R.id.item_stop:
+			set_update_flag(true);
 			stopService();
 			break;
 		case R.id.item_start:
@@ -77,10 +78,15 @@ public class MyFirstActivity extends Activity
 
 		refreshScreen();
 
-	    // Send an initial message
-		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
-		intent.setAction("dhgg.app.usage.monitor.start");
-		sendBroadcast(intent);		
+		// Check to see if we should send an initial message
+		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
+		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
+		if (!updates_are_off) 
+		{
+			Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+			intent.setAction("dhgg.app.usage.monitor.start");
+			sendBroadcast(intent);
+		}
 
 		super.onResume();
 	}
@@ -95,8 +101,6 @@ public class MyFirstActivity extends Activity
 
 	public void set_update_flag( boolean flag) 
 	{
-		System.out.println("set_update_flag "+flag);
-		
 		// Update the saved preference.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		SharedPreferences.Editor editor = settings.edit();
@@ -106,27 +110,15 @@ public class MyFirstActivity extends Activity
 
 	public void startService() 
 	{	
-		System.out.println("startService");
-
-	    // Send an initial message
+	    // Send start message
 		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
 		sendBroadcast(intent);		
-
-		// Check if updates are turned off
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
-		if (updates_are_off) 
-		{
-			return;
-		}
 	}
 
 	public void stopService() 
 	{
-		set_update_flag(true);
-
-	    // Send an initial message
+	    // Send stop message
 		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
 		intent.setAction("dhgg.app.usage.monitor.stop");
 		sendBroadcast(intent);		
@@ -134,8 +126,6 @@ public class MyFirstActivity extends Activity
 
 	public void refreshScreen() 
 	{
-		System.out.println("refreshScreen");
-
 		// Get data to display
 		Db_handler db_handler = new Db_handler(this);
 		ArrayList<Data_value> data = db_handler.getAllData();
@@ -151,7 +141,8 @@ public class MyFirstActivity extends Activity
 		list_view.setAdapter(adapter);
 	}
 
-	public void restartDb() {
+	public void restartDb() 
+	{
 		// Get data to display
 		Db_handler db_handler = new Db_handler(this);
 		db_handler.clear_data();

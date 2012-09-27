@@ -9,34 +9,37 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.PowerManager;
 
 public class Broadcast_receiver_handler extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		String action = intent.getAction();
 		System.out.println("onReceive: " + action);
-		if (action.equals("dhgg.app.usage.monitor.start")) 
+		
+		PowerManager pManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+		if (pManager.isScreenOn())
 		{
-			logAppInfo(context);
-			SetAlarm(context);
-		} else if (action.equals("dhgg.app.usage.monitor.stop")) 
+			int seconds = 5;
+			if (action.equals("dhgg.app.usage.monitor.start")) 
+			{
+				logAppInfo(context);
+				SetAlarm(context,seconds);
+			} else if (action.equals("dhgg.app.usage.monitor.stop")) 
+			{
+				logAppInfo(context);
+				CancelAlarm(context);
+			} 
+		}
+		else
 		{
-			logAppInfo(context);
-			CancelAlarm(context);
-		} else if (action.equals(Intent.ACTION_SCREEN_ON)) 
-		{
-			save_to_db( context,"screen_on", "screen_on" );
-			SetAlarm(context);
-		} else if (action.equals(Intent.ACTION_SCREEN_OFF)) 
-		{
-			save_to_db( context, "screen_off", "screen_off" );
-			CancelAlarm(context);
-		} 
+			int seconds = 15;
+			SetAlarm(context,seconds);
+		}
 	}
 
-	public void SetAlarm(Context context) 
+	public void SetAlarm(Context context, int seconds) 
 	{
-		System.out.println("SetAlarm");
 		CancelAlarm(context);
 
 		Intent intent=new Intent( context, Broadcast_receiver_handler.class);
@@ -44,7 +47,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		
 		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		am.set(AlarmManager.RTC, System.currentTimeMillis() + (1000*5), pi);
+		am.set(AlarmManager.RTC, System.currentTimeMillis() + (1000*seconds), pi);
 	}
 
 	public void CancelAlarm(Context context) 
