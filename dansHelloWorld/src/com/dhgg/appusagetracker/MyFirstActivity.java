@@ -57,6 +57,7 @@ public class MyFirstActivity extends Activity
 			break;
 		case R.id.item_start:
 			set_update_flag(false);
+			startService();
 			break;
 		}
 		return true;
@@ -64,10 +65,7 @@ public class MyFirstActivity extends Activity
 
 	@Override
 	public void onDestroy() 
-	{
-		try {unregisterReceiver( receiver );} 
-		catch (Exception e) {	}
-		
+	{		
 		super.onDestroy();
 	}
 
@@ -78,17 +76,10 @@ public class MyFirstActivity extends Activity
 		m_db_handler.update_or_add("App Usage Tracker", "com.dhgg.appusagetracker");
 
 		refreshScreen();
-		
-		// Register a new receiver
-		IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-	    filter.addAction(Intent.ACTION_SCREEN_OFF);
-		filter.addAction("com.blah.blah.somemessage");
-		try { registerReceiver(receiver, filter); }
-		catch (Exception e) {}
 
 	    // Send an initial message
-		Intent intent=new Intent();
-		intent.setAction("com.blah.blah.somemessage");
+		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.start");
 		sendBroadcast(intent);		
 
 		super.onResume();
@@ -116,7 +107,12 @@ public class MyFirstActivity extends Activity
 	public void startService() 
 	{	
 		System.out.println("startService");
-		
+
+	    // Send an initial message
+		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.start");
+		sendBroadcast(intent);		
+
 		// Check if updates are turned off
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
@@ -129,9 +125,15 @@ public class MyFirstActivity extends Activity
 	public void stopService() 
 	{
 		set_update_flag(true);
+
+	    // Send an initial message
+		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.stop");
+		sendBroadcast(intent);		
 	}
 
-	public void refreshScreen() {
+	public void refreshScreen() 
+	{
 		System.out.println("refreshScreen");
 
 		// Get data to display

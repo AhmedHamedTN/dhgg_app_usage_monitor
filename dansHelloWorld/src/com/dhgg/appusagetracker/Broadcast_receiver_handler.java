@@ -15,7 +15,15 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		String action = intent.getAction();
 		System.out.println("onReceive: " + action);
-		if (action.equals(Intent.ACTION_SCREEN_ON)) 
+		if (action.equals("dhgg.app.usage.monitor.start")) 
+		{
+			logAppInfo(context);
+			SetAlarm(context);
+		} else if (action.equals("dhgg.app.usage.monitor.stop")) 
+		{
+			logAppInfo(context);
+			CancelAlarm(context);
+		} else if (action.equals(Intent.ACTION_SCREEN_ON)) 
 		{
 			save_to_db( context,"screen_on", "screen_on" );
 			SetAlarm(context);
@@ -23,10 +31,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		{
 			save_to_db( context, "screen_off", "screen_off" );
 			CancelAlarm(context);
-		} else if (action.equals("com.blah.blah.somemessage")) 
-		{
-			logAppInfo(context);
-		}
+		} 
 	}
 
 	public void SetAlarm(Context context) 
@@ -34,17 +39,22 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		System.out.println("SetAlarm");
 		CancelAlarm(context);
 
-		PendingIntent pi = PendingIntent.getBroadcast(context, 0, new Intent("com.blah.blah.somemessage"), 0);
+		Intent intent=new Intent( context, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.start");
+		
+		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),1000 * 5, pi); 
+		am.set(AlarmManager.RTC, System.currentTimeMillis() + (1000*5), pi);
 	}
 
 	public void CancelAlarm(Context context) 
 	{
-		System.out.println("CancelAlarm");
-		PendingIntent sender = PendingIntent.getBroadcast(context, 0, new Intent("com.blah.blah.somemessage"), 0);
-		AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		alarmManager.cancel(sender);
+		Intent intent=new Intent( context, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.start");
+		
+		PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+		am.cancel(sender);
 	}
 
 	public void save_to_db(Context context, String name, String process_name) 

@@ -24,6 +24,12 @@
         </activity>
         <activity android:name=".DisplayMessageActivity" />
         <service android:enabled="true" android:name=".Service_handler"/>
+         <receiver android:name="Broadcast_receiver_handler" >
+            <intent-filter>
+                <action android:name="dhgg.app.usage.monitor.start" > </action>
+                <action android:name="dhgg.app.usage.monitor.stop" > </action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
