@@ -2,20 +2,14 @@ package com.dhgg.appusagetracker;
 
 import java.util.ArrayList;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ListView;
 
 public class MyFirstActivity extends Activity 
