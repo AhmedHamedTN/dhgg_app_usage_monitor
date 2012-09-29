@@ -1,4 +1,4 @@
-package com.dhgg.appusagetracker;
+package com.dhgg.appusagemonitor;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,7 +17,7 @@ public class Db_handler extends SQLiteOpenHelper {
 	
     // Database Name and Version
     private static final String DATABASE_NAME = "test_database";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 1;
  
     // Contacts table name
     private static final String TABLE_NAME = "test_table";

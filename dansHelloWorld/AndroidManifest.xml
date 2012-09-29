@@ -1,12 +1,12 @@
 <manifest 
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.dhgg.appusagetracker"
+    package="com.dhgg.appusagemonitor"
     android:versionCode="1"
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="15"
-        android:targetSdkVersion="15" />
+        android:minSdkVersion="10"
+        android:targetSdkVersion="10" />
     
     <uses-permission android:name="android.permission.GET_TASKS"/>
 
@@ -22,9 +22,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DisplayMessageActivity" />
-        <service android:enabled="true" android:name=".Service_handler"/>
-        <receiver android:name="Broadcast_receiver_handler" >
+        <receiver android:name=".Broadcast_receiver_handler" >
         	<intent-filter>
                 <action android:name="dhgg.app.usage.monitor.start" > </action>
                 <action android:name="dhgg.app.usage.monitor.stop" > </action>

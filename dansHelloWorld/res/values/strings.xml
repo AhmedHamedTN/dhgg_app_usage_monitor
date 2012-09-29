@@ -1,9 +1,9 @@
 <resources>
 	
-    <string name="app_name">App Usage Tracker</string>
+    <string name="app_name">App Usage Monitor</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity">App Usage Tracker</string>
+    <string name="title_activity">App Usage Monitor</string>
     <string name="edit_message">Enter a message</string>
     <string name="button_send">Send</string>
     <string name="blank_message"></string>

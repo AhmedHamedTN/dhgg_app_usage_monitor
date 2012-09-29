@@ -1,4 +1,4 @@
-package com.dhgg.appusagetracker;
+package com.dhgg.appusagemonitor;
 
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver {
 		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 		am.set(AlarmManager.RTC, System.currentTimeMillis() + (1000*seconds), pi);
 	}
-
+	
 	public void CancelAlarm(Context context) 
 	{
 		Intent intent=new Intent( context, Broadcast_receiver_handler.class);

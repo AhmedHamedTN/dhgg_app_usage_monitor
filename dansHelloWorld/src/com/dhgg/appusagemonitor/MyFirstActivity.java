@@ -1,4 +1,4 @@
-package com.dhgg.appusagetracker;
+package com.dhgg.appusagemonitor;
 
 import java.util.ArrayList;
 
@@ -68,7 +68,7 @@ public class MyFirstActivity extends Activity
 	public void onResume() 
 	{
 		m_db_handler.update_or_add("screen_on", "screen_on");
-		m_db_handler.update_or_add("App Usage Tracker", "com.dhgg.appusagetracker");
+		m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
 
 		refreshScreen();
 
@@ -87,7 +87,7 @@ public class MyFirstActivity extends Activity
 
 	public void onPause() 
 	{
-		m_db_handler.update_or_add("App Usage Tracker", "com.dhgg.appusagetracker");
+		m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
 		m_db_handler.update_or_add("screen_off", "screen_off");
 
 		super.onPause();
