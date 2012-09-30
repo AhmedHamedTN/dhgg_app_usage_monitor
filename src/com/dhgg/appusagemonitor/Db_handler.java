@@ -94,8 +94,20 @@ public class Db_handler extends SQLiteOpenHelper {
 	    db.close(); 
 	}
 	
-    public ArrayList<Data_value> getAllData() 
+    public ArrayList<Data_value> getAllData( String hist_pref ) 
     {
+
+    	boolean check_for_today = false;
+		boolean check_for_24_hours = false;
+		boolean check_for_all = false; 
+    	if ( hist_pref.equals("s_h_p_today"))
+    		check_for_today = true;
+    	else if (hist_pref.equals("s_h_p_24h"))
+    		check_for_24_hours = true;
+    	else
+    		check_for_all = true;
+    		
+    		
         String selectQuery = "SELECT  * FROM " + TABLE_NAME;
  
         SQLiteDatabase db = this.getReadableDatabase();
@@ -105,7 +117,8 @@ public class Db_handler extends SQLiteOpenHelper {
 		int today_date = gcalendar.get(Calendar.YEAR) * 10000 +
 				         (gcalendar.get(Calendar.MONTH)+1)  * 100 +
 				         gcalendar.get(Calendar.DATE) ;
-	
+
+        long current_time = System.currentTimeMillis();
  
         // Looping through all rows and dumping out the info
         Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();  
@@ -120,9 +133,20 @@ public class Db_handler extends SQLiteOpenHelper {
             	
             	String process_name = cursor.getString(4);
             	int date = cursor.getInt(5);
-            	if (today_date - date > 1)
+            	if ( check_for_today )
             	{
-            		continue;
+            		if ( today_date - date > 1)
+            		{
+            			continue;
+            		}
+            	}
+            	else if ( check_for_24_hours )
+            	{
+            		int time_diff = (int) current_time - cursor.getInt(3);
+            		if ( time_diff > 24 * 60 * 60 * 1000 )
+            		{
+            			continue;
+            		}
             	}
             	
 

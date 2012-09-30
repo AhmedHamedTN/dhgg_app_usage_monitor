@@ -4,10 +4,26 @@
 		android:id="@+id/item_start"
 		android:icon="@drawable/ic_launcher"
 		android:title="@string/button_start" />
+	
 	<item
 		android:id="@+id/item_stop"
 		android:icon="@drawable/ic_launcher"
 		android:title="@string/button_stop" />
+	
+	<item
+		android:id="@+id/show_today"
+		android:icon="@drawable/ic_launcher"
+		android:title="@string/button_show_today" />
+	
+    <item
+		android:id="@+id/show_24_hours"
+		android:icon="@drawable/ic_launcher"
+		android:title="@string/button_show_24_hours" />
+    <item
+		android:id="@+id/show_all"
+		android:icon="@drawable/ic_launcher"
+		android:title="@string/button_show_all" />
+	
 	<item
 		android:id="@+id/item_restart"
 		android:icon="@drawable/ic_launcher"
