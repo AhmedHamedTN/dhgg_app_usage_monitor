@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -188,6 +187,21 @@ public class MyFirstActivity extends Activity
 		// Check to see if we should send an initial message
 		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
 		String hist_pref = settings.getString(SHOW_HIST_PREFS,SHOW_HIST_PREF_ALL);
+			
+		// Get data to display
+		Db_handler db_handler = new Db_handler(this);
+		ArrayList<Data_value> data = db_handler.getAllData( hist_pref );
+		
+		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
+		Data_value_adapter adapter = new Data_value_adapter(this,
+				R.layout.name_value_row, data_arr);
+
+		ListView list_view = (ListView) findViewById(R.id.task_list_view);
+
+		// Add rows to the list view.
+		list_view.setAdapter(null);
+		list_view.setAdapter(adapter);
+		
 
 		// Show a toast to indicate what we are displaying
 		String toast_msg = "Showing usage ...";
@@ -204,6 +218,12 @@ public class MyFirstActivity extends Activity
 			toast_msg = "Showing usage for last 24 hours.";
 		}
 		
+		if ( data.size() == 1)
+		{
+			show_toast = true;
+			toast_msg = "Welcome! Return later to see updated stats.";
+		}
+		
 		if ( show_toast )
 		{
 			Toast toast = Toast.makeText(getApplicationContext(),									
@@ -211,20 +231,7 @@ public class MyFirstActivity extends Activity
 			toast.show();
 		}
 
-			
-		// Get data to display
-		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getAllData( hist_pref );
 
-		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
-		Data_value_adapter adapter = new Data_value_adapter(this,
-				R.layout.name_value_row, data_arr);
-
-		ListView list_view = (ListView) findViewById(R.id.task_list_view);
-
-		// Add rows to the list view.
-		list_view.setAdapter(null);
-		list_view.setAdapter(adapter);
 	}
 
 	public void restartDb() 

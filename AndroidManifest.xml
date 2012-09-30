@@ -1,8 +1,8 @@
 <manifest 
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dhgg.appusagemonitor"
-    android:versionCode="1"
-    android:versionName="Alpha" >
+    android:versionCode="2"
+    android:versionName="Filters_Added" >
 
     <uses-sdk
         android:minSdkVersion="10"
