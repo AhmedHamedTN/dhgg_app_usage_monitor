@@ -13,7 +13,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class Db_handler extends SQLiteOpenHelper {
+public class Db_handler extends SQLiteOpenHelper 
+{
 	
     // Database Name and Version
     private static final String DATABASE_NAME = "test_database";
@@ -29,9 +30,12 @@ public class Db_handler extends SQLiteOpenHelper {
     private static final String END_TIME_COLUMN = "end_time_col";
     private static final String PROCESS_NAME_COLUMN = "process_name_col";
     private static final String DATE_COLUMN = "date_col";
+    
+    private static final int MAX_DAYS_TO_SAVE = 3; 
  
     // Constructor
-    public Db_handler(Context context) {
+    public Db_handler(Context context) 
+    {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
     
@@ -73,12 +77,10 @@ public class Db_handler extends SQLiteOpenHelper {
 		System.out.println("addData:"+name+" process_name:"+process_name);
 	    SQLiteDatabase db = this.getWritableDatabase();
 
-	    // clear out old values
-		GregorianCalendar gcalendar = new GregorianCalendar();
+	    GregorianCalendar gcalendar = new GregorianCalendar();
 		int date = gcalendar.get(Calendar.YEAR) * 10000 +
 				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
 				   gcalendar.get(Calendar.DATE) ;
-	    db.delete(TABLE_NAME, DATE_COLUMN+" < "+(date-3), null);	 
 
 	    // Add new data
     	long time = System.currentTimeMillis();
@@ -93,20 +95,17 @@ public class Db_handler extends SQLiteOpenHelper {
 	    db.insert(TABLE_NAME, null, values);
 	    db.close(); 
 	}
-	
+		
     public ArrayList<Data_value> getAllData( String hist_pref ) 
     {
+    	consolidate_old_data();
 
     	boolean check_for_today = false;
-		boolean check_for_24_hours = false;
-		boolean check_for_all = false; 
+		boolean check_for_24_hours = false; 
     	if ( hist_pref.equals("s_h_p_today"))
     		check_for_today = true;
     	else if (hist_pref.equals("s_h_p_24h"))
     		check_for_24_hours = true;
-    	else
-    		check_for_all = true;
-    		
     		
         String selectQuery = "SELECT  * FROM " + TABLE_NAME;
  
@@ -114,10 +113,11 @@ public class Db_handler extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(selectQuery, null);        
 
 		GregorianCalendar gcalendar = new GregorianCalendar();
-		int today_date = gcalendar.get(Calendar.YEAR) * 10000 +
-				         (gcalendar.get(Calendar.MONTH)+1)  * 100 +
-				         gcalendar.get(Calendar.DATE) ;
-
+		gcalendar.add(Calendar.DATE, -1);
+		int yesterday_date = gcalendar.get(Calendar.YEAR) * 10000 +
+		                     (gcalendar.get(Calendar.MONTH)+1)  * 100 +
+		                     gcalendar.get(Calendar.DATE) ;
+		
         long current_time = System.currentTimeMillis();
  
         // Looping through all rows and dumping out the info
@@ -135,7 +135,7 @@ public class Db_handler extends SQLiteOpenHelper {
             	int date = cursor.getInt(5);
             	if ( check_for_today )
             	{
-            		if ( today_date - date > 1)
+            		if ( yesterday_date >= date )
             		{
             			continue;
             		}
@@ -240,4 +240,73 @@ public class Db_handler extends SQLiteOpenHelper {
     		addData( name, process_name );
     	}
     }
+    
+
+    public void consolidate_old_data(  ) 
+    {
+		GregorianCalendar gcalendar = new GregorianCalendar();
+		gcalendar.add(Calendar.DATE, - MAX_DAYS_TO_SAVE);
+		int old_date = gcalendar.get(Calendar.YEAR) * 10000 +
+				         (gcalendar.get(Calendar.MONTH)+1)  * 100 +
+				         gcalendar.get(Calendar.DATE) ;
+		
+        String selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE "+
+                             DATE_COLUMN + " < " + old_date ;
+
+    	System.out.println("consolidate_old_data: "+selectQuery);
+ 
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);        
+ 
+        // Looping through all rows to get the data
+        Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();          
+        if (cursor.moveToFirst()) 
+        {
+            do 
+            {	
+            	String app_name = cursor.getString(1);
+            	
+            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ) /1000;
+            	
+            	String process_name = cursor.getString(4);
+        
+            	// store name + object value map
+            	if (mp_obj.containsKey(app_name))
+            	{
+            		Data_value dv = (mp_obj.get(app_name));
+            		mp_obj.put(app_name, new Data_value(app_name, process_name,
+            				                            dv.value + time_diff));
+            	}
+            	else
+            	{
+            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+            		mp_obj.put(app_name, dv );
+            	}
+
+            } while (cursor.moveToNext());
+        }
+        db.close();
+
+        // Delete old data.
+	    SQLiteDatabase db_write = this.getWritableDatabase();
+	    String delete_command = DATE_COLUMN + " < " + old_date; 
+	    db_write.delete(TABLE_NAME, delete_command, null);       
+
+        // Add consolidated data.
+        for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
+        {
+        	Data_value dv = entry.getValue();
+        	
+        	ContentValues values = new ContentValues();
+    	    values.put(NAME_COLUMN, dv.description);
+    	    values.put(START_TIME_COLUMN, 0);
+    	    values.put(END_TIME_COLUMN, dv.value);
+    	    values.put(PROCESS_NAME_COLUMN,dv.process_name);	 
+    	    values.put(DATE_COLUMN, 20120101);
+    	    
+    	    db.insert(TABLE_NAME, null, values);
+        }
+	    db_write.close();
+    }
+
 }

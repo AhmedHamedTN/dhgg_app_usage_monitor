@@ -5,4 +5,11 @@
 user name == dhan12
 repository name == dhgg_app_usage_monitor
 
+## Pushing updates
+git remote add origin https://github.com/dhan12/dhgg_app_usage_monitor.git
+git push -u origin master
+
+######################################################################
+######################################################################
+
 
