@@ -14,8 +14,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class Db_handler extends SQLiteOpenHelper 
-{
-	
+{	
     // Database Name and Version
     private static final String DATABASE_NAME = "test_database";
     private static final int DATABASE_VERSION = 1;
@@ -95,8 +94,9 @@ public class Db_handler extends SQLiteOpenHelper
 	    db.insert(TABLE_NAME, null, values);
 	    db.close(); 
 	}
-		
-    public ArrayList<Data_value> getAllData( String hist_pref ) 
+
+	
+    public ArrayList<Data_value> getData( String hist_pref ) 
     {
     	consolidate_old_data();
 
@@ -158,6 +158,54 @@ public class Db_handler extends SQLiteOpenHelper
             		Data_value dv = (mp_obj.get(app_name));
             		mp_obj.put(app_name, new Data_value(app_name, process_name,
             				                            dv.value + time_diff));
+            	}
+            	else
+            	{
+            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+            		mp_obj.put(app_name, dv );
+            	}
+
+            } while (cursor.moveToNext());
+        }
+        db.close();
+
+        ArrayList <Data_value> data = new ArrayList<Data_value>();
+        for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
+        {
+        	data.add(0,entry.getValue());
+        }
+        
+        Collections.sort( data, new DataValueComparator());
+        return data;
+    }
+
+    public ArrayList<Data_value> getAllData(  ) 
+    {
+        String selectQuery = "SELECT  * FROM " + TABLE_NAME;
+ 
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);        
+ 
+        // Looping through all rows and dumping out the info
+        Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();  
+        
+        if (cursor.moveToFirst()) {
+            do {	
+            	String app_name = cursor.getString(1);
+            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+            	{
+            		continue;
+            	}
+            	
+            	String process_name = cursor.getString(4);
+            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ) /1000;
+
+            	// store name + object value map
+            	if (mp_obj.containsKey(app_name))
+            	{
+            		Data_value dv = (mp_obj.get(app_name));
+            		mp_obj.put(app_name, new Data_value(app_name, process_name,
+            				                            dv.value 	+ time_diff));
             	}
             	else
             	{

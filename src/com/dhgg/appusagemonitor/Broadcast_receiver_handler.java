@@ -11,9 +11,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
 
-public class Broadcast_receiver_handler extends BroadcastReceiver {
+public class Broadcast_receiver_handler extends BroadcastReceiver 
+{
 	@Override
-	public void onReceive(Context context, Intent intent) {
+	public void onReceive(Context context, Intent intent) 
+	{
 		String action = intent.getAction();
 		
 		PowerManager pManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);

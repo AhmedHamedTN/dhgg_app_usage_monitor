@@ -1,8 +1,8 @@
 <manifest 
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dhgg.appusagemonitor"
-    android:versionCode="4"
-    android:versionName="Improved data storage" >
+    android:versionCode="5"
+    android:versionName="Improved options. Export data." >
 
     <uses-sdk
         android:minSdkVersion="10"

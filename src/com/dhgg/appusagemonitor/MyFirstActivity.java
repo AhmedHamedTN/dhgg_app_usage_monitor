@@ -38,7 +38,7 @@ public class MyFirstActivity extends Activity
 		
 		m_db_handler = new Db_handler(getApplicationContext());
 
-		// Add the admob adview
+		// Add the ADMOB view
 		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
 		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
 		layout.addView(adView);
@@ -102,6 +102,9 @@ public class MyFirstActivity extends Activity
 		case R.id.show_all:
 			set_hist_prefs( SHOW_HIST_PREF_ALL );
 			refreshScreen();
+			break;
+		case R.id.item_send_data:
+			send_data();
 			break;
 		}
 		return true;
@@ -190,7 +193,7 @@ public class MyFirstActivity extends Activity
 			
 		// Get data to display
 		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getAllData( hist_pref );
+		ArrayList<Data_value> data = db_handler.getData( hist_pref );
 		
 		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
 		Data_value_adapter adapter = new Data_value_adapter(this,
@@ -230,10 +233,29 @@ public class MyFirstActivity extends Activity
                 toast_msg, Toast.LENGTH_LONG);
 			toast.show();
 		}
-
-
 	}
+	
+	public void send_data() 
+	{	
+		// Get data to send
+		Db_handler db_handler = new Db_handler(this);
+		ArrayList<Data_value> data = db_handler.getAllData( );
+		
+		String data_to_send = "";
+		data_to_send += "App Name   \tTime Spent Using\n";
+		for (Data_value dv : data)
+		{
+			data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
+		}
 
+		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
+		send_intent.setType("text/plain");
+		send_intent.putExtra(Intent.EXTRA_SUBJECT, "App Usage Monitor data");
+		send_intent.putExtra(Intent.EXTRA_TEXT, data_to_send);
+	    
+		startActivity(send_intent);
+	}
+	
 	public void restartDb() 
 	{
 		// Get data to display
@@ -243,4 +265,25 @@ public class MyFirstActivity extends Activity
 		refreshScreen();
 	}
 
+    public String get_time_str( int time_in_seconds)
+    {
+    	int total_secs = time_in_seconds;
+    	
+        int hours = total_secs / 3600;
+        int mins = (total_secs - (hours * 3600))/ 60;
+        int secs = total_secs - (hours * 3600) - (mins * 60);
+        
+        String time_str = "";
+        if (hours > 0)
+        {
+        	time_str += hours + "h ";
+        }
+        if (mins > 0)
+        {
+        	time_str += mins + "m ";
+        }
+        time_str += secs + "s";
+        
+    	return time_str;
+    }
 }

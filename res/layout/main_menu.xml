@@ -11,19 +11,24 @@
 		android:title="@string/button_stop" />
 	
 	<item
-		android:id="@+id/show_today"
+		android:id="@+id/item_time_range"
 		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_show_today" />
+		android:title="@string/button_time_range" >
+        <menu>
+            <item android:id="@+id/show_today"
+                  android:title="@string/button_show_today" />
+            <item android:id="@+id/show_24_hours"
+                  android:title="@string/button_show_24_hours" />
+            <item android:id="@+id/show_all"
+                  android:title="@string/button_show_all" />
+        </menu>
+	</item>
 	
     <item
-		android:id="@+id/show_24_hours"
+		android:id="@+id/item_send_data"
 		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_show_24_hours" />
-    <item
-		android:id="@+id/show_all"
-		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_show_all" />
-	
+		android:title="@string/button_send_data" />
+    	
 	<item
 		android:id="@+id/item_restart"
 		android:icon="@drawable/ic_launcher"
