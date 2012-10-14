@@ -73,7 +73,6 @@ public class Db_handler extends SQLiteOpenHelper
 	
 	public void addData(String name, String process_name ) 
 	{	
-		System.out.println("addData:"+name+" process_name:"+process_name);
 	    SQLiteDatabase db = this.getWritableDatabase();
 
 	    GregorianCalendar gcalendar = new GregorianCalendar();
@@ -81,12 +80,15 @@ public class Db_handler extends SQLiteOpenHelper
 				   (gcalendar.get(Calendar.MONTH)+1)  * 100 +
 				   gcalendar.get(Calendar.DATE) ;
 
-	    // Add new data
+		// Set up the times with a minimum display time of 1 second.
     	long time = System.currentTimeMillis();
+    	long end_time = time + 1000;
+    	
+	    // Add new data
 	    ContentValues values = new ContentValues();
 	    values.put(NAME_COLUMN, name);
 	    values.put(START_TIME_COLUMN, time);
-	    values.put(END_TIME_COLUMN, time);
+	    values.put(END_TIME_COLUMN, end_time);
 	    values.put(PROCESS_NAME_COLUMN,process_name);	 
 	    values.put(DATE_COLUMN, date);
 
@@ -229,23 +231,30 @@ public class Db_handler extends SQLiteOpenHelper
 
     public void updateLast( ) 
     {
-        // Select All Query
-        String selectQuery = "SELECT id FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
+        String selectQuery = "SELECT "+ID_COLUMN + "," + END_TIME_COLUMN +
+        		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
  
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
  
         // looping through all rows and dumping out the info
         String id = "";
+        long last_end_time = -999;
         if (cursor.moveToFirst()) 
         {
         	id = cursor.getString(0);
+        	last_end_time = cursor.getLong(1);
+        }
+        
+        long time = System.currentTimeMillis();
+        if ( last_end_time == -999 || last_end_time > time )
+        {
+        	return;
         }
         
         String strFilter = "id=" + id;
         ContentValues args = new ContentValues();
         
-        long time = System.currentTimeMillis();
         args.put(END_TIME_COLUMN, time);
         db.update(TABLE_NAME, args, strFilter, null);
         
