@@ -63,7 +63,6 @@ public class Db_handler extends SQLiteOpenHelper
         onCreate(db);
 	}
 
-
 	public void clear_data() 
 	{
 	    SQLiteDatabase db = this.getWritableDatabase();
@@ -91,13 +90,11 @@ public class Db_handler extends SQLiteOpenHelper
 	    values.put(END_TIME_COLUMN, end_time);
 	    values.put(PROCESS_NAME_COLUMN,process_name);	 
 	    values.put(DATE_COLUMN, date);
-
-
+ 
 	    db.insert(TABLE_NAME, null, values);
 	    db.close(); 
 	}
 
-	
     public ArrayList<Data_value> getData( String hist_pref ) 
     {
     	consolidate_old_data();
@@ -246,8 +243,8 @@ public class Db_handler extends SQLiteOpenHelper
         	last_end_time = cursor.getLong(1);
         }
         
-        long time = System.currentTimeMillis();
-        if ( last_end_time == -999 || last_end_time > time )
+        long new_end_time = System.currentTimeMillis();
+        if ( last_end_time == -999 || last_end_time > new_end_time )
         {
         	return;
         }
@@ -255,34 +252,50 @@ public class Db_handler extends SQLiteOpenHelper
         String strFilter = "id=" + id;
         ContentValues args = new ContentValues();
         
-        args.put(END_TIME_COLUMN, time);
+        args.put(END_TIME_COLUMN, new_end_time);
         db.update(TABLE_NAME, args, strFilter, null);
-        
+
         db.close();
     }
     
     public boolean do_update( String name ) 
     {
         // Select All Query
-        String selectQuery = "SELECT "+NAME_COLUMN+" FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
+        String selectQuery = "SELECT "+NAME_COLUMN+","+DATE_COLUMN+
+        		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
  
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
  
         // looping through all rows and dumping out the info
         String prev_name = "";
+        int db_date = 0;
         if (cursor.moveToFirst()) 
         {
         	prev_name = cursor.getString(0);
+        	db_date = cursor.getInt(1);
         }
-        
         db.close();
         
+        // If it's from a new date, make a new row.
+        GregorianCalendar gcalendar = new GregorianCalendar();
+		int todays_date = gcalendar.get(Calendar.YEAR) * 10000 +
+			              (gcalendar.get(Calendar.MONTH)+1)  * 100 +
+			              gcalendar.get(Calendar.DATE) ;
+		if (todays_date != db_date)
+		{
+			return false;
+		}
+		
+
+        // If the name's are blank, make a new row
         if (name.isEmpty() || prev_name.isEmpty())
         {
         	return false;
         }
         
+
+        // If it's a repeat name, do an update, not an add.
         return name.equals( prev_name );        
     }
        
@@ -298,8 +311,7 @@ public class Db_handler extends SQLiteOpenHelper
     	}
     }
     
-
-    public void consolidate_old_data(  ) 
+    public void consolidate_old_data(  )
     {
 		GregorianCalendar gcalendar = new GregorianCalendar();
 		gcalendar.add(Calendar.DATE, - MAX_DAYS_TO_SAVE);
@@ -310,8 +322,6 @@ public class Db_handler extends SQLiteOpenHelper
         String selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE "+
                              DATE_COLUMN + " < " + old_date ;
 
-    	System.out.println("consolidate_old_data: "+selectQuery);
- 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);        
  
@@ -321,10 +331,8 @@ public class Db_handler extends SQLiteOpenHelper
         {
             do 
             {	
-            	String app_name = cursor.getString(1);
-            	
-            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ) /1000;
-            	
+            	String app_name = cursor.getString(1);            	
+            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) );            	
             	String process_name = cursor.getString(4);
         
             	// store name + object value map
@@ -353,7 +361,7 @@ public class Db_handler extends SQLiteOpenHelper
         for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
         {
         	Data_value dv = entry.getValue();
-        	
+   		
         	ContentValues values = new ContentValues();
     	    values.put(NAME_COLUMN, dv.description);
     	    values.put(START_TIME_COLUMN, 0);
@@ -361,9 +369,11 @@ public class Db_handler extends SQLiteOpenHelper
     	    values.put(PROCESS_NAME_COLUMN,dv.process_name);	 
     	    values.put(DATE_COLUMN, 20120101);
     	    
-    	    db.insert(TABLE_NAME, null, values);
+    	    db_write.insert(TABLE_NAME, null, values);
         }
+        
 	    db_write.close();
+	    
     }
 
 }
