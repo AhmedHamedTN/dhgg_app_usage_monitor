@@ -17,7 +17,7 @@ public class Db_handler extends SQLiteOpenHelper
 {	
     // Database Name and Version
     private static final String DATABASE_NAME = "test_database";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 2;
  
     // Contacts table name
     private static final String TABLE_NAME = "test_table";
