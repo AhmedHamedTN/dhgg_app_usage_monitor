@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
+import android.telephony.TelephonyManager;
 
 public class Broadcast_receiver_handler extends BroadcastReceiver 
 {
@@ -34,10 +35,17 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 		}
 		else
 		{
-			save_to_db( context, "screen_off", "screen_off");
-			
-			int seconds = 15;			
-			SetAlarm(context,seconds);
+			// Check if we are on the phone
+			if ( on_phone( context ) )
+			{
+				logAppInfo(context);
+				SetAlarm(context, 5);
+			}
+			else 
+			{
+				save_to_db( context, "screen_off", "screen_off");
+				SetAlarm(context,15);
+			}
 		}
 	}
 
@@ -120,6 +128,18 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 				break;
 			}
 		}
+	}
+	
+	public boolean on_phone( Context context)
+	{
+		TelephonyManager tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+		int call_state = tm.getCallState();
+		if ( call_state != TelephonyManager.CALL_STATE_IDLE )
+		{
+			return false;
+		}
+		
+		return true;
 	}
 
 }

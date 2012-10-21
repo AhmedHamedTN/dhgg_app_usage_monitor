@@ -17,7 +17,7 @@ public class Db_handler extends SQLiteOpenHelper
 {	
     // Database Name and Version
     private static final String DATABASE_NAME = "test_database";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
  
     // Contacts table name
     private static final String TABLE_NAME = "test_table";
@@ -30,7 +30,7 @@ public class Db_handler extends SQLiteOpenHelper
     private static final String PROCESS_NAME_COLUMN = "process_name_col";
     private static final String DATE_COLUMN = "date_col";
     
-    private static final int MAX_DAYS_TO_SAVE = 3; 
+    private static final int MAX_DAYS_TO_SAVE = 2; 
  
     // Constructor
     public Db_handler(Context context) 
@@ -42,7 +42,7 @@ public class Db_handler extends SQLiteOpenHelper
 	public void onCreate(SQLiteDatabase db) 
 	{
 		// Prepare statement to make a table 
-	    String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "(" +
+	    String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
 	                           ID_COLUMN + " INTEGER PRIMARY KEY AUTOINCREMENT," + 
 	    		               NAME_COLUMN + " TEXT," +
 	                           START_TIME_COLUMN + " INTEGER," +
@@ -51,16 +51,23 @@ public class Db_handler extends SQLiteOpenHelper
 	                           DATE_COLUMN + " INTEGER )";
 	                           
 	    db.execSQL(CREATE_TABLE);
-	}
+	    
+		// Add index to speed up queries
+	    db.execSQL("CREATE INDEX IF NOT EXISTS 	date_idx on "+TABLE_NAME+" ("+DATE_COLUMN+")");
+	 }
 	
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int old_version, int new_version) 
 	{
+		// Temporarily stop the drop.
+		// 
+		// TODO: if a real upgrade is needed, uncomment this out.
 		// Drop older table if existed
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
- 
-        // Create tables again
-        onCreate(db);
+		//db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+		//db.execSQL("DROP INDEX IF EXISTS date_idx");
+				
+		// Create tables 
+		onCreate(db);
 	}
 
 	public void clear_data() 
@@ -97,32 +104,39 @@ public class Db_handler extends SQLiteOpenHelper
 
     public ArrayList<Data_value> getData( String hist_pref ) 
     {
+
     	consolidate_old_data();
 
+		GregorianCalendar gcalendar = new GregorianCalendar();
+		gcalendar.add(Calendar.DATE, - 1);
+		int yest_date = gcalendar.get(Calendar.YEAR) * 10000 +
+		                (gcalendar.get(Calendar.MONTH)+1)  * 100 +
+		                gcalendar.get(Calendar.DATE) ;
+
+		String select_query = "SELECT  * FROM "+TABLE_NAME+" WHERE "+DATE_COLUMN + " ";		
     	boolean check_for_today = false;
 		boolean check_for_24_hours = false; 
     	if ( hist_pref.equals("s_h_p_today"))
+    	{
     		check_for_today = true;
+    		select_query += " > " + yest_date;
+    	}
     	else if (hist_pref.equals("s_h_p_24h"))
+    	{
     		check_for_24_hours = true;
-    		
-        String selectQuery = "SELECT  * FROM " + TABLE_NAME;
- 
+    		select_query += " >= " + yest_date;
+    	}
+    	
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);        
+        Cursor cursor = db.rawQuery(select_query, null);        
 
-		GregorianCalendar gcalendar = new GregorianCalendar();
-		gcalendar.add(Calendar.DATE, -1);
-		int yesterday_date = gcalendar.get(Calendar.YEAR) * 10000 +
-		                     (gcalendar.get(Calendar.MONTH)+1)  * 100 +
-		                     gcalendar.get(Calendar.DATE) ;
-		
         long current_time = System.currentTimeMillis();
  
         // Looping through all rows and dumping out the info
         Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();  
         
-        if (cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) 
+        {
             do {	
             	String app_name = cursor.getString(1);
             	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
@@ -134,7 +148,7 @@ public class Db_handler extends SQLiteOpenHelper
             	int date = cursor.getInt(5);
             	if ( check_for_today )
             	{
-            		if ( yesterday_date >= date )
+            		if ( yest_date >= date )
             		{
             			continue;
             		}
@@ -177,6 +191,7 @@ public class Db_handler extends SQLiteOpenHelper
         Collections.sort( data, new DataValueComparator());
         return data;
     }
+    
 
     public ArrayList<Data_value> getAllData(  ) 
     {
