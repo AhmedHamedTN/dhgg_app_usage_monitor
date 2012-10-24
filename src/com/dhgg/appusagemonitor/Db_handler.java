@@ -9,6 +9,7 @@ import java.util.Map;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -98,7 +99,13 @@ public class Db_handler extends SQLiteOpenHelper
 	    values.put(PROCESS_NAME_COLUMN,process_name);	 
 	    values.put(DATE_COLUMN, date);
  
-	    db.insert(TABLE_NAME, null, values);
+
+		try 
+		{
+		    db.insert(TABLE_NAME, null, values);
+		} 
+		catch(Exception e) { }
+		
 	    db.close(); 
 	}
 
@@ -268,7 +275,13 @@ public class Db_handler extends SQLiteOpenHelper
         ContentValues args = new ContentValues();
         
         args.put(END_TIME_COLUMN, new_end_time);
-        db.update(TABLE_NAME, args, strFilter, null);
+        
+		try 
+		{
+	        db.update(TABLE_NAME, args, strFilter, null);
+		} 
+		catch(Exception e) { }
+
 
         db.close();
     }
@@ -384,7 +397,12 @@ public class Db_handler extends SQLiteOpenHelper
     	    values.put(PROCESS_NAME_COLUMN,dv.process_name);	 
     	    values.put(DATE_COLUMN, 20120101);
     	    
-    	    db_write.insert(TABLE_NAME, null, values);
+			try 
+			{
+	    	    db_write.insert(TABLE_NAME, null, values);
+ 
+			} catch(Exception e) { }
+
         }
         
 	    db_write.close();
