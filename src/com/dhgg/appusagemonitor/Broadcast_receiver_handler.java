@@ -134,7 +134,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 	{
 		TelephonyManager tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
 		int call_state = tm.getCallState();
-		if ( call_state != TelephonyManager.CALL_STATE_IDLE )
+		if ( call_state == TelephonyManager.CALL_STATE_IDLE )
 		{
 			return false;
 		}
