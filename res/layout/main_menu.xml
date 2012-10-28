@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-	<item
-		android:id="@+id/item_start"
-		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_start" />
-	
-	<item
-		android:id="@+id/item_stop"
-		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_stop" />
-	
+    
+    <item
+		android:id="@+id/item_send_data"
+		android:icon="@drawable/ic_menu_share_holo_dark"
+		android:title="@string/button_send_data"	
+        android:showAsAction="ifRoom|withText"  />
+    
 	<item
 		android:id="@+id/item_time_range"
-		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_time_range" >
+		android:icon="@drawable/ic_menu_recent_history"
+		android:title="@string/button_time_range"
+        android:showAsAction="ifRoom|withText"  >
         <menu>
             <item android:id="@+id/show_today"
                   android:title="@string/button_show_today" />
@@ -23,14 +21,22 @@
                   android:title="@string/button_show_all" />
         </menu>
 	</item>
-	
-    <item
-		android:id="@+id/item_send_data"
-		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_send_data" />
     	
 	<item
+		android:id="@+id/item_start"
+		android:icon="@drawable/ic_media_play"
+		android:title="@string/button_start"	
+        android:showAsAction="ifRoom|withText"  />
+	
+	<item
+		android:id="@+id/item_stop"
+		android:icon="@drawable/ic_media_stop"
+		android:title="@string/button_stop"	
+        android:showAsAction="ifRoom|withText"  />
+	
+	<item
 		android:id="@+id/item_restart"
-		android:icon="@drawable/ic_launcher"
-		android:title="@string/button_restart" />
+		android:icon="@drawable/ic_menu_delete"
+		android:title="@string/button_restart" 
+        android:showAsAction="ifRoom|withText" />
 </menu>

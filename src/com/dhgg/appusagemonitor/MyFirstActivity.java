@@ -177,7 +177,7 @@ public class MyFirstActivity extends Activity
 
 	public void stopService() 
 	{
-		set_update_flag(false);
+		set_update_flag(true);
 		
 	    // Send stop message
 		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
@@ -205,7 +205,6 @@ public class MyFirstActivity extends Activity
 		list_view.setAdapter(null);
 		list_view.setAdapter(adapter);
 		
-
 		// Show a toast to indicate what we are displaying
 		String toast_msg = "Showing usage ...";
 		boolean show_toast = false;
@@ -213,7 +212,6 @@ public class MyFirstActivity extends Activity
 		{
 			show_toast = true;
 			toast_msg = "Showing usage for today.";
-			
 		}
 		else if ( hist_pref.equals( SHOW_HIST_PREF_24_H ) )
 		{
@@ -226,7 +224,19 @@ public class MyFirstActivity extends Activity
 			show_toast = true;
 			toast_msg = "Welcome! Return later to see updated stats.";
 		}
-		
+
+		// Check to see if we should start the broadcast system.
+		SharedPreferences update_pref = getSharedPreferences(TURN_OFF_UPDATES, 0);
+		boolean updates_are_off = update_pref.getBoolean(TURN_OFF_UPDATES, false);
+		if ( updates_are_off )
+		{
+			toast_msg += "\nMonitoring is off.";
+		}
+		else
+		{
+			toast_msg += "\nMonitoring is on.";
+		}
+
 		if ( show_toast )
 		{
 			Toast toast = Toast.makeText(getApplicationContext(),									

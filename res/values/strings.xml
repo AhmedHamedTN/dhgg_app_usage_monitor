@@ -10,5 +10,5 @@
     <string name="button_show_today">Show data for today.</string>
     <string name="button_show_24_hours">Show data for last 24 hours.</string>
     <string name="button_show_all">Show data for all history.</string>
-    <string name="button_send_data">Send Data</string>
+    <string name="button_send_data">Share</string>
 </resources>
