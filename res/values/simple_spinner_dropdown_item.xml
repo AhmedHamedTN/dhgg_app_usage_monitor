@@ -1,0 +1,6 @@
+<resources>
+    <string-array name="action_list">
+        <item>List</item>
+        <item>Chart</item>
+    </string-array>
+</resources>
