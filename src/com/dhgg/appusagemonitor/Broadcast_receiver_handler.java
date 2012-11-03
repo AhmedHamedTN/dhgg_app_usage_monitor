@@ -22,7 +22,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 		PowerManager pManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		if (pManager.isScreenOn())
 		{
-			int seconds = 5;
+			int seconds = 3;
 			if (action.equals("dhgg.app.usage.monitor.start")) 
 			{
 				logAppInfo(context);

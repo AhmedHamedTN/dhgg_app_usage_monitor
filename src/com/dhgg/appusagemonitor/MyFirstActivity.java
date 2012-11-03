@@ -2,7 +2,10 @@ package com.dhgg.appusagemonitor;
 
 import java.util.ArrayList;
 
+import android.app.ActionBar;
+import android.app.ActionBar.OnNavigationListener;
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,8 +13,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
-import android.widget.ListView;
+import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import com.google.ads.AdRequest;
@@ -21,20 +25,25 @@ import com.google.ads.AdView;
 public class MyFirstActivity extends Activity 
 {
 	public static Db_handler m_db_handler;
-    public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
+	public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
 	public static String TURN_OFF_UPDATES = "turn_off_updates";
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
 
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
-	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";
+	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";	
 	
+
+	SpinnerAdapter mSpinnerAdapter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
 		super.onCreate(savedInstanceState);
+		
 		setContentView(R.layout.activity_my_first);
+		
+		setTitle("");
 		
 		m_db_handler = new Db_handler(getApplicationContext());
 
@@ -44,7 +53,41 @@ public class MyFirstActivity extends Activity
 		layout.addView(adView);
 		AdRequest adRequest = new AdRequest();
 		adView.loadAd(adRequest);
+		
+		setup_action_bar();
 	}
+	
+	public void setup_action_bar()
+	{
+		ActionBar actionBar = getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		mSpinnerAdapter = 
+			ArrayAdapter.createFromResource(
+			this, R.array.action_list,
+			android.R.layout.simple_spinner_dropdown_item);
+		
+		actionBar.setListNavigationCallbacks(mSpinnerAdapter, 
+		    new OnNavigationListener() 
+			{
+				// Get the same strings provided for the drop-down's ArrayAdapter
+			    String[] strings = getResources().getStringArray(R.array.action_list);
+			    
+		        @Override
+		        public boolean onNavigationItemSelected(int position, long itemId) 
+		        {
+
+		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
+		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
+		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
+		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
+		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
+		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
+		        	
+		            return true;
+		        }
+			});
+	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) 
@@ -185,66 +228,7 @@ public class MyFirstActivity extends Activity
 		sendBroadcast(intent);		
 	}
 
-	public void refreshScreen() 
-	{
-		// Check to see if we should send an initial message
-		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
-		String hist_pref = settings.getString(SHOW_HIST_PREFS,SHOW_HIST_PREF_ALL);
-			
-		// Get data to display
-		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getData( hist_pref );
 		
-		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
-		Data_value_adapter adapter = new Data_value_adapter(this,
-				R.layout.name_value_row, data_arr);
-
-		ListView list_view = (ListView) findViewById(R.id.task_list_view);
-
-		// Add rows to the list view.
-		list_view.setAdapter(null);
-		list_view.setAdapter(adapter);
-		
-		// Show a toast to indicate what we are displaying
-		String toast_msg = "Showing usage ...";
-		boolean show_toast = false;
-		if ( hist_pref.equals( SHOW_HIST_PREF_TODAY ) )
-		{
-			show_toast = true;
-			toast_msg = "Showing usage for today.";
-		}
-		else if ( hist_pref.equals( SHOW_HIST_PREF_24_H ) )
-		{
-			show_toast = true;
-			toast_msg = "Showing usage for last 24 hours.";
-		}
-		
-		if ( data.size() == 1)
-		{
-			show_toast = true;
-			toast_msg = "Welcome! Return later to see updated stats.";
-		}
-
-		// Check to see if we should start the broadcast system.
-		SharedPreferences update_pref = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		boolean updates_are_off = update_pref.getBoolean(TURN_OFF_UPDATES, false);
-		if ( updates_are_off )
-		{
-			toast_msg += "\nMonitoring is off.";
-		}
-		else
-		{
-			toast_msg += "\nMonitoring is on.";
-		}
-
-		if ( show_toast )
-		{
-			Toast toast = Toast.makeText(getApplicationContext(),									
-                toast_msg, Toast.LENGTH_LONG);
-			toast.show();
-		}
-	}
-	
 	public void send_data() 
 	{	
 		// Get data to send
@@ -295,5 +279,56 @@ public class MyFirstActivity extends Activity
         time_str += secs + "s";
         
     	return time_str;
+    }
+    
+    public void refreshScreen()
+    {
+		// Find out what type of data to display.
+		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
+		String hist_pref = settings.getString(SHOW_HIST_PREFS,SHOW_HIST_PREF_ALL);
+		
+    	// Update the app list fragment.
+    	AppListFragment a_fragment = (AppListFragment) 
+    			getFragmentManager().findFragmentById(R.id.app_list_fragment);
+    	int data_returned_size = a_fragment.refreshScreen( hist_pref );
+    	
+    	// Show a toast to indicate what we are displaying
+    	String toast_msg = "Showing usage ...";
+    	boolean show_toast = false;
+    	if ( hist_pref.equals( SHOW_HIST_PREF_TODAY ) )
+    	{
+    		show_toast = true;
+    		toast_msg = "Showing usage for today.";
+    	}
+    	else if ( hist_pref.equals( SHOW_HIST_PREF_24_H ) )
+    	{
+    		show_toast = true;
+    		toast_msg = "Showing usage for last 24 hours.";
+    	}
+    			
+    	if ( data_returned_size == 1)
+    	{
+			show_toast = true;
+			toast_msg = "Welcome! Return later to see updated stats.";
+    	}
+
+    	// Check to see if we should start the broadcast system.
+    	SharedPreferences update_pref = getSharedPreferences(TURN_OFF_UPDATES, 0);
+    	boolean updates_are_off = update_pref.getBoolean(TURN_OFF_UPDATES, false);
+    	if ( updates_are_off )
+    	{
+    		toast_msg += "\nMonitoring is off.";
+    	}
+    	else
+    	{
+    		toast_msg += "\nMonitoring is on.";
+    	}
+
+    	if ( show_toast )
+    	{
+    		Toast toast = Toast.makeText(getApplicationContext(),									
+                 toast_msg, Toast.LENGTH_LONG);
+    		toast.show();
+    	}
     }
 }

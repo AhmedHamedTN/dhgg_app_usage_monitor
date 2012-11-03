@@ -1,5 +1,20 @@
 <resources>
 
-    <style name="AppTheme" parent="@android:style/Theme.Holo" />
-
+    <style name="app_theme" parent="@android:style/Theme.Holo.Light" >
+        <!-- 
+    <style name="AppTheme" parent="@android:style/Theme.Holo.Light" >
+        <item name="android:actionBarStyle">@style/MyActionBar</item>
+        -->
+    </style>
+    
+    <!-- 
+    style for the action bar backgrounds  
+    <style name="MyActionBar" parent="@android:style/Widget.Holo.ActionBar">
+    </style>    
+     
+    <style name="CustomDropDownItemStyle" parent="@android:style/TextAppearance.Holo">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+    -->
+    
 </resources>

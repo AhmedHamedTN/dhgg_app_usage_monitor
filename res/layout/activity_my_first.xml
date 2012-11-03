@@ -2,12 +2,14 @@
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-    	
-	<ListView android:id="@+id/task_list_view"
-	          android:layout_width="wrap_content"
-		      android:layout_height="0dp"
-		      android:layout_weight="1" />
-
+    
+    <fragment
+        android:name="com.dhgg.appusagemonitor.AppListFragment" 
+        android:id="@+id/app_list_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" 
+        android:layout_weight="1" />
+	
 	<LinearLayout android:id="@+id/linear_layout_for_adview"
         android:orientation="vertical"
         android:background="#FFFFFF"
@@ -15,6 +17,6 @@
         android:layout_height="wrap_content"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads" >
-	</LinearLayout>        
-        
+	</LinearLayout>
+	   
 </LinearLayout>
