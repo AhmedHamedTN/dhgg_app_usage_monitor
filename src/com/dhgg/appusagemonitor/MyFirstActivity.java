@@ -68,13 +68,30 @@ public class MyFirstActivity extends Activity
 		
 		actionBar.setListNavigationCallbacks(mSpinnerAdapter, 
 		    new OnNavigationListener() 
-			{
-				// Get the same strings provided for the drop-down's ArrayAdapter
-			    String[] strings = getResources().getStringArray(R.array.action_list);
-			    
+			{    
 		        @Override
 		        public boolean onNavigationItemSelected(int position, long itemId) 
 		        {
+	        		AppListFragment a_fragment = (AppListFragment) 
+		        			getFragmentManager().findFragmentById(R.id.app_list_fragment);
+		        	
+		        	FragmentTransaction ft = getFragmentManager().beginTransaction();
+
+		        	if ( itemId == 0 )
+		        	{
+		        		// hide list.
+			        	ft.show( a_fragment );
+			        	ft.commit();
+		        		
+		        	}
+		        	else if ( itemId == 1 )
+		        	{
+		        		// hide list.
+			        	ft.hide( a_fragment );
+			        	ft.commit();
+		        	
+		        		
+		        	}
 
 		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
 		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");

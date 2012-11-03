@@ -3,13 +3,13 @@
     
     <item
 		android:id="@+id/item_send_data"
-		android:icon="@drawable/ic_menu_share_holo_dark"
+		android:icon="@drawable/ic_menu_share_holo_light"
 		android:title="@string/button_send_data"	
         android:showAsAction="ifRoom|withText"  />
     
 	<item
 		android:id="@+id/item_time_range"
-		android:icon="@drawable/ic_menu_recent_history"
+		android:icon="@drawable/ic_menu_my_calendar"
 		android:title="@string/button_time_range"
         android:showAsAction="ifRoom|withText"  >
         <menu>
