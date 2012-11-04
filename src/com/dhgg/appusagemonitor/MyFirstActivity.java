@@ -72,33 +72,31 @@ public class MyFirstActivity extends Activity
 		        @Override
 		        public boolean onNavigationItemSelected(int position, long itemId) 
 		        {
-	        		AppListFragment a_fragment = (AppListFragment) 
-		        			getFragmentManager().findFragmentById(R.id.app_list_fragment);
-		        	
+	        		AppListFragment list_fragment = (AppListFragment)
+	        			getFragmentManager().findFragmentById(R.id.app_list_fragment);
+	        		AppChartFragment chart_fragment = (AppChartFragment)
+	        			getFragmentManager().findFragmentById(R.id.app_chart_fragment);
+			        	
 		        	FragmentTransaction ft = getFragmentManager().beginTransaction();
 
 		        	if ( itemId == 0 )
 		        	{
-		        		// hide list.
-			        	ft.show( a_fragment );
+			        	ft.show( list_fragment );
+			        	list_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );
+			        	
+			        	ft.hide( chart_fragment );
+			        	
 			        	ft.commit();
-		        		
 		        	}
 		        	else if ( itemId == 1 )
 		        	{
-		        		// hide list.
-			        	ft.hide( a_fragment );
-			        	ft.commit();
-		        	
-		        		
+			        	ft.hide( list_fragment );
+			        	
+			        	ft.show( chart_fragment );
+			        	chart_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );
+			        	
+			        	ft.commit();		        		
 		        	}
-
-		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
-		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
-		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
-		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
-		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
-		        	System.out.println( "onNavItemSelected "+position + " " + itemId+"---------------");
 		        	
 		            return true;
 		        }
@@ -308,7 +306,7 @@ public class MyFirstActivity extends Activity
     	AppListFragment a_fragment = (AppListFragment) 
     			getFragmentManager().findFragmentById(R.id.app_list_fragment);
     	int data_returned_size = a_fragment.refreshScreen( hist_pref );
-    	
+
     	// Show a toast to indicate what we are displaying
     	String toast_msg = "Showing usage ...";
     	boolean show_toast = false;
