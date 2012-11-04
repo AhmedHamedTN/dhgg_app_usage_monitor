@@ -1,10 +1,6 @@
 package com.dhgg.appusagemonitor;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
-import android.app.ActionBar.LayoutParams;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;

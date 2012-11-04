@@ -8,44 +8,47 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 
 
 public class PieChart extends View 
 {
-	public boolean mShowText;
-	public int mTextPos;
+	// Can be set in the attrs.xml
+	public boolean mShowText = true;;
+	public int mTextPos = 0;
+	
+	
     public Paint mTextPaint;
-    public int mTextColor;
-    
-    public float mTextHeight = 10;
+    public String aLabel = "Charting usage ...";
+    public int mTextColor = Color.BLACK;
+    public float mTextX = 20;
+    public float mTextY = 50;
+    public float mTextHeight = 40;
+        
     public float mTextWidth = 10;
     
     public Paint mPiePaint;    
     public Paint mShadowPaint;
     public RectF mShadowBounds;
     
-    public String aLabel = "some label";
-    public float mTextX = 10;
-    public float mTextY = 10;
-    
     public float mPointerX = 20;
     public float mPointerY = 20;
-    public float mPointerSize = 20;
-    
+    public float mPointerSize = 20;    
     public Context mContext;
-    
-    
+
+	Db_handler m_db_handler;
     
     public PieChart(Context ctx, AttributeSet attrs) 
     {
         super(ctx, attrs);
         
         TypedArray a = ctx.getTheme().obtainStyledAttributes(
-                attrs, R.styleable.PieChart, 0, 0);
+                       attrs, R.styleable.PieChart, 0, 0);
         
         try 
         {
@@ -54,10 +57,10 @@ public class PieChart extends View
         } 
         finally { a.recycle(); }
        
-        init();
+        init(ctx);
     }
     
-    private void init() 
+    private void init( Context context ) 
     {
        mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
        mTextPaint.setColor(mTextColor);
@@ -71,9 +74,14 @@ public class PieChart extends View
        mPiePaint.setStyle(Paint.Style.FILL);
        mPiePaint.setTextSize(mTextHeight);
 
+       
+       mShadowBounds = new RectF( 100, 100, 400, 400);
        mShadowPaint = new Paint(0);
        mShadowPaint.setColor(0xff101010);
        mShadowPaint.setMaskFilter(new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL));
+       
+
+		m_db_handler = new Db_handler( context );
    	}
 
     @Override
@@ -98,31 +106,33 @@ public class PieChart extends View
     	System.out.println(" --------- onDraw ---------------");
     	
     	// Draw the shadow
-    	//canvas.drawOval( mShadowBounds, mShadowPaint );
+    	canvas.drawOval( mShadowBounds, mShadowPaint );
 
     	// Draw the label text
     	//canvas.drawText(mData.get(mCurrentItem).mLabel, mTextX, mTextY, mTextPaint);
     	canvas.drawText(aLabel, mTextX, mTextY, mTextPaint);
 
-    	/*
     	// Get data for slices
-		Db_handler db_handler = new Db_handler( mContext );
-		ArrayList<Data_value> data = db_handler.getData( "s_h_p_today" );
-		
+		ArrayList<Data_value> data = m_db_handler.getData( "s_h_p_today" );
 		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
-		Data_value_adapter adapter = new Data_value_adapter(  mContext,
-				R.layout.name_value_row, data_arr);
+		int max = 0;
+    	for ( int i = 0; i < data.size(); i++ )
+    	{
+    		max += data_arr[i].value;
+    	}
+    	
     	
     	// Draw the pie slices
-    	for (int i = 0; i < mData.size(); ++i) 
+		Shader shader = null;
+    	for (int i = 0; i < data.size(); ++i) 
     	{
-    	   Item it = mData.get(i);
-    	   mPiePaint.setShader(it.mShader);
-    	   canvas.drawArc( mBounds, 360 - it.mEndAngle, 
-    			           it.mEndAngle - it.mStartAngle,
-                           true, mPiePaint );
+    	   mPiePaint.setShader( shader );
+    	   
+    	   int value = (i + (data_arr[i].value / max )  * 360 * 100 );
+    	   canvas.drawArc( mShadowBounds, 0, value, true, mPiePaint );
+    	   System.out.println( i + " , " + value + " --------------");
     	}
-		*/
+		
     	// Draw the pointer
     	//canvas.drawLine(mTextX, mPointerY, mPointerX, mPointerY, mTextPaint);
     	//canvas.drawCircle(mPointerX, mPointerY, mPointerSize, mTextPaint);
@@ -139,11 +149,6 @@ public class PieChart extends View
        mShowText = showText;
        invalidate();
        requestLayout();
-    }
-    	
-    public void setContext( Context context )
-    {
-    	mContext = context;
     }
     
 }
