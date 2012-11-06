@@ -84,13 +84,15 @@ public class MyFirstActivity extends Activity
 			        	ft.show( list_fragment );
 			        	list_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );
 			        	
-			        	ft.hide( chart_fragment );
+			        	ft.show( chart_fragment );
+			        	chart_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );
 			        	
 			        	ft.commit();
 		        	}
 		        	else if ( itemId == 1 )
 		        	{
-			        	ft.hide( list_fragment );
+			        	ft.show( list_fragment );
+			        	list_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );
 			        	
 			        	ft.show( chart_fragment );
 			        	chart_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );

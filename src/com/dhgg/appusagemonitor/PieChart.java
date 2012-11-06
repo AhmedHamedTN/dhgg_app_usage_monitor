@@ -3,15 +3,14 @@ package com.dhgg.appusagemonitor;
 
 import java.util.ArrayList;
 
-import android.content.ClipData.Item;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PathEffect;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -21,8 +20,7 @@ public class PieChart extends View
 	// Can be set in the attrs.xml
 	public boolean mShowText = true;;
 	public int mTextPos = 0;
-	
-	
+
     public Paint mTextPaint;
     public String aLabel = "Charting usage ...";
     public int mTextColor = Color.BLACK;
@@ -32,20 +30,45 @@ public class PieChart extends View
         
     public float mTextWidth = 10;
     
-    public Paint mPiePaint;    
+    private static Paint mPiePaint;    
+    public Paint mPiePaint2;    
+    public Paint mPiePaint3;    
     public Paint mShadowPaint;
     public RectF mShadowBounds;
+    
+    private static Paint[] m_paint_arcs;
+    private static RectF[] m_rects;
     
     public float mPointerX = 20;
     public float mPointerY = 20;
     public float mPointerSize = 20;    
     public Context mContext;
 
-	Db_handler m_db_handler;
+	public Db_handler m_db_handler;
+	
+    public int m_colors[] = { 
+        Color.BLUE, 
+        Color.RED,
+        Color.DKGRAY,
+        Color.GRAY,
+        Color.MAGENTA,
+        Color.GREEN,
+        Color.CYAN,
+        Color.YELLOW,
+        Color.LTGRAY,
+        Color.BLACK,
+        Color.WHITE, };
+    public int m_num_arcs = 10;
+    
+    Data_value[] m_data_arr ;
+    float m_max;
+    int m_num_slices;
     
     public PieChart(Context ctx, AttributeSet attrs) 
     {
         super(ctx, attrs);
+        
+        this.setBackgroundColor(Color.TRANSPARENT);
         
         TypedArray a = ctx.getTheme().obtainStyledAttributes(
                        attrs, R.styleable.PieChart, 0, 0);
@@ -70,19 +93,96 @@ public class PieChart extends View
     	   mTextPaint.setTextSize(mTextHeight);
        }
 
-       mPiePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-       mPiePaint.setStyle(Paint.Style.FILL);
-       mPiePaint.setTextSize(mTextHeight);
-
+       m_paint_arcs = new Paint[ m_num_arcs ];
+       m_rects = new RectF[ m_num_arcs ];
+       for (int i = 0; i < m_num_arcs; i++)
+       {
+    	   m_paint_arcs[i] = new Paint();
+    	   
+    	   m_paint_arcs[ i ].setAntiAlias(true);
+    	   m_paint_arcs[ i ].setStyle(Paint.Style.FILL);
+    	   m_paint_arcs[ i ].setStrokeWidth(0.0f);
+    	   m_paint_arcs[ i ].setColor( m_colors[i] );    	   
+    	
+    	   m_rects[ i ] = new RectF( );
+     	   m_rects[ i ].set(100,100,400,400);
+    	   System.out.println(i+" color:"+m_colors[i]);
+       } 
        
-       mShadowBounds = new RectF( 100, 100, 400, 400);
+       mPiePaint = new Paint();
+       mPiePaint.setAntiAlias(true);
+       mPiePaint.setStyle(Paint.Style.FILL);
+       mPiePaint.setStrokeWidth(0.5f);
+       
+       mShadowBounds = new RectF( 100.0f, 100.0f, 400.0f, 400.0f);
+       
        mShadowPaint = new Paint(0);
        mShadowPaint.setColor(0xff101010);
        mShadowPaint.setMaskFilter(new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL));
        
-
-		m_db_handler = new Db_handler( context );
+       m_db_handler = new Db_handler( context );
+       set_data();
    	}
+
+    private void set_data()
+    {
+		// Get data for slices
+		ArrayList<Data_value> data = m_db_handler.getData( "s_h_p_today" );
+		m_data_arr = data.toArray(new Data_value[data.size()]);		
+		m_max = 0;
+		m_num_slices = data.size();
+		for ( int i = 0; i < m_num_slices; i++ )
+		{
+			m_max += m_data_arr[i].value;
+		}
+    }
+    
+    protected void onDraw(Canvas canvas) 
+    {
+    	super.onDraw(canvas);
+    	System.out.println(" --------- onDraw ---------------");
+    	
+    	// Draw the label text
+    	canvas.drawText(aLabel, mTextX, mTextY, mTextPaint);
+    	
+    	// Draw the pie slices
+		float start_angle = 0.1f;
+		float end_angle = 1;
+		int time_to_go = 5;
+    	for (int i = 0; i < m_num_slices; i++) 
+    	{	
+    		//canvas.save();
+     	    float arc_size = (m_data_arr[i].value / m_max) * 360;     	    
+    		end_angle = start_angle + arc_size;
+    		
+    	    if ( i == time_to_go ) ;//end_angle = 360;
+    		
+    		mPiePaint.setColor( m_colors[i] );
+     	    canvas.drawArc( mShadowBounds, // m_rects[ i%m_num_arcs ], 
+			                360 - end_angle, 
+			                end_angle - start_angle,
+			                true, 
+			                mPiePaint ); //m_paint_arcs[ i%m_num_arcs ] );
+		    
+		    System.out.println( (i%m_num_arcs)+" "+start_angle+" "+end_angle);		    
+    	    start_angle += arc_size;
+
+    	    if ( i == time_to_go ) break;
+    	}
+    }
+    
+    // Getters / Setters	
+    public boolean isShowText() 
+    {
+    	return mShowText;
+    }
+
+    public void setShowText(boolean showText) 
+    {
+       mShowText = showText;
+       invalidate();
+       requestLayout();
+    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) 
@@ -97,58 +197,6 @@ public class PieChart extends View
        int h = resolveSizeAndState(MeasureSpec.getSize(w) - (int)mTextWidth, heightMeasureSpec, 0);
 
        setMeasuredDimension(w, h);
-    }
-    
-    protected void onDraw(Canvas canvas) 
-    {
-    	super.onDraw(canvas);
-
-    	System.out.println(" --------- onDraw ---------------");
-    	
-    	// Draw the shadow
-    	canvas.drawOval( mShadowBounds, mShadowPaint );
-
-    	// Draw the label text
-    	//canvas.drawText(mData.get(mCurrentItem).mLabel, mTextX, mTextY, mTextPaint);
-    	canvas.drawText(aLabel, mTextX, mTextY, mTextPaint);
-
-    	// Get data for slices
-		ArrayList<Data_value> data = m_db_handler.getData( "s_h_p_today" );
-		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
-		int max = 0;
-    	for ( int i = 0; i < data.size(); i++ )
-    	{
-    		max += data_arr[i].value;
-    	}
-    	
-    	
-    	// Draw the pie slices
-		Shader shader = null;
-    	for (int i = 0; i < data.size(); ++i) 
-    	{
-    	   mPiePaint.setShader( shader );
-    	   
-    	   int value = (i + (data_arr[i].value / max )  * 360 * 100 );
-    	   canvas.drawArc( mShadowBounds, 0, value, true, mPiePaint );
-    	   System.out.println( i + " , " + value + " --------------");
-    	}
-		
-    	// Draw the pointer
-    	//canvas.drawLine(mTextX, mPointerY, mPointerX, mPointerY, mTextPaint);
-    	//canvas.drawCircle(mPointerX, mPointerY, mPointerSize, mTextPaint);
-    }
-    
-    // Getters / Setters	
-    public boolean isShowText() 
-    {
-    	return mShowText;
-    }
-
-    public void setShowText(boolean showText) 
-    {
-       mShowText = showText;
-       invalidate();
-       requestLayout();
     }
     
 }
