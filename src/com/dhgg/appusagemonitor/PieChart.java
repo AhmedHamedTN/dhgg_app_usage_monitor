@@ -26,39 +26,34 @@ public class PieChart extends View
     public int mTextColor = Color.BLACK;
     public float mTextX = 20;
     public float mTextY = 50;
-    public float mTextHeight = 40;
-        
+    public float mTextHeight = 40;        
     public float mTextWidth = 10;
     
-    private static Paint mPiePaint;    
-    public Paint mPiePaint2;    
-    public Paint mPiePaint3;    
-    public Paint mShadowPaint;
+    public int m_minw = 0;
+    public int m_minh = 0;
+    public int m_width = 0;
+    public int m_height = 0;
+    
+    private static Paint mPiePaint;
     public RectF mShadowBounds;
-    
-    private static Paint[] m_paint_arcs;
-    private static RectF[] m_rects;
-    
-    public float mPointerX = 20;
-    public float mPointerY = 20;
-    public float mPointerSize = 20;    
-    public Context mContext;
 
+	int m_max_arcs = 10;
+	
+    public Context m_context;
 	public Db_handler m_db_handler;
 	
-    public int m_colors[] = { 
-        Color.BLUE, 
-        Color.RED,
-        Color.DKGRAY,
-        Color.GRAY,
-        Color.MAGENTA,
+    public int m_colors[] = {
+        Color.RED, 
+        Color.LTGRAY,
+        Color.BLUE,
+        Color.DKGRAY, 
         Color.GREEN,
         Color.CYAN,
+        Color.GRAY,
         Color.YELLOW,
-        Color.LTGRAY,
         Color.BLACK,
-        Color.WHITE, };
-    public int m_num_arcs = 10;
+        Color.MAGENTA, 
+        Color.WHITE,};
     
     Data_value[] m_data_arr ;
     float m_max;
@@ -87,40 +82,17 @@ public class PieChart extends View
     {
        mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
        mTextPaint.setColor(mTextColor);
-       if (mTextHeight == 0) {
-    	   mTextHeight = mTextPaint.getTextSize();
-       } else {
-    	   mTextPaint.setTextSize(mTextHeight);
-       }
-
-       m_paint_arcs = new Paint[ m_num_arcs ];
-       m_rects = new RectF[ m_num_arcs ];
-       for (int i = 0; i < m_num_arcs; i++)
-       {
-    	   m_paint_arcs[i] = new Paint();
-    	   
-    	   m_paint_arcs[ i ].setAntiAlias(true);
-    	   m_paint_arcs[ i ].setStyle(Paint.Style.FILL);
-    	   m_paint_arcs[ i ].setStrokeWidth(0.0f);
-    	   m_paint_arcs[ i ].setColor( m_colors[i] );    	   
-    	
-    	   m_rects[ i ] = new RectF( );
-     	   m_rects[ i ].set(100,100,400,400);
-    	   System.out.println(i+" color:"+m_colors[i]);
-       } 
-       
+       mTextPaint.setTextSize(mTextHeight);
+              
        mPiePaint = new Paint();
        mPiePaint.setAntiAlias(true);
        mPiePaint.setStyle(Paint.Style.FILL);
        mPiePaint.setStrokeWidth(0.5f);
        
-       mShadowBounds = new RectF( 100.0f, 100.0f, 400.0f, 400.0f);
-       
-       mShadowPaint = new Paint(0);
-       mShadowPaint.setColor(0xff101010);
-       mShadowPaint.setMaskFilter(new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL));
-       
-       m_db_handler = new Db_handler( context );
+       mShadowBounds = new RectF( );
+ 
+       m_context = context;
+       m_db_handler = new Db_handler( m_context );
        set_data();
    	}
 
@@ -140,37 +112,79 @@ public class PieChart extends View
     protected void onDraw(Canvas canvas) 
     {
     	super.onDraw(canvas);
-    	System.out.println(" --------- onDraw ---------------");
-    	
-    	// Draw the label text
-    	canvas.drawText(aLabel, mTextX, mTextY, mTextPaint);
-    	
+
+    	// Update the rectangle bounds to fit on the screen nicely.
+    	int rect_size = m_width;
+    	boolean in_portrait = true;
+    	if ( rect_size > m_height )
+    	{
+    		// in landscape mode
+    		in_portrait = false;
+    		rect_size = m_height;
+    	}
+    	float diameter = rect_size * .8f;
+
+    	float vertical_border = 0;
+    	float horizontal_border = 0;
+    	if ( in_portrait )
+    	{
+    		vertical_border = rect_size *.01f;
+    		horizontal_border = rect_size * .1f;
+    	}
+    	else
+    	{
+    		vertical_border = rect_size *.1f;
+    		horizontal_border = rect_size * .1f;
+    	}
+        mShadowBounds.set( horizontal_border, vertical_border, 
+        		           diameter+horizontal_border, diameter+vertical_border);
+
     	// Draw the pie slices
-		float start_angle = 0.1f;
-		float end_angle = 1;
-		int time_to_go = 5;
+		float start_angle = 0;
+		float end_angle = 0;
     	for (int i = 0; i < m_num_slices; i++) 
     	{	
-    		//canvas.save();
      	    float arc_size = (m_data_arr[i].value / m_max) * 360;     	    
     		end_angle = start_angle + arc_size;
     		
-    	    if ( i == time_to_go ) ;//end_angle = 360;
-    		
-    		mPiePaint.setColor( m_colors[i] );
-     	    canvas.drawArc( mShadowBounds, // m_rects[ i%m_num_arcs ], 
-			                360 - end_angle, 
-			                end_angle - start_angle,
-			                true, 
-			                mPiePaint ); //m_paint_arcs[ i%m_num_arcs ] );
-		    
-		    System.out.println( (i%m_num_arcs)+" "+start_angle+" "+end_angle);		    
-    	    start_angle += arc_size;
+    	    if ( i == m_max_arcs ) 
+    	    {
+    	        end_angle = 360;
+    	    }
 
-    	    if ( i == time_to_go ) break;
+            float first_angle = 360 - end_angle;
+            float sweep_angle = end_angle - start_angle;
+              
+    		mPiePaint.setColor( m_colors[i] );
+     	    canvas.drawArc( mShadowBounds, first_angle, sweep_angle, 
+			                true, 
+			                mPiePaint ); 
+		    
+     	    start_angle += arc_size;
+
+    	    if ( i == m_max_arcs ) 
+    	    {
+    	    	break;
+    	    }
     	}
     }
-    
+
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) 
+    {
+       // Try for a width based on our minimum
+       m_minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
+       m_width = resolveSizeAndState(m_minw, widthMeasureSpec, 1);
+
+       // Whatever the width ends up being, ask for a height that would let the pie
+       // get as big as it can
+       m_minh = MeasureSpec.getSize(m_width) - (int)mTextWidth + getPaddingBottom() + getPaddingTop();
+       m_height = resolveSizeAndState(MeasureSpec.getSize(m_width) - (int)mTextWidth, heightMeasureSpec, 0);
+
+       setMeasuredDimension(m_width, m_height);
+    }
+
     // Getters / Setters	
     public boolean isShowText() 
     {
@@ -182,21 +196,6 @@ public class PieChart extends View
        mShowText = showText;
        invalidate();
        requestLayout();
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) 
-    {
-       // Try for a width based on our minimum
-       int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
-       int w = resolveSizeAndState(minw, widthMeasureSpec, 1);
-
-       // Whatever the width ends up being, ask for a height that would let the pie
-       // get as big as it can
-       int minh = MeasureSpec.getSize(w) - (int)mTextWidth + getPaddingBottom() + getPaddingTop();
-       int h = resolveSizeAndState(MeasureSpec.getSize(w) - (int)mTextWidth, heightMeasureSpec, 0);
-
-       setMeasuredDimension(w, h);
     }
     
 }
