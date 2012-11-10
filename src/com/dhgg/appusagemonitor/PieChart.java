@@ -1,15 +1,12 @@
 package com.dhgg.appusagemonitor;
 
 
-import java.util.ArrayList;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PathEffect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;

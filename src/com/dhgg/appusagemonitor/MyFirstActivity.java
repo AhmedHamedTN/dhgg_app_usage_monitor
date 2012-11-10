@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Activity;
-import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -349,14 +348,12 @@ public class MyFirstActivity extends Activity
 		ArrayList<Data_value> data = db_handler.getData( hist_pref );
 		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
 
-		    	
-		/*
-		** Update data in all fragments
-		*/
     	AppListFragment list_fragment = (AppListFragment) getFragmentManager().findFragmentByTag("my_list_fragment");    	
     	if ( list_fragment != null )
     	{
-        	list_fragment.refreshScreen( data_arr );        	
+    		// Pass in a flag to tell the list to do something 
+    		// different if the chart is also being shown.
+        	list_fragment.refreshScreen( data_arr, m_show_chart );        	
     	}
 
     	AppChartFragment chart_fragment = (AppChartFragment) getFragmentManager().findFragmentByTag("my_chart_fragment");    	
@@ -375,19 +372,18 @@ public class MyFirstActivity extends Activity
     	}
     	else
     	{
-        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0.0f) );
+        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
     	}    			
     	
 		FrameLayout chart_layout = (FrameLayout) findViewById(R.id.chart_fragment_container);
 		if ( m_show_chart )
     	{
-        	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
+        	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, .75f) );
     	}
     	else
     	{
         	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0.0f) );
     	}    			
-    	
 
 
     	int data_returned_size = data_arr.length;

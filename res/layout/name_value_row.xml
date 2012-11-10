@@ -20,7 +20,8 @@
         android:layout_alignParentBottom="true"
         android:layout_toRightOf="@id/imgIcon"
         android:text="@+id/label"
-        android:textSize="18dp" >
+        android:textSize="18dp"
+        android:paddingLeft="5dp" >
     </TextView>
     
     <TextView android:id="@+id/value"
