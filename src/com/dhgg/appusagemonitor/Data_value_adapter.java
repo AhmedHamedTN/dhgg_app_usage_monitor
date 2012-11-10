@@ -29,6 +29,8 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
     @Override
     public View getView(int position, View convertView, ViewGroup parent) 
     {
+    	// System.out.println("+++ Data_value_adapter::getView +++" );
+    	
         View row = convertView;
         
         LayoutInflater inflater = ((Activity)context).getLayoutInflater();

@@ -13,7 +13,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
@@ -32,29 +34,83 @@ public class MyFirstActivity extends Activity
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
 	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";	
-	
 
 	SpinnerAdapter mSpinnerAdapter;
+	
+	boolean m_show_list = true;
+	boolean m_show_chart = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
 		super.onCreate(savedInstanceState);
 		
+		m_db_handler = new Db_handler(getApplicationContext());
+
 		setContentView(R.layout.activity_my_first);
 		
 		setTitle("");
 		
-		m_db_handler = new Db_handler(getApplicationContext());
+		// Check that the activity is using the layout version with
+        // the fragment_container FrameLayout
+        if (findViewById(R.id.list_fragment_container) != null) 
+        {
+            // However, if we're being restored from a previous state,
+            // then we don't need to do anything and should return or else
+            // we could end up with overlapping fragments.
+            if (savedInstanceState != null) 
+            {
+                return;
+            }
 
+            // Create an instance of ExampleFragment
+            AppListFragment m_list_fragment = new AppListFragment();
+            
+            // In case this activity was started with special instructions from an Intent,
+            // pass the Intent's extras to the fragment as arguments
+            m_list_fragment.setArguments(getIntent().getExtras());
+            
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getFragmentManager().beginTransaction().add(R.id.list_fragment_container, m_list_fragment, "my_list_fragment").commit();
+        }
+        
+        if (findViewById(R.id.chart_fragment_container) != null) 
+        {
+            // However, if we're being restored from a previous state,
+            // then we don't need to do anything and should return or else
+            // we could end up with overlapping fragments.
+            if (savedInstanceState != null) 
+            {
+                return;
+            }
+
+            // Create an instance of ExampleFragment
+            AppChartFragment m_chart_fragment = new AppChartFragment();
+            
+            // In case this activity was started with special instructions from an Intent,
+            // pass the Intent's extras to the fragment as arguments
+            m_chart_fragment.setArguments(getIntent().getExtras());
+            
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getFragmentManager().beginTransaction().add(R.id.chart_fragment_container, m_chart_fragment, "my_chart_fragment").commit();
+        }
+
+		FrameLayout layout = (FrameLayout) findViewById(R.id.chart_fragment_container);
+		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
+		
+        setup_admob_view();
+		
+		setup_action_bar();
+	}
+	
+	private void setup_admob_view()
+	{
 		// Add the ADMOB view
 		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
 		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
 		layout.addView(adView);
 		AdRequest adRequest = new AdRequest();
 		adView.loadAd(adRequest);
-		
-		setup_action_bar();
 	}
 	
 	public void setup_action_bar()
@@ -66,40 +122,28 @@ public class MyFirstActivity extends Activity
 			this, R.array.action_list,
 			android.R.layout.simple_spinner_dropdown_item);
 		
-		actionBar.setListNavigationCallbacks(mSpinnerAdapter, 
-		    new OnNavigationListener() 
-			{    
-		        @Override
-		        public boolean onNavigationItemSelected(int position, long itemId) 
-		        {
-	        		AppListFragment list_fragment = (AppListFragment)
-	        			getFragmentManager().findFragmentById(R.id.app_list_fragment);
-	        		AppChartFragment chart_fragment = (AppChartFragment)
-	        			getFragmentManager().findFragmentById(R.id.app_chart_fragment);
-			        	
-		        	FragmentTransaction ft = getFragmentManager().beginTransaction();
+		actionBar.setListNavigationCallbacks(
+		mSpinnerAdapter, new OnNavigationListener() 
+		{    
+		    @Override
+		    public boolean onNavigationItemSelected(int position, long itemId) 
+		    {
+		       	if ( itemId == 0 )
+		       	{	
+		       		m_show_list = true;
+		       		m_show_chart = false;
+		       	}
+		       	else if ( itemId == 1 )
+		       	{
+		       		m_show_list = false;
+		       		m_show_chart = true;
+		       	}
+		       	refreshScreen();
 
-		        	if ( itemId == 0 )
-		        	{
-			        	ft.show( list_fragment );
-			        	list_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );
-			        	
-			        	ft.hide( chart_fragment );
-			        	ft.commit();
-		        	}
-		        	else if ( itemId == 1 )
-		        	{
-			        	ft.hide( list_fragment );
-			        	
-			        	ft.show( chart_fragment );
-			        	chart_fragment.refreshScreen( SHOW_HIST_PREF_TODAY );
-			        	
-			        	ft.commit();		        		
-		        	}
-		        	
-		            return true;
-		        }
-			});
+	            return true;
+	        }
+		});
+		
 	}
 
 
@@ -241,8 +285,7 @@ public class MyFirstActivity extends Activity
 		intent.setAction("dhgg.app.usage.monitor.stop");
 		sendBroadcast(intent);		
 	}
-
-		
+	
 	public void send_data() 
 	{	
 		// Get data to send
@@ -300,11 +343,54 @@ public class MyFirstActivity extends Activity
 		// Find out what type of data to display.
 		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
 		String hist_pref = settings.getString(SHOW_HIST_PREFS,SHOW_HIST_PREF_ALL);
-		
-    	// Update the app list fragment.
-    	AppListFragment a_fragment = (AppListFragment) 
-    			getFragmentManager().findFragmentById(R.id.app_list_fragment);
-    	int data_returned_size = a_fragment.refreshScreen( hist_pref );
+
+		// Get data to display
+		Db_handler db_handler = new Db_handler(this);
+		ArrayList<Data_value> data = db_handler.getData( hist_pref );
+		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
+
+		    	
+		/*
+		** Update data in all fragments
+		*/
+    	AppListFragment list_fragment = (AppListFragment) getFragmentManager().findFragmentByTag("my_list_fragment");    	
+    	if ( list_fragment != null )
+    	{
+        	list_fragment.refreshScreen( data_arr );        	
+    	}
+
+    	AppChartFragment chart_fragment = (AppChartFragment) getFragmentManager().findFragmentByTag("my_chart_fragment");    	
+    	if ( chart_fragment != null )
+    	{
+        	chart_fragment.refreshScreen( data_arr );        	
+    	}
+
+    	/*
+    	 * Update weights to show and hide.
+    	*/
+    	FrameLayout list_layout = (FrameLayout) findViewById(R.id.list_fragment_container);
+		if ( m_show_list )
+    	{
+        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
+    	}
+    	else
+    	{
+        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0.0f) );
+    	}    			
+    	
+		FrameLayout chart_layout = (FrameLayout) findViewById(R.id.chart_fragment_container);
+		if ( m_show_chart )
+    	{
+        	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
+    	}
+    	else
+    	{
+        	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0.0f) );
+    	}    			
+    	
+
+
+    	int data_returned_size = data_arr.length;
 
     	// Show a toast to indicate what we are displaying
     	String toast_msg = "Showing usage ...";
@@ -344,5 +430,6 @@ public class MyFirstActivity extends Activity
                  toast_msg, Toast.LENGTH_LONG);
     		toast.show();
     	}
+    	
     }
 }

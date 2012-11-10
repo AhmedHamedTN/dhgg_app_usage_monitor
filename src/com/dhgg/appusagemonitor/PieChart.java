@@ -40,15 +40,14 @@ public class PieChart extends View
 	int m_max_arcs = 10;
 	
     public Context m_context;
-	public Db_handler m_db_handler;
 	
-    public int m_colors[] = {
+    public int m_colors[] = { 
+        Color.CYAN,
         Color.RED, 
         Color.LTGRAY,
+        Color.DKGRAY,
         Color.BLUE,
-        Color.DKGRAY, 
         Color.GREEN,
-        Color.CYAN,
         Color.GRAY,
         Color.YELLOW,
         Color.BLACK,
@@ -58,6 +57,8 @@ public class PieChart extends View
     Data_value[] m_data_arr ;
     float m_max;
     int m_num_slices;
+    
+    boolean m_show_chart = false;
     
     public PieChart(Context ctx, AttributeSet attrs) 
     {
@@ -92,26 +93,30 @@ public class PieChart extends View
        mShadowBounds = new RectF( );
  
        m_context = context;
-       m_db_handler = new Db_handler( m_context );
-       set_data();
    	}
 
-    private void set_data()
+    public void set_data( Data_value[] data_arr )
     {
 		// Get data for slices
-		ArrayList<Data_value> data = m_db_handler.getData( "s_h_p_today" );
-		m_data_arr = data.toArray(new Data_value[data.size()]);		
+		m_data_arr = data_arr;		
 		m_max = 0;
-		m_num_slices = data.size();
+		m_num_slices = data_arr.length;
 		for ( int i = 0; i < m_num_slices; i++ )
 		{
 			m_max += m_data_arr[i].value;
 		}
+
+    	System.out.println("+++ PieChart::set_data +++");
     }
     
     protected void onDraw(Canvas canvas) 
     {
     	super.onDraw(canvas);
+    	
+    	if ( m_show_chart )
+    	{
+    		return;
+    	}
 
     	// Update the rectangle bounds to fit on the screen nicely.
     	int rect_size = m_width;
@@ -128,7 +133,7 @@ public class PieChart extends View
     	float horizontal_border = 0;
     	if ( in_portrait )
     	{
-    		vertical_border = rect_size *.01f;
+    		vertical_border = rect_size *.05f;
     		horizontal_border = rect_size * .1f;
     	}
     	else
@@ -167,12 +172,13 @@ public class PieChart extends View
     	    	break;
     	    }
     	}
+ 
     }
 
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) 
-    {
+    {    	
        // Try for a width based on our minimum
        m_minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
        m_width = resolveSizeAndState(m_minw, widthMeasureSpec, 1);

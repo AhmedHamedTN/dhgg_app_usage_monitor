@@ -5,9 +5,10 @@
     android:orientation="vertical"
     xmlns:custom="http://schemas.android.com/apk/res/com.dhgg.appusagemonitor" >
     
-    <!--  added layout width and height -->
+
     <com.dhgg.appusagemonitor.PieChart
-        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:android="http://schemas.android.com/apk/res/android"        
+        android:id="@+id/pie_chart"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         custom:showText="true"
