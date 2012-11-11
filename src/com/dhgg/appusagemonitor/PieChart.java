@@ -13,49 +13,30 @@ import android.view.View;
 
 
 public class PieChart extends View 
-{
-	// Can be set in the attrs.xml
-	public boolean mShowText = true;;
-	public int mTextPos = 0;
-
-    public Paint mTextPaint;
-    public String aLabel = "Charting usage ...";
-    public int mTextColor = Color.BLACK;
-    public float mTextX = 20;
-    public float mTextY = 50;
-    public float mTextHeight = 40;        
-    public float mTextWidth = 10;
-    
-    public int m_minw = 0;
-    public int m_minh = 0;
+{    
     public int m_width = 0;
     public int m_height = 0;
     
     private static Paint mPiePaint;
     public RectF mShadowBounds;
 
-	int m_max_arcs = 10;
+	int m_max_arcs = 11;
+	public int m_colors[] = { 
+	        Color.CYAN,    //
+	        Color.RED, 
+	        Color.LTGRAY,
+	        Color.DKGRAY,
+	        Color.BLUE,
+	        Color.GREEN,
+	        Color.GRAY,
+	        Color.YELLOW,
+	        Color.BLACK,
+	        Color.MAGENTA,
+	        Color.WHITE };
 	
-    public Context m_context;
-	
-    public int m_colors[] = { 
-        Color.CYAN,
-        Color.RED, 
-        Color.LTGRAY,
-        Color.DKGRAY,
-        Color.BLUE,
-        Color.GREEN,
-        Color.GRAY,
-        Color.YELLOW,
-        Color.BLACK,
-        Color.MAGENTA, 
-        Color.WHITE,};
-    
     Data_value[] m_data_arr ;
     float m_max;
     int m_num_slices;
-    
-    boolean m_show_chart = false;
     
     public PieChart(Context ctx, AttributeSet attrs) 
     {
@@ -68,8 +49,6 @@ public class PieChart extends View
         
         try 
         {
-            mShowText = a.getBoolean(R.styleable.PieChart_showText, false);
-            mTextPos = a.getInteger(R.styleable.PieChart_labelPosition, 0);
         } 
         finally { a.recycle(); }
        
@@ -77,19 +56,13 @@ public class PieChart extends View
     }
     
     private void init( Context context ) 
-    {
-       mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-       mTextPaint.setColor(mTextColor);
-       mTextPaint.setTextSize(mTextHeight);
-              
+    {          
        mPiePaint = new Paint();
        mPiePaint.setAntiAlias(true);
        mPiePaint.setStyle(Paint.Style.FILL);
        mPiePaint.setStrokeWidth(0.5f);
        
        mShadowBounds = new RectF( );
- 
-       m_context = context;
    	}
 
     public void set_data( Data_value[] data_arr )
@@ -102,20 +75,18 @@ public class PieChart extends View
 		{
 			m_max += m_data_arr[i].value;
 		}
-
-    	System.out.println("+++ PieChart::set_data +++");
+		
+		invalidate();
+	    requestLayout();	    
     }
     
     protected void onDraw(Canvas canvas) 
     {
     	super.onDraw(canvas);
     	
-    	if ( m_show_chart )
-    	{
-    		return;
-    	}
-
     	// Update the rectangle bounds to fit on the screen nicely.
+    	System.out.println("+++ PieChart::onDraw +++ "+m_width+" "+m_height);
+    	
     	int rect_size = m_width;
     	boolean in_portrait = true;
     	if ( rect_size > m_height )
@@ -175,31 +146,23 @@ public class PieChart extends View
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) 
-    {    	
+    {    
+    	System.out.print("+++ PieChart::onMeasure +++");
+    	
        // Try for a width based on our minimum
-       m_minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
-       m_width = resolveSizeAndState(m_minw, widthMeasureSpec, 1);
+       int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
+       m_width = resolveSizeAndState(minw, widthMeasureSpec, 1);
 
        // Whatever the width ends up being, ask for a height that would let the pie
        // get as big as it can
-       m_minh = MeasureSpec.getSize(m_width) - (int)mTextWidth + getPaddingBottom() + getPaddingTop();
-       m_height = resolveSizeAndState(MeasureSpec.getSize(m_width) - (int)mTextWidth, heightMeasureSpec, 0);
+       m_height = resolveSizeAndState(MeasureSpec.getSize(m_width), heightMeasureSpec, 0);
 
+       System.out.println(m_width+" "+m_height);
+       
        setMeasuredDimension(m_width, m_height);
     }
 
-    // Getters / Setters	
-    public boolean isShowText() 
-    {
-    	return mShowText;
-    }
-
-    public void setShowText(boolean showText) 
-    {
-       mShowText = showText;
-       invalidate();
-       requestLayout();
-    }
+    
     
 }
 

@@ -1,19 +1,15 @@
 package com.dhgg.appusagemonitor;
 
 import java.util.ArrayList;
-
-import android.app.ActionBar;
-import android.app.ActionBar.OnNavigationListener;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.SpinnerAdapter;
@@ -23,7 +19,7 @@ import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
-public class MyFirstActivity extends Activity 
+public class MyFirstActivity extends FragmentActivity 
 {
 	public static Db_handler m_db_handler;
 	public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
@@ -36,8 +32,13 @@ public class MyFirstActivity extends Activity
 
 	SpinnerAdapter mSpinnerAdapter;
 	
+	MenuItem m_show_chart_button  = null;
+	
 	boolean m_show_list = true;
 	boolean m_show_chart = false;
+
+	final int m_max_data_size = 11;
+
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -48,7 +49,7 @@ public class MyFirstActivity extends Activity
 
 		setContentView(R.layout.activity_my_first);
 		
-		setTitle("");
+		//setTitle("");
 		
 		// Check that the activity is using the layout version with
         // the fragment_container FrameLayout
@@ -70,7 +71,7 @@ public class MyFirstActivity extends Activity
             m_list_fragment.setArguments(getIntent().getExtras());
             
             // Add the fragment to the 'fragment_container' FrameLayout
-            getFragmentManager().beginTransaction().add(R.id.list_fragment_container, m_list_fragment, "my_list_fragment").commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.list_fragment_container, m_list_fragment, "my_list_fragment").commit();
         }
         
         if (findViewById(R.id.chart_fragment_container) != null) 
@@ -91,7 +92,7 @@ public class MyFirstActivity extends Activity
             m_chart_fragment.setArguments(getIntent().getExtras());
             
             // Add the fragment to the 'fragment_container' FrameLayout
-            getFragmentManager().beginTransaction().add(R.id.chart_fragment_container, m_chart_fragment, "my_chart_fragment").commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.chart_fragment_container, m_chart_fragment, "my_chart_fragment").commit();
         }
 
 		FrameLayout layout = (FrameLayout) findViewById(R.id.chart_fragment_container);
@@ -114,35 +115,9 @@ public class MyFirstActivity extends Activity
 	
 	public void setup_action_bar()
 	{
-		ActionBar actionBar = getActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		mSpinnerAdapter = 
-			ArrayAdapter.createFromResource(
-			this, R.array.action_list,
-			android.R.layout.simple_spinner_dropdown_item);
-		
-		actionBar.setListNavigationCallbacks(
-		mSpinnerAdapter, new OnNavigationListener() 
-		{    
-		    @Override
-		    public boolean onNavigationItemSelected(int position, long itemId) 
-		    {
-		       	if ( itemId == 0 )
-		       	{	
-		       		m_show_list = true;
-		       		m_show_chart = false;
-		       	}
-		       	else if ( itemId == 1 )
-		       	{
-		       		m_show_list = false;
-		       		m_show_chart = true;
-		       	}
-		       	refreshScreen();
-
-	            return true;
-	        }
-		});
-		
+		// Used to do things like setting up the 
+		// navigational spinner. Skipping for now. 
+		// ActionBar actionBar = getActionBar();
 	}
 
 
@@ -153,6 +128,7 @@ public class MyFirstActivity extends Activity
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.main_menu, menu);
 		
+		m_show_chart_button = menu.findItem(R.id.item_show_chart);
 		return true;
 	}
 
@@ -164,6 +140,7 @@ public class MyFirstActivity extends Activity
 	    	 	
 	    return super.onPrepareOptionsMenu(menu);
 	}
+	
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
@@ -205,6 +182,18 @@ public class MyFirstActivity extends Activity
 			break;
 		case R.id.item_send_data:
 			send_data();
+			break;
+		case R.id.item_show_chart:
+			if ( m_show_chart )
+			{
+				item.setTitle("Show Chart");
+			}
+			else
+			{
+				item.setTitle("Hide Chart");
+			}
+			m_show_chart = !m_show_chart;
+			refreshScreen();
 			break;
 		}
 		return true;
@@ -337,8 +326,9 @@ public class MyFirstActivity extends Activity
     	return time_str;
     }
     
+    
     public void refreshScreen()
-    {
+    {	
 		// Find out what type of data to display.
 		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
 		String hist_pref = settings.getString(SHOW_HIST_PREFS,SHOW_HIST_PREF_ALL);
@@ -347,19 +337,65 @@ public class MyFirstActivity extends Activity
 		Db_handler db_handler = new Db_handler(this);
 		ArrayList<Data_value> data = db_handler.getData( hist_pref );
 		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
+		
+    	Data_value[] normal_data_arr;
+    	if ( m_show_chart )
+    	{	
+	    	// Get data for slices
+			int num_values = data_arr.length;
+			float total = 0;
+			for ( int i = 0; i < num_values; i++ )
+			{
+				total += data_arr[i].value;
+			}
+			
+			int normal_data_arr_size = num_values;
+			if ( num_values > m_max_data_size )
+			{
+				normal_data_arr_size = m_max_data_size ;
+			}
 
-    	AppListFragment list_fragment = (AppListFragment) getFragmentManager().findFragmentByTag("my_list_fragment");    	
+			normal_data_arr = new Data_value[ normal_data_arr_size ];
+			System.arraycopy( data_arr, 0, normal_data_arr, 0, normal_data_arr_size );
+			
+			int subtotal = 0;
+			for ( int i = 0; i < normal_data_arr_size; i++)
+			{
+				subtotal += normal_data_arr[ i ].value;
+				
+				float fraction = (float)normal_data_arr[ i ].value / total;
+				int percent = (int)(fraction * 100);
+				normal_data_arr[ i ].value = percent;
+			}
+			
+			if ( normal_data_arr_size == m_max_data_size)
+			{
+				float remaining = total - subtotal;
+				
+				float fraction = remaining / total;
+				
+				int percent = (int) ( fraction * 100);
+				
+				normal_data_arr[ normal_data_arr_size -1 ].value = percent; 
+			}
+    	}
+    	else 
+    	{
+    		normal_data_arr = data_arr;
+    	}
+
+    	AppListFragment list_fragment = (AppListFragment) getSupportFragmentManager().findFragmentByTag("my_list_fragment");    	
     	if ( list_fragment != null )
     	{
     		// Pass in a flag to tell the list to do something 
     		// different if the chart is also being shown.
-        	list_fragment.refreshScreen( data_arr, m_show_chart );        	
+        	list_fragment.refreshScreen( normal_data_arr, m_show_chart );        	
     	}
 
-    	AppChartFragment chart_fragment = (AppChartFragment) getFragmentManager().findFragmentByTag("my_chart_fragment");    	
+    	AppChartFragment chart_fragment = (AppChartFragment) getSupportFragmentManager().findFragmentByTag("my_chart_fragment");    	
     	if ( chart_fragment != null )
     	{
-        	chart_fragment.refreshScreen( data_arr );        	
+        	chart_fragment.refreshScreen( normal_data_arr );        	
     	}
 
     	/*

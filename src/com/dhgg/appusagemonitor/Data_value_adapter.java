@@ -16,7 +16,7 @@ import android.widget.TextView;
 public class Data_value_adapter extends ArrayAdapter<Data_value> 
 {
 	public int m_colors[] = { 
-	        Color.CYAN,
+	        Color.CYAN,    //
 	        Color.RED, 
 	        Color.LTGRAY,
 	        Color.DKGRAY,
@@ -25,9 +25,9 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
 	        Color.GRAY,
 	        Color.YELLOW,
 	        Color.BLACK,
-	        Color.MAGENTA, 
-	        Color.WHITE,};
-	public int m_num_colors = 10;
+	        Color.MAGENTA,
+	        Color.WHITE };
+	public int m_num_colors = 11;
 	
 	Context context;
     int layoutResourceId;   
@@ -51,13 +51,24 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
         LayoutInflater inflater = ((Activity)context).getLayoutInflater();
         row = inflater.inflate(layoutResourceId, parent, false);
         
-        TextView name_view = (TextView)row.findViewById(R.id.name);;
+        TextView name_view = (TextView)row.findViewById(R.id.name);
         name_view.setText(data[position].description);
+        if ( m_use_colors && ( position >= m_num_colors - 1) )
+        {
+        	name_view.setText( "Other ...");
+        }
         
         TextView value_view = (TextView)row.findViewById(R.id.value);
         
         int total_secs = data[position].value;
-    	value_view.setText( get_time_str(total_secs) );
+        if ( m_use_colors )
+        {
+        	value_view.setText( get_percent_str(total_secs) );
+        }
+        else
+        {
+        	value_view.setText( get_time_str(total_secs) );
+        }
 
         try
         {
@@ -68,12 +79,14 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
             
         	if ( m_use_colors )
         	{
-	            if ( position > m_num_colors )
+        		/*
+	            if ( position >= m_num_colors )
 	            { 
 	                img_view.setImageDrawable( icon );
-	                img_view.setBackgroundColor( Color.WHITE );
+	                img_view.setBackgroundColor( Color.TRANSPARENT );
 	            }
 	            else
+	            */
 	            {
 	            	img_view.setBackgroundColor( m_colors[ position % m_num_colors ] );
 	            }
@@ -91,6 +104,15 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
     public void set_use_colors_flag( boolean flag )
     {
     	m_use_colors = flag;
+    }
+
+    public String get_percent_str( int value )
+    {    
+    	if ( value < 1 )
+    	{
+    		return "< 1%";
+    	}
+    	return  value + "%";
     }
     
     public String get_time_str( int time_in_seconds)

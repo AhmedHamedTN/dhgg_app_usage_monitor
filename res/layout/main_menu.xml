@@ -2,10 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     
     <item
-		android:id="@+id/item_send_data"
-		android:icon="@drawable/ic_menu_share_holo_light"
-		android:title="@string/button_send_data"	
-        android:showAsAction="ifRoom|withText"  />
+		android:id="@+id/item_show_chart"
+		android:title="@string/button_show_chart"	
+        android:showAsAction="ifRoom|withText" />
     
 	<item
 		android:id="@+id/item_time_range"
@@ -34,6 +33,12 @@
 		android:title="@string/button_stop"	
         android:showAsAction="ifRoom|withText"  />
 	
+    <item
+		android:id="@+id/item_send_data"
+		android:icon="@drawable/ic_menu_share_holo_light"
+		android:title="@string/button_send_data"	
+        android:showAsAction="ifRoom|withText"  />
+    
 	<item
 		android:id="@+id/item_restart"
 		android:icon="@drawable/ic_menu_delete"

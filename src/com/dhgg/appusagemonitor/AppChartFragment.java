@@ -1,8 +1,8 @@
 package com.dhgg.appusagemonitor;
 
 
-import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +25,7 @@ public class AppChartFragment extends Fragment
     	View view = m_view;
     	if (view == null)
     	{
-    		System.out.println("+++ AppChartFragment::refreshScreen view=null exit +++" );	    
+    		//System.out.println("+++ AppChartFragment::refreshScreen view=null exit +++" );	    
     	    return -2;
     	}
 
@@ -33,7 +33,7 @@ public class AppChartFragment extends Fragment
 		PieChart pie_chart_view = (PieChart) getActivity().findViewById(R.id.pie_chart);
 		if ( pie_chart_view == null )
 		{
-	    	System.out.println("+++ AppListFragment::refreshScreen list_view==null exit +++" );
+	    	//System.out.println("+++ AppListFragment::refreshScreen list_view==null exit +++" );
 	    	return -3;
 		}
 		

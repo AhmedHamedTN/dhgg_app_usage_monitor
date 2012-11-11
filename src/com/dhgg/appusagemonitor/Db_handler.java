@@ -198,33 +198,6 @@ public class Db_handler extends SQLiteOpenHelper
         return data;
     }
 
-    public ArrayList<Data_value> getAngleData( String hist_pref ) 
-    {
-    	ArrayList<Data_value> hist_data = getData( hist_pref );
-    	Data_value[] data_arr = hist_data.toArray(new Data_value[hist_data.size()]);
-    	
-    	int data_size = hist_data.size();
-
-        ArrayList <Data_value> data = new ArrayList<Data_value>();
-        int max = 0;
-    	for ( int i = 0; i < data_size; i++ )
-    	{
-    		max += data_arr[i].value;
-    	}
-
-    	for ( int i = 0; i < data_size; i++ )
-    	{
-    		int value = (data_arr[i].value / max )  * 360;
-    		data.add( new Data_value(data_arr[i].description,
-    				                 data_arr[i].process_name,
-    				                 value ) );
-    		
-    	}
-    	
-        return data;
-    }
-
-
     public ArrayList<Data_value> getAllData(  ) 
     {
         String selectQuery = "SELECT  * FROM " + TABLE_NAME;
