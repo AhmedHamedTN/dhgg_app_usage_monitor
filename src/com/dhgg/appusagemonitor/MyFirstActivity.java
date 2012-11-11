@@ -14,6 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
+import android.content.res.Configuration;
 
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -36,7 +37,8 @@ public class MyFirstActivity extends FragmentActivity
 	
 	boolean m_show_list = true;
 	boolean m_show_chart = false;
-
+	boolean m_is_landscape = false;
+	
 	final int m_max_data_size = 11;
 
 
@@ -49,20 +51,36 @@ public class MyFirstActivity extends FragmentActivity
 
 		setContentView(R.layout.activity_my_first);
 		
+		// Check if Activity has been switched to landscape mode
+	    // If yes, finished and go back to the start Activity
+	    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) 
+	    {
+	    	m_is_landscape = true;
+	    }
+	    
 		//setTitle("");
 		
+	    setup_fragments( savedInstanceState );
+		
+        setup_admob_view();
+		
+        setup_action_bar();
+	}
+
+	private void setup_fragments( Bundle savedInstanceState )
+	{
 		// Check that the activity is using the layout version with
         // the fragment_container FrameLayout
-        if (findViewById(R.id.list_fragment_container) != null) 
+		int list_fragment_id = R.id.bottom_fragment_container;
+		int chart_fragment_id = R.id.top_fragment_container;
+		
+		if ( savedInstanceState  != null )
+		{
+			return;
+		}
+		
+        if (findViewById( list_fragment_id ) != null) 
         {
-            // However, if we're being restored from a previous state,
-            // then we don't need to do anything and should return or else
-            // we could end up with overlapping fragments.
-            if (savedInstanceState != null) 
-            {
-                return;
-            }
-
             // Create an instance of ExampleFragment
             AppListFragment m_list_fragment = new AppListFragment();
             
@@ -71,19 +89,11 @@ public class MyFirstActivity extends FragmentActivity
             m_list_fragment.setArguments(getIntent().getExtras());
             
             // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction().add(R.id.list_fragment_container, m_list_fragment, "my_list_fragment").commit();
+            getSupportFragmentManager().beginTransaction().add( list_fragment_id, m_list_fragment, "my_list_fragment").commit();
         }
         
-        if (findViewById(R.id.chart_fragment_container) != null) 
+        if (findViewById( chart_fragment_id ) != null) 
         {
-            // However, if we're being restored from a previous state,
-            // then we don't need to do anything and should return or else
-            // we could end up with overlapping fragments.
-            if (savedInstanceState != null) 
-            {
-                return;
-            }
-
             // Create an instance of ExampleFragment
             AppChartFragment m_chart_fragment = new AppChartFragment();
             
@@ -92,15 +102,11 @@ public class MyFirstActivity extends FragmentActivity
             m_chart_fragment.setArguments(getIntent().getExtras());
             
             // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction().add(R.id.chart_fragment_container, m_chart_fragment, "my_chart_fragment").commit();
+            getSupportFragmentManager().beginTransaction().add( chart_fragment_id , m_chart_fragment, "my_chart_fragment").commit();
         }
 
-		FrameLayout layout = (FrameLayout) findViewById(R.id.chart_fragment_container);
+		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
 		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
-		
-        setup_admob_view();
-		
-		setup_action_bar();
 	}
 	
 	private void setup_admob_view()
@@ -108,9 +114,13 @@ public class MyFirstActivity extends FragmentActivity
 		// Add the ADMOB view
 		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
 		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
-		layout.addView(adView);
-		AdRequest adRequest = new AdRequest();
-		adView.loadAd(adRequest);
+		
+		if ( layout != null )
+		{
+			layout.addView(adView);
+			AdRequest adRequest = new AdRequest();
+			adView.loadAd(adRequest);
+		}
 	}
 	
 	public void setup_action_bar()
@@ -329,6 +339,16 @@ public class MyFirstActivity extends FragmentActivity
     
     public void refreshScreen()
     {	
+    	int list_fragment_id = R.id.bottom_fragment_container;
+		int chart_fragment_id = R.id.top_fragment_container;
+		if ( m_is_landscape )
+		{
+			/*
+			list_fragment_id = R.id.left_fragment_container;
+			chart_fragment_id = R.id.right_fragment_container;
+			*/
+		}
+		
 		// Find out what type of data to display.
 		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
 		String hist_pref = settings.getString(SHOW_HIST_PREFS,SHOW_HIST_PREF_ALL);
@@ -401,24 +421,31 @@ public class MyFirstActivity extends FragmentActivity
     	/*
     	 * Update weights to show and hide.
     	*/
-    	FrameLayout list_layout = (FrameLayout) findViewById(R.id.list_fragment_container);
-		if ( m_show_list )
+    	FrameLayout list_layout = (FrameLayout) findViewById( list_fragment_id );
+		if ( m_is_landscape )
     	{
-        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
+        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, 1.0f) );
     	}
     	else
     	{
         	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
-    	}    			
+    	}    		
     	
-		FrameLayout chart_layout = (FrameLayout) findViewById(R.id.chart_fragment_container);
+		FrameLayout chart_layout = (FrameLayout) findViewById( chart_fragment_id );
 		if ( m_show_chart )
-    	{
-        	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, .75f) );
+		{
+			if ( m_is_landscape )
+	    	{
+				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, .75f) );
+	    	}
+			else 
+			{
+				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, .75f) );
+			}
     	}
-    	else
+    	else  
     	{
-        	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0.0f) );
+        	chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, 0, 0.0f) );
     	}    			
 
 
