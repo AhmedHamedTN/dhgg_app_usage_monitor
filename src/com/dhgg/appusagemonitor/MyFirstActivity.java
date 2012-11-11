@@ -474,6 +474,7 @@ public class MyFirstActivity extends FragmentActivity
     	// Check to see if we should start the broadcast system.
     	SharedPreferences update_pref = getSharedPreferences(TURN_OFF_UPDATES, 0);
     	boolean updates_are_off = update_pref.getBoolean(TURN_OFF_UPDATES, false);
+    	/*
     	if ( updates_are_off )
     	{
     		toast_msg += "\nMonitoring is off.";
@@ -482,11 +483,11 @@ public class MyFirstActivity extends FragmentActivity
     	{
     		toast_msg += "\nMonitoring is on.";
     	}
+    	*/
 
     	if ( show_toast )
     	{
-    		Toast toast = Toast.makeText(getApplicationContext(),									
-                 toast_msg, Toast.LENGTH_LONG);
+    		Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_SHORT);
     		toast.show();
     	}
     	

@@ -87,28 +87,28 @@ public class PieChart extends View
     	// Update the rectangle bounds to fit on the screen nicely.
     	System.out.println("+++ PieChart::onDraw +++ "+m_width+" "+m_height);
     	
-    	int rect_size = m_width;
-    	boolean in_portrait = true;
-    	if ( rect_size > m_height )
-    	{
-    		// in landscape mode
-    		in_portrait = false;
-    		rect_size = m_height;
-    	}
-    	float diameter = rect_size * .8f;
-
     	float vertical_border = 0;
     	float horizontal_border = 0;
-    	if ( in_portrait )
+    	
+    	int rect_size = m_width;
+
+		// in landscape mode
+    	if ( rect_size > m_height )
     	{
-    		vertical_border = rect_size *.05f;
-    		horizontal_border = rect_size * .1f;
+    		rect_size = m_height;
+    		
+    		horizontal_border = (m_width - m_height ) / 2.0f;
+    		vertical_border = m_height * .05f;
     	}
     	else
     	{
-    		vertical_border = rect_size *.1f;
-    		horizontal_border = rect_size * .1f;
+    		horizontal_border = m_width * .05f;
+    		vertical_border = (m_height - m_width ) / 2.0f;
     	}
+    	float diameter = rect_size * 0.9f;
+    	
+    	System.out.println( horizontal_border +" " + vertical_border+" " +diameter +"----------");
+
         mShadowBounds.set( horizontal_border, vertical_border, 
         		           diameter+horizontal_border, diameter+vertical_border);
 
@@ -151,11 +151,11 @@ public class PieChart extends View
     	
        // Try for a width based on our minimum
        int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
-       m_width = resolveSizeAndState(minw, widthMeasureSpec, 1);
+       m_width = resolveSize(minw, widthMeasureSpec);
 
        // Whatever the width ends up being, ask for a height that would let the pie
        // get as big as it can
-       m_height = resolveSizeAndState(MeasureSpec.getSize(m_width), heightMeasureSpec, 0);
+       m_height = resolveSize(MeasureSpec.getSize(m_width), heightMeasureSpec);
 
        System.out.println(m_width+" "+m_height);
        
