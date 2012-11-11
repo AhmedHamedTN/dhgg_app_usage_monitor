@@ -26,6 +26,7 @@ public class MyFirstActivity extends FragmentActivity
 	public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
 	public static String TURN_OFF_UPDATES = "turn_off_updates";
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
+	public static String SHOW_CHART = "show_chart";
 
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
@@ -33,7 +34,7 @@ public class MyFirstActivity extends FragmentActivity
 
 	SpinnerAdapter mSpinnerAdapter;
 	
-	MenuItem m_show_chart_button  = null;
+	Menu m_options_menu  = null;
 	
 	boolean m_show_list = true;
 	boolean m_show_chart = false;
@@ -138,7 +139,19 @@ public class MyFirstActivity extends FragmentActivity
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.main_menu, menu);
 		
-		m_show_chart_button = menu.findItem(R.id.item_show_chart);
+		m_options_menu = menu;
+		
+		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
+		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
+		if ( !m_show_chart )
+		{
+			menu.findItem(R.id.item_show_chart).setTitle("Show Chart");
+		}
+		else
+		{
+			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
+		}
+		
 		return true;
 	}
 
@@ -148,7 +161,20 @@ public class MyFirstActivity extends FragmentActivity
 		menu.clear();
 	    getMenuInflater().inflate(R.layout.main_menu, menu);
 	    	 	
-	    return super.onPrepareOptionsMenu(menu);
+
+		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
+		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
+		if ( !m_show_chart )
+		{
+			menu.findItem(R.id.item_show_chart).setTitle("Show Chart");
+		}
+		else
+		{
+			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
+		}
+		
+
+		return super.onPrepareOptionsMenu(menu);
 	}
 	
 	
@@ -194,6 +220,14 @@ public class MyFirstActivity extends FragmentActivity
 			send_data();
 			break;
 		case R.id.item_show_chart:
+
+
+			// Update the saved preference.
+			SharedPreferences settings = getSharedPreferences(SHOW_CHART, 0);
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putBoolean(SHOW_CHART, !m_show_chart);
+			editor.commit();
+			
 			if ( m_show_chart )
 			{
 				item.setTitle("Show Chart");
@@ -202,8 +236,11 @@ public class MyFirstActivity extends FragmentActivity
 			{
 				item.setTitle("Hide Chart");
 			}
+			
 			m_show_chart = !m_show_chart;
 			refreshScreen();
+			
+						
 			break;
 		}
 		return true;
@@ -339,6 +376,9 @@ public class MyFirstActivity extends FragmentActivity
     
     public void refreshScreen()
     {	
+		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
+		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
+		
     	int list_fragment_id = R.id.bottom_fragment_container;
 		int chart_fragment_id = R.id.top_fragment_container;
 		if ( m_is_landscape )
@@ -472,9 +512,9 @@ public class MyFirstActivity extends FragmentActivity
     	}
 
     	// Check to see if we should start the broadcast system.
+    	/*
     	SharedPreferences update_pref = getSharedPreferences(TURN_OFF_UPDATES, 0);
     	boolean updates_are_off = update_pref.getBoolean(TURN_OFF_UPDATES, false);
-    	/*
     	if ( updates_are_off )
     	{
     		toast_msg += "\nMonitoring is off.";
