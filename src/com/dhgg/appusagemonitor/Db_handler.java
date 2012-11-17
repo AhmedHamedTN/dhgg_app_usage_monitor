@@ -21,6 +21,7 @@ public class Db_handler extends SQLiteOpenHelper
  
     // Contacts table name
     private static final String TABLE_NAME = "test_table";
+    private static final String MAPPING_TABLE_NAME = "app_to_process_table";
  
     // Contacts Table Columns names
     private static final String ID_COLUMN = "id";
@@ -59,15 +60,11 @@ public class Db_handler extends SQLiteOpenHelper
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int old_version, int new_version) 
 	{
-		// Temporarily stop the drop.
-		// 
-		// TODO: if a real upgrade is needed, uncomment this out.
-		// Drop older table if existed
+		// Create tables 
+	    onCreate(db);
+
 		//db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
 		//db.execSQL("DROP INDEX IF EXISTS date_idx");
-				
-		// Create tables 
-		onCreate(db);
 	}
 
 	public void clear_data() 

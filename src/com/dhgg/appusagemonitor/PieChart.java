@@ -85,7 +85,7 @@ public class PieChart extends View
     	super.onDraw(canvas);
     	
     	// Update the rectangle bounds to fit on the screen nicely.
-    	System.out.println("+++ PieChart::onDraw +++ "+m_width+" "+m_height);
+    	//System.out.println("+++ PieChart::onDraw +++ "+m_width+" "+m_height);
     	
     	float vertical_border = 0;
     	float horizontal_border = 0;
@@ -107,7 +107,7 @@ public class PieChart extends View
     	}
     	float diameter = rect_size * 0.9f;
     	
-    	System.out.println( horizontal_border +" " + vertical_border+" " +diameter +"----------");
+    	//System.out.println( horizontal_border +" " + vertical_border+" " +diameter +"----------");
 
         mShadowBounds.set( horizontal_border, vertical_border, 
         		           diameter+horizontal_border, diameter+vertical_border);
@@ -147,7 +147,7 @@ public class PieChart extends View
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) 
     {    
-    	System.out.print("+++ PieChart::onMeasure +++");
+    	//System.out.print("+++ PieChart::onMeasure +++");
     	
        // Try for a width based on our minimum
        int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
@@ -157,7 +157,7 @@ public class PieChart extends View
        // get as big as it can
        m_height = resolveSize(MeasureSpec.getSize(m_width), heightMeasureSpec);
 
-       System.out.println(m_width+" "+m_height);
+       //System.out.println(m_width+" "+m_height);
        
        setMeasuredDimension(m_width, m_height);
     }
