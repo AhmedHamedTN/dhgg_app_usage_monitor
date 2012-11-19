@@ -40,8 +40,7 @@ public class MyFirstActivity extends FragmentActivity
 	boolean m_show_chart = false;
 	boolean m_is_landscape = false;
 	
-	final int m_max_data_size = 11;
-
+	final int m_max_data_size = 22;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -64,16 +63,14 @@ public class MyFirstActivity extends FragmentActivity
 	    setup_fragments( savedInstanceState );
 		
         setup_admob_view();
-		
-        setup_action_bar();
 	}
 
 	private void setup_fragments( Bundle savedInstanceState )
 	{
 		// Check that the activity is using the layout version with
         // the fragment_container FrameLayout
-		int list_fragment_id = R.id.bottom_fragment_container;
-		int chart_fragment_id = R.id.top_fragment_container;
+		int list_fragment_id = R.id.list_fragment_container;
+		int chart_fragment_id = R.id.chart_fragment_container;
 		
 		if ( savedInstanceState  != null )
 		{
@@ -124,14 +121,6 @@ public class MyFirstActivity extends FragmentActivity
 		}
 	}
 	
-	public void setup_action_bar()
-	{
-		// Used to do things like setting up the 
-		// navigational spinner. Skipping for now. 
-		// ActionBar actionBar = getActionBar();
-	}
-
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -185,7 +174,7 @@ public class MyFirstActivity extends FragmentActivity
 		switch(item.getItemId()) {
 		case R.id.item_restart:
 			restartDb();
-			break;
+		break;
 		case R.id.item_start:
 
 			Toast start_toast = Toast.makeText(getApplicationContext(), 
@@ -194,7 +183,7 @@ public class MyFirstActivity extends FragmentActivity
 			start_toast.show();
 			
 			startService();
-			break;		
+		break;		
 		case R.id.item_stop:
 			
 			Toast stop_toast = Toast.makeText(getApplicationContext(), 
@@ -203,25 +192,23 @@ public class MyFirstActivity extends FragmentActivity
 			stop_toast.show();
 			
 			stopService();
-			break;
+		break;
 		case R.id.show_today:
 			set_hist_prefs( SHOW_HIST_PREF_TODAY );
 			refreshScreen();
-			break;
+		break;
 		case R.id.show_24_hours:
 			set_hist_prefs( SHOW_HIST_PREF_24_H );
 			refreshScreen();
-			break;
+		break;
 		case R.id.show_all:
 			set_hist_prefs( SHOW_HIST_PREF_ALL );
 			refreshScreen();
 			break;
 		case R.id.item_send_data:
 			send_data();
-			break;
+		break;
 		case R.id.item_show_chart:
-
-
 			// Update the saved preference.
 			SharedPreferences settings = getSharedPreferences(SHOW_CHART, 0);
 			SharedPreferences.Editor editor = settings.edit();
@@ -240,8 +227,7 @@ public class MyFirstActivity extends FragmentActivity
 			m_show_chart = !m_show_chart;
 			refreshScreen();
 			
-						
-			break;
+		break;
 		}
 		return true;
 	}
@@ -325,7 +311,7 @@ public class MyFirstActivity extends FragmentActivity
 	{	
 		// Get data to send
 		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getAllData( );
+		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL );
 		
 		String data_to_send = "";
 		data_to_send += "App Name   \tTime Spent Using\n";
@@ -378,20 +364,13 @@ public class MyFirstActivity extends FragmentActivity
     {	
 		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
 		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
-		
-    	int list_fragment_id = R.id.bottom_fragment_container;
-		int chart_fragment_id = R.id.top_fragment_container;
-		if ( m_is_landscape )
-		{
-			/*
-			list_fragment_id = R.id.left_fragment_container;
-			chart_fragment_id = R.id.right_fragment_container;
-			*/
-		}
+
+    	int list_fragment_id = R.id.list_fragment_container;
+		int chart_fragment_id = R.id.chart_fragment_container;
 		
 		// Find out what type of data to display.
 		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
-		String hist_pref = settings.getString(SHOW_HIST_PREFS,SHOW_HIST_PREF_ALL);
+		String hist_pref = settings.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
 
 		// Get data to display
 		Db_handler db_handler = new Db_handler(this);
@@ -436,7 +415,8 @@ public class MyFirstActivity extends FragmentActivity
 				
 				int percent = (int) ( fraction * 100);
 				
-				normal_data_arr[ normal_data_arr_size -1 ].value = percent; 
+				normal_data_arr[ normal_data_arr_size -1 ].value = percent;
+				normal_data_arr[ normal_data_arr_size -1 ].description = "Other ...";
 			}
     	}
     	else 

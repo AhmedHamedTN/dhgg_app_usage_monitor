@@ -53,10 +53,12 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
         
         TextView name_view = (TextView)row.findViewById(R.id.name);
         name_view.setText(data[position].description);
+        /*
         if ( m_use_colors && ( position >= m_num_colors - 1) )
         {
         	name_view.setText( "Other ...");
         }
+        */
         
         TextView value_view = (TextView)row.findViewById(R.id.value);
         
@@ -79,17 +81,7 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
             
         	if ( m_use_colors )
         	{
-        		/*
-	            if ( position >= m_num_colors )
-	            { 
-	                img_view.setImageDrawable( icon );
-	                img_view.setBackgroundColor( Color.TRANSPARENT );
-	            }
-	            else
-	            */
-	            {
-	            	img_view.setBackgroundColor( m_colors[ position % m_num_colors ] );
-	            }
+        		img_view.setBackgroundColor( m_colors[ position % m_num_colors ] );
         	}
         	else
         	{

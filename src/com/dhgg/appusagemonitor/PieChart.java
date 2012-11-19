@@ -20,7 +20,6 @@ public class PieChart extends View
     private static Paint mPiePaint;
     public RectF mShadowBounds;
 
-	int m_max_arcs = 11;
 	public int m_colors[] = { 
 	        Color.CYAN,    //
 	        Color.RED, 
@@ -33,10 +32,12 @@ public class PieChart extends View
 	        Color.BLACK,
 	        Color.MAGENTA,
 	        Color.WHITE };
+	int m_num_colors = 11;
 	
     Data_value[] m_data_arr ;
     float m_max;
     int m_num_slices;
+    int m_max_arcs = 11;
     
     public PieChart(Context ctx, AttributeSet attrs) 
     {
@@ -119,26 +120,16 @@ public class PieChart extends View
     	{	
      	    float arc_size = (m_data_arr[i].value / m_max) * 360;     	    
     		end_angle = start_angle + arc_size;
-    		
-    	    if ( i == m_max_arcs ) 
-    	    {
-    	        end_angle = 360;
-    	    }
 
             float first_angle = 360 - end_angle;
             float sweep_angle = end_angle - start_angle;
               
-    		mPiePaint.setColor( m_colors[i] );
+    		mPiePaint.setColor( m_colors[i % m_num_colors ] );
      	    canvas.drawArc( mShadowBounds, first_angle, sweep_angle, 
 			                true, 
 			                mPiePaint ); 
 		    
      	    start_angle += arc_size;
-
-    	    if ( i == m_max_arcs ) 
-    	    {
-    	    	break;
-    	    }
     	}
  
     }

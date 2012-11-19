@@ -10,13 +10,13 @@
 	    android:orientation="horizontal" >
 		   
 		<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	    	android:id="@+id/bottom_fragment_container"
+	    	android:id="@+id/list_fragment_container"
 	        android:layout_width="0dp"
 	        android:layout_height="fill_parent" 
 	        android:layout_weight="1"  />
 			
 		<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	    	android:id="@+id/top_fragment_container"
+	    	android:id="@+id/chart_fragment_container"
 	        android:layout_width="0dp"
 	        android:layout_height="fill_parent" 
 	        android:layout_weight="1"  />	
