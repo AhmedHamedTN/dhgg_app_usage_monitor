@@ -20,12 +20,12 @@ public class AppChartFragment extends Fragment
   	    return m_view;
     }
     
-    public int refreshScreen( Data_value[] data_arr  ) 
+    public int refresh_screen( Data_value[] data_arr  ) 
 	{
     	View view = m_view;
     	if (view == null)
     	{
-    		//System.out.println("+++ AppChartFragment::refreshScreen view=null exit +++" );	    
+    		//System.out.println("+++ AppChartFragment::refresh_screen view=null exit +++" );	    
     	    return -2;
     	}
 
@@ -33,7 +33,7 @@ public class AppChartFragment extends Fragment
 		PieChart pie_chart_view = (PieChart) getActivity().findViewById(R.id.pie_chart);
 		if ( pie_chart_view == null )
 		{
-	    	//System.out.println("+++ AppListFragment::refreshScreen list_view==null exit +++" );
+	    	//System.out.println("+++ AppListFragment::refresh_screen list_view==null exit +++" );
 	    	return -3;
 		}
 		

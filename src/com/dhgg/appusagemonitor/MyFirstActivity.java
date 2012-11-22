@@ -24,6 +24,7 @@ public class MyFirstActivity extends FragmentActivity
 {
 	public static Db_handler m_db_handler;
 	public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
+	
 	public static String TURN_OFF_UPDATES = "turn_off_updates";
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
 	public static String SHOW_CHART = "show_chart";
@@ -31,10 +32,6 @@ public class MyFirstActivity extends FragmentActivity
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
 	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";	
-
-	SpinnerAdapter mSpinnerAdapter;
-	
-	Menu m_options_menu  = null;
 	
 	boolean m_show_list = true;
 	boolean m_show_chart = false;
@@ -42,6 +39,37 @@ public class MyFirstActivity extends FragmentActivity
 	
 	final int m_max_data_size = 22;
 
+	private void clear_database() 
+	{
+		// Get data to display
+		Db_handler db_handler = new Db_handler(this);
+		db_handler.clear_data();
+		
+		refresh_screen();
+	}
+
+	private String get_time_str( int time_in_seconds)
+    {
+    	int total_secs = time_in_seconds;
+    	
+        int hours = total_secs / 3600;
+        int mins = (total_secs - (hours * 3600))/ 60;
+        int secs = total_secs - (hours * 3600) - (mins * 60);
+        
+        String time_str = "";
+        if (hours > 0)
+        {
+        	time_str += hours + "h ";
+        }
+        if (mins > 0)
+        {
+        	time_str += mins + "m ";
+        }
+        time_str += secs + "s";
+        
+    	return time_str;
+    }
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
@@ -64,62 +92,6 @@ public class MyFirstActivity extends FragmentActivity
 		
         setup_admob_view();
 	}
-
-	private void setup_fragments( Bundle savedInstanceState )
-	{
-		// Check that the activity is using the layout version with
-        // the fragment_container FrameLayout
-		int list_fragment_id = R.id.list_fragment_container;
-		int chart_fragment_id = R.id.chart_fragment_container;
-		
-		if ( savedInstanceState  != null )
-		{
-			return;
-		}
-		
-        if (findViewById( list_fragment_id ) != null) 
-        {
-            // Create an instance of ExampleFragment
-            AppListFragment m_list_fragment = new AppListFragment();
-            
-            // In case this activity was started with special instructions from an Intent,
-            // pass the Intent's extras to the fragment as arguments
-            m_list_fragment.setArguments(getIntent().getExtras());
-            
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction().add( list_fragment_id, m_list_fragment, "my_list_fragment").commit();
-        }
-        
-        if (findViewById( chart_fragment_id ) != null) 
-        {
-            // Create an instance of ExampleFragment
-            AppChartFragment m_chart_fragment = new AppChartFragment();
-            
-            // In case this activity was started with special instructions from an Intent,
-            // pass the Intent's extras to the fragment as arguments
-            m_chart_fragment.setArguments(getIntent().getExtras());
-            
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction().add( chart_fragment_id , m_chart_fragment, "my_chart_fragment").commit();
-        }
-
-		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
-		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
-	}
-	
-	private void setup_admob_view()
-	{
-		// Add the ADMOB view
-		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
-		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
-		
-		if ( layout != null )
-		{
-			layout.addView(adView);
-			AdRequest adRequest = new AdRequest();
-			adView.loadAd(adRequest);
-		}
-	}
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) 
@@ -127,8 +99,6 @@ public class MyFirstActivity extends FragmentActivity
 		// use an inflater to populate the ActionBar with items
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.main_menu, menu);
-		
-		m_options_menu = menu;
 		
 		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
 		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
@@ -142,6 +112,90 @@ public class MyFirstActivity extends FragmentActivity
 		}
 		
 		return true;
+	}
+
+	@Override
+	public void onDestroy() 
+	{		
+		super.onDestroy();
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		// same as using a normal menu
+		switch(item.getItemId()) {
+		case R.id.item_restart:
+			clear_database();
+		break;
+		case R.id.item_start:
+
+			Toast start_toast = Toast.makeText(getApplicationContext(), 
+					                           "Monitoring Started.",
+					                           Toast.LENGTH_SHORT);
+			start_toast.show();
+			
+			send_start_broadcast();
+		break;		
+		case R.id.item_stop:
+			
+			Toast stop_toast = Toast.makeText(getApplicationContext(), 
+											  "Monitoring Stopped.",
+											  Toast.LENGTH_SHORT);
+			stop_toast.show();
+			
+			send_stop_broadcast();
+		break;
+		case R.id.show_today:
+			set_hist_prefs( SHOW_HIST_PREF_TODAY );
+			refresh_screen();
+		break;
+		case R.id.show_24_hours:
+			set_hist_prefs( SHOW_HIST_PREF_24_H );
+			refresh_screen();
+		break;
+		case R.id.show_all:
+			set_hist_prefs( SHOW_HIST_PREF_ALL );
+			refresh_screen();
+			break;
+		case R.id.item_send_data:
+			send_data();
+		break;
+		case R.id.item_show_chart:
+			// Update the saved preference.
+			SharedPreferences settings = getSharedPreferences(SHOW_CHART, 0);
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putBoolean(SHOW_CHART, !m_show_chart);
+			editor.commit();
+			
+			if ( m_show_chart )
+			{
+				item.setTitle("Show Chart");
+			}
+			else
+			{
+				item.setTitle("Hide Chart");
+			}
+			
+			m_show_chart = !m_show_chart;
+			refresh_screen();
+			
+		break;
+		}
+		return true;
+	}
+
+	public void onPause() 
+	{
+		// Check to see if we should send an initial message
+		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
+		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
+		if (!updates_are_off) 
+		{
+			m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
+			m_db_handler.update_or_add("screen_off", "screen_off");
+		}
+		super.onPause();
 	}
 
 	@Override
@@ -165,78 +219,6 @@ public class MyFirstActivity extends FragmentActivity
 
 		return super.onPrepareOptionsMenu(menu);
 	}
-	
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		// same as using a normal menu
-		switch(item.getItemId()) {
-		case R.id.item_restart:
-			restartDb();
-		break;
-		case R.id.item_start:
-
-			Toast start_toast = Toast.makeText(getApplicationContext(), 
-					                           "Monitoring Started.",
-					                           Toast.LENGTH_SHORT);
-			start_toast.show();
-			
-			startService();
-		break;		
-		case R.id.item_stop:
-			
-			Toast stop_toast = Toast.makeText(getApplicationContext(), 
-											  "Monitoring Stopped.",
-											  Toast.LENGTH_SHORT);
-			stop_toast.show();
-			
-			stopService();
-		break;
-		case R.id.show_today:
-			set_hist_prefs( SHOW_HIST_PREF_TODAY );
-			refreshScreen();
-		break;
-		case R.id.show_24_hours:
-			set_hist_prefs( SHOW_HIST_PREF_24_H );
-			refreshScreen();
-		break;
-		case R.id.show_all:
-			set_hist_prefs( SHOW_HIST_PREF_ALL );
-			refreshScreen();
-			break;
-		case R.id.item_send_data:
-			send_data();
-		break;
-		case R.id.item_show_chart:
-			// Update the saved preference.
-			SharedPreferences settings = getSharedPreferences(SHOW_CHART, 0);
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putBoolean(SHOW_CHART, !m_show_chart);
-			editor.commit();
-			
-			if ( m_show_chart )
-			{
-				item.setTitle("Show Chart");
-			}
-			else
-			{
-				item.setTitle("Hide Chart");
-			}
-			
-			m_show_chart = !m_show_chart;
-			refreshScreen();
-			
-		break;
-		}
-		return true;
-	}
-
-	@Override
-	public void onDestroy() 
-	{		
-		super.onDestroy();
-	}
 
 	@Override
 	public void onResume() 
@@ -249,118 +231,14 @@ public class MyFirstActivity extends FragmentActivity
 			m_db_handler.update_or_add("screen_on", "screen_on");
 			m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
 	
-			startService();
+			send_start_broadcast();
 		}
 		
-		refreshScreen();
+		refresh_screen();
 		super.onResume();
 	}
 
-	public void onPause() 
-	{
-		// Check to see if we should send an initial message
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
-		if (!updates_are_off) 
-		{
-			m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
-			m_db_handler.update_or_add("screen_off", "screen_off");
-		}
-		super.onPause();
-	}
-
-	public void set_update_flag( boolean flag) 
-	{
-		// Update the saved preference.
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putBoolean(TURN_OFF_UPDATES, flag);
-		editor.commit();		
-	}
-	
-	public void set_hist_prefs( String pref )
-	{
-		// Update the saved preference.
-		SharedPreferences settings = getSharedPreferences(SHOW_HIST_PREFS, 0);		
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString(SHOW_HIST_PREFS, pref);
-		editor.commit();		
-	}
-
-	public void startService() 
-	{
-		set_update_flag(false);
-		
-	    // Send start message
-		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
-		intent.setAction("dhgg.app.usage.monitor.start");
-		sendBroadcast(intent);		
-	}
-
-	public void stopService() 
-	{
-		set_update_flag(true);
-		
-	    // Send stop message
-		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
-		intent.setAction("dhgg.app.usage.monitor.stop");
-		sendBroadcast(intent);		
-	}
-	
-	public void send_data() 
-	{	
-		// Get data to send
-		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL );
-		
-		String data_to_send = "";
-		data_to_send += "App Name   \tTime Spent Using\n";
-		for (Data_value dv : data)
-		{
-			data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
-		}
-
-		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
-		send_intent.setType("text/plain");
-		send_intent.putExtra(Intent.EXTRA_SUBJECT, "App Usage Monitor data");
-		send_intent.putExtra(Intent.EXTRA_TEXT, data_to_send);
-	    
-		startActivity(send_intent);
-	}
-	
-	public void restartDb() 
-	{
-		// Get data to display
-		Db_handler db_handler = new Db_handler(this);
-		db_handler.clear_data();
-		
-		refreshScreen();
-	}
-
-    public String get_time_str( int time_in_seconds)
-    {
-    	int total_secs = time_in_seconds;
-    	
-        int hours = total_secs / 3600;
-        int mins = (total_secs - (hours * 3600))/ 60;
-        int secs = total_secs - (hours * 3600) - (mins * 60);
-        
-        String time_str = "";
-        if (hours > 0)
-        {
-        	time_str += hours + "h ";
-        }
-        if (mins > 0)
-        {
-        	time_str += mins + "m ";
-        }
-        time_str += secs + "s";
-        
-    	return time_str;
-    }
-    
-    
-    public void refreshScreen()
+	private void refresh_screen()
     {	
 		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
 		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
@@ -429,13 +307,13 @@ public class MyFirstActivity extends FragmentActivity
     	{
     		// Pass in a flag to tell the list to do something 
     		// different if the chart is also being shown.
-        	list_fragment.refreshScreen( normal_data_arr, m_show_chart );        	
+        	list_fragment.refresh_screen( normal_data_arr, m_show_chart );        	
     	}
 
     	AppChartFragment chart_fragment = (AppChartFragment) getSupportFragmentManager().findFragmentByTag("my_chart_fragment");    	
     	if ( chart_fragment != null )
     	{
-        	chart_fragment.refreshScreen( normal_data_arr );        	
+        	chart_fragment.refresh_screen( normal_data_arr );        	
     	}
 
     	/*
@@ -491,20 +369,6 @@ public class MyFirstActivity extends FragmentActivity
 			toast_msg = "Welcome! Return later to see updated stats.";
     	}
 
-    	// Check to see if we should start the broadcast system.
-    	/*
-    	SharedPreferences update_pref = getSharedPreferences(TURN_OFF_UPDATES, 0);
-    	boolean updates_are_off = update_pref.getBoolean(TURN_OFF_UPDATES, false);
-    	if ( updates_are_off )
-    	{
-    		toast_msg += "\nMonitoring is off.";
-    	}
-    	else
-    	{
-    		toast_msg += "\nMonitoring is on.";
-    	}
-    	*/
-
     	if ( show_toast )
     	{
     		Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_SHORT);
@@ -512,4 +376,119 @@ public class MyFirstActivity extends FragmentActivity
     	}
     	
     }
+	
+	public void send_data() 
+	{	
+		// Get data to send
+		Db_handler db_handler = new Db_handler(this);
+		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL );
+		
+		String data_to_send = "";
+		data_to_send += "App Name   \tTime Spent Using\n";
+		for (Data_value dv : data)
+		{
+			data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
+		}
+
+		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
+		send_intent.setType("text/plain");
+		send_intent.putExtra(Intent.EXTRA_SUBJECT, "App Usage Monitor data");
+		send_intent.putExtra(Intent.EXTRA_TEXT, data_to_send);
+	    
+		startActivity(send_intent);
+	}
+
+	private void send_start_broadcast() 
+	{
+		set_update_flag(false);
+		
+	    // Send start message
+		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.start");
+		sendBroadcast(intent);		
+	}
+
+	private void send_stop_broadcast() 
+	{
+		set_update_flag(true);
+		
+	    // Send stop message
+		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.stop");
+		sendBroadcast(intent);		
+	}
+	
+	private void set_hist_prefs( String pref )
+	{
+		// Update the saved preference.
+		SharedPreferences settings = getSharedPreferences(SHOW_HIST_PREFS, 0);		
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(SHOW_HIST_PREFS, pref);
+		editor.commit();		
+	}
+	
+	private void set_update_flag( boolean flag) 
+	{
+		// Update the saved preference.
+		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putBoolean(TURN_OFF_UPDATES, flag);
+		editor.commit();		
+	}
+
+    private void setup_admob_view()
+	{
+		// Add the ADMOB view
+		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
+		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
+		
+		if ( layout != null )
+		{
+			layout.addView(adView);
+			AdRequest adRequest = new AdRequest();
+			adView.loadAd(adRequest);
+		}
+	}
+    
+    private void setup_fragments( Bundle savedInstanceState )
+	{
+		// Check that the activity is using the layout version with
+        // the fragment_container FrameLayout
+		int list_fragment_id = R.id.list_fragment_container;
+		int chart_fragment_id = R.id.chart_fragment_container;
+		
+		if ( savedInstanceState  != null )
+		{
+			return;
+		}
+		
+        if (findViewById( list_fragment_id ) != null) 
+        {
+            // Create an instance of ExampleFragment
+            AppListFragment m_list_fragment = new AppListFragment();
+            
+            // In case this activity was started with special instructions from an Intent,
+            // pass the Intent's extras to the fragment as arguments
+            m_list_fragment.setArguments(getIntent().getExtras());
+            
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction().add( list_fragment_id, m_list_fragment, "my_list_fragment").commit();
+        }
+        
+        if (findViewById( chart_fragment_id ) != null) 
+        {
+            // Create an instance of ExampleFragment
+            AppChartFragment m_chart_fragment = new AppChartFragment();
+            
+            // In case this activity was started with special instructions from an Intent,
+            // pass the Intent's extras to the fragment as arguments
+            m_chart_fragment.setArguments(getIntent().getExtras());
+            
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction().add( chart_fragment_id , m_chart_fragment, "my_chart_fragment").commit();
+        }
+
+		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
+		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
+	}
 }

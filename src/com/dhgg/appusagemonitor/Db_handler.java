@@ -79,7 +79,7 @@ public class Db_handler extends SQLiteOpenHelper
 	    db.close();
 	}
 	
-	public void consolidate_old_data( int date_to_archive )
+	private void consolidate_old_data( int date_to_archive )
     {
         String selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE "+
                              DATE_COLUMN + " = " + date_to_archive;
@@ -93,8 +93,13 @@ public class Db_handler extends SQLiteOpenHelper
         {
             do 
             {	
-            	String app_name = cursor.getString(1);            	
-            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) );            	
+            	String app_name = cursor.getString(1);
+            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+            	{
+            		continue;
+            	}
+            	
+            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ); 
             	String process_name = cursor.getString(4);
         
             	// store name + object value map
@@ -116,7 +121,7 @@ public class Db_handler extends SQLiteOpenHelper
 
         // Delete old data.
 	    SQLiteDatabase db_write = this.getWritableDatabase();
-	    String delete_command = DATE_COLUMN + " < " + date_to_archive; 
+	    String delete_command = DATE_COLUMN + " <= " + date_to_archive; 
 	    db_write.delete(TABLE_NAME, delete_command, null);       
 
         // Move consolidated data to archive.
@@ -132,7 +137,6 @@ public class Db_handler extends SQLiteOpenHelper
 			try 
 			{
 	    	    db_write.insert( APP_HISTORY_TABLE, null, values);
- 
 			} catch(Exception e) { }
         }
         
@@ -140,7 +144,7 @@ public class Db_handler extends SQLiteOpenHelper
 	    
     }
 	
-	public void create_history_table(SQLiteDatabase db)
+	private void create_history_table(SQLiteDatabase db)
 	{
 		String DROP_INDEX = "DROP INDEX IF EXISTS history_name_idx";
 		String DROP_TABLE = "DROP TABLE IF EXISTS " + APP_HISTORY_TABLE;
@@ -171,7 +175,7 @@ public class Db_handler extends SQLiteOpenHelper
 	    }	
 	}
 
-	public void create_main_table(SQLiteDatabase db)
+	private void create_main_table(SQLiteDatabase db)
 	{
 		String DROP_INDEX = "DROP INDEX IF EXISTS date_idx";
 		String DROP_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
@@ -203,7 +207,7 @@ public class Db_handler extends SQLiteOpenHelper
 	    }	
 	}
 		
-	public void create_mapping_table(SQLiteDatabase db) 
+	private void create_mapping_table(SQLiteDatabase db) 
 	{
 		String DROP_INDEX = "DROP INDEX IF EXISTS mapping_name_idx";
 		
@@ -238,7 +242,7 @@ public class Db_handler extends SQLiteOpenHelper
 	    
 	}
 		
-	public boolean do_update( String name ) 
+	private boolean do_update( String name ) 
     {
         // Select All Query
         String selectQuery = "SELECT "+NAME_COLUMN+","+DATE_COLUMN+
@@ -312,7 +316,7 @@ public class Db_handler extends SQLiteOpenHelper
 		}
 	}
 	
-	public Map <String, Data_value> get_archive_data( Map<String, Data_value> input_obj )
+	private Map <String, Data_value> get_archive_data( Map<String, Data_value> input_obj )
     {
     	Map <String, Data_value> output_obj = input_obj;
 
@@ -328,13 +332,11 @@ public class Db_handler extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Cursor cursor = db.rawQuery(select_query, null);        
 		
-		
-		
 		if (cursor.moveToFirst()) 
 		{
 			do {				
 				String app_name = cursor.getString( 0 );
-				int value = cursor.getInt( 1 );
+				int value = cursor.getInt( 1 ) / 1000;
 			
 				// store name + object value map
 				if ( output_obj.containsKey( app_name ) )
@@ -367,7 +369,12 @@ public class Db_handler extends SQLiteOpenHelper
 		                (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
 		                 gcalendar.get( Calendar.DATE ) ;
 
-		consolidate_old_data( yest_date );
+		gcalendar.add( Calendar.DATE, - 1 );
+		int archive_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
+		                    (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
+		                    gcalendar.get( Calendar.DATE ) ;
+
+		consolidate_old_data( archive_date );
 		
 		String select_query = "SELECT " + 
 		                      "  a." + NAME_COLUMN +
@@ -466,8 +473,7 @@ public class Db_handler extends SQLiteOpenHelper
     @Override
 	public void onCreate(SQLiteDatabase db) 
 	{
-		System.out.println("Db_handler::onCreate");
-		
+		// System.out.println("Db_handler::onCreate");		
 		create_main_table( db );
 		
 		create_mapping_table( db );
@@ -478,7 +484,7 @@ public class Db_handler extends SQLiteOpenHelper
     @Override
 	public void onUpgrade(SQLiteDatabase db, int old_version, int new_version) 
 	{
-		System.out.println("Db_handler::onUpgrade "+" "+old_version+" "+new_version);
+		// System.out.println("Db_handler::onUpgrade "+" "+old_version+" "+new_version);
 		// create new mapping table		
 		
 		// From version 2 --> 3, we are 
@@ -488,12 +494,16 @@ public class Db_handler extends SQLiteOpenHelper
 		{
 			create_mapping_table( db );
 			
+			create_history_table( db );
+			
 			try
 			{
-				// add data to mapping table
-				populate_app_process_map();
+				populate_app_process_map( db );
 			}
-			catch ( Exception e ) { }
+			catch ( Exception e ) 
+			{
+				System.out.println("Error while doing populate_app_process_map."+e);
+			}
 			
 			// drop column from main table
 			drop_column( db );			
@@ -509,20 +519,21 @@ public class Db_handler extends SQLiteOpenHelper
     
     // use only for upgrading database.
 	// eventually delete this
-	private void populate_app_process_map()
+	private void populate_app_process_map( SQLiteDatabase db )
 	{
 		String selectQuery = "SELECT "+" "+NAME_COLUMN+", "+
 		                     PROCESS_NAME_COLUMN+" FROM "+ 
 				             TABLE_NAME;
 		 
-        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);        
  
         // Looping through all rows and dumping out the info
         Map <String, String> mp_obj=new HashMap<String, String>();  
         
-        if (cursor.moveToFirst()) {
-            do {	
+        if (cursor.moveToFirst()) 
+        {
+            do 
+            {	
             	String app_name = cursor.getString(0);
             	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
             	{
@@ -537,13 +548,68 @@ public class Db_handler extends SQLiteOpenHelper
             	
             	String process_name = cursor.getString(1);            	
             	mp_obj.put(app_name, process_name );            	
-            	update_or_add_to_mapping_table( app_name, process_name );
 
             } while (cursor.moveToNext());
         }
-        db.close();
+        
+	
+        // Move mapped data to archive.
+	    for (Map.Entry<String, String> entry : mp_obj.entrySet())
+	    {
+	    	ContentValues values = new ContentValues();
+	    	values.put( NAME_COLUMN, entry.getKey() );	 
+	    	values.put( PROCESS_NAME_COLUMN, entry.getValue() );
+	    	    
+	    	try 
+			{
+		        db.insert( MAPPING_TABLE_NAME, null, values);
+			} 
+	    	catch(Exception e) 
+	    	{ 
+	    		System.out.println("Error in populate_app_process_map:"+e);
+	    	}
+	        
+	    }
 	}
        
+    private void update_last( ) 
+    {
+        String selectQuery = "SELECT "+ID_COLUMN + "," + END_TIME_COLUMN +
+        		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
+ 
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+ 
+        // looping through all rows and dumping out the info
+        String id = "";
+        long last_end_time = -999;
+        if (cursor.moveToFirst()) 
+        {
+        	id = cursor.getString(0);
+        	last_end_time = cursor.getLong(1);
+        }
+        
+        long new_end_time = System.currentTimeMillis();
+        if ( last_end_time == -999 || last_end_time > new_end_time )
+        {
+        	return;
+        }
+        
+        String strFilter = "id=" + id;
+        ContentValues args = new ContentValues();
+        
+        args.put(END_TIME_COLUMN, new_end_time);
+        
+		try 
+		{
+	        db.update(TABLE_NAME, args, strFilter, null);
+		} 
+		catch(Exception e) { }
+
+
+        db.close();
+    }
+    
     public void update_or_add( String name, String process_name )
     {
     	if ( do_update(name) )
@@ -558,7 +624,7 @@ public class Db_handler extends SQLiteOpenHelper
     	update_or_add_to_mapping_table( name, process_name );
     }
     
-    public void update_or_add_to_mapping_table( String name, String process_name ) 
+    private void update_or_add_to_mapping_table( String name, String process_name ) 
     {
         String selectQuery = "SELECT "+PROCESS_NAME_COLUMN+" FROM " + 
     	                     MAPPING_TABLE_NAME +" WHERE "+
@@ -609,44 +675,6 @@ public class Db_handler extends SQLiteOpenHelper
 			catch(Exception e) { }
         }
 		db_write.close();
-    }
-    
-    private void update_last( ) 
-    {
-        String selectQuery = "SELECT "+ID_COLUMN + "," + END_TIME_COLUMN +
-        		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
- 
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
- 
-        // looping through all rows and dumping out the info
-        String id = "";
-        long last_end_time = -999;
-        if (cursor.moveToFirst()) 
-        {
-        	id = cursor.getString(0);
-        	last_end_time = cursor.getLong(1);
-        }
-        
-        long new_end_time = System.currentTimeMillis();
-        if ( last_end_time == -999 || last_end_time > new_end_time )
-        {
-        	return;
-        }
-        
-        String strFilter = "id=" + id;
-        ContentValues args = new ContentValues();
-        
-        args.put(END_TIME_COLUMN, new_end_time);
-        
-		try 
-		{
-	        db.update(TABLE_NAME, args, strFilter, null);
-		} 
-		catch(Exception e) { }
-
-
-        db.close();
     }
 
 }

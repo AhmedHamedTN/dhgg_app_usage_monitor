@@ -32,12 +32,12 @@ public class AppListFragment extends Fragment
     	//System.out.println("+++ ApplistFragment::onAttach +++" );
     }
     
-    public int refreshScreen( Data_value[] data_arr, boolean show_chart  ) 
+    public int refresh_screen( Data_value[] data_arr, boolean show_chart  ) 
 	{
     	View view = m_view;
     	if (view == null)
     	{
-    		//System.out.println("+++ ApplistFragment::refreshScreen view=null exit +++" );	    
+    		//System.out.println("+++ ApplistFragment::refresh_screen view=null exit +++" );	    
     	    return -2;
     	}
 
@@ -45,7 +45,7 @@ public class AppListFragment extends Fragment
 		ListView list_view = (ListView) getActivity().findViewById(R.id.task_list_view);
 		if ( list_view == null )
 		{
-	    	//System.out.println("+++ AppListFragment::refreshScreen list_view==null exit +++" );
+	    	//System.out.println("+++ AppListFragment::refresh_screen list_view==null exit +++" );
 	    	return -3;
 		}
 
