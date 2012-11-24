@@ -67,7 +67,10 @@ public class Db_handler extends SQLiteOpenHelper
 		{
 		    db.insert(TABLE_NAME, null, values);
 		} 
-		catch(Exception e) { }
+		catch(Exception e) 
+		{
+			System.out.println("Error. Db_handler::add_data."+e);
+		}
 		
 	    db.close(); 
 	}
@@ -137,7 +140,10 @@ public class Db_handler extends SQLiteOpenHelper
 			try 
 			{
 	    	    db_write.insert( APP_HISTORY_TABLE, null, values);
-			} catch(Exception e) { }
+			} catch(Exception e) 
+			{
+				System.out.println("Error. Db_handler::consolidate_old_data."+e);
+			}
         }
         
 	    db_write.close();
@@ -502,7 +508,7 @@ public class Db_handler extends SQLiteOpenHelper
 			}
 			catch ( Exception e ) 
 			{
-				System.out.println("Error while doing populate_app_process_map."+e);
+				System.out.println("Error. while doing populate_app_process_map."+e);
 			}
 			
 			// drop column from main table
@@ -604,7 +610,10 @@ public class Db_handler extends SQLiteOpenHelper
 		{
 	        db.update(TABLE_NAME, args, strFilter, null);
 		} 
-		catch(Exception e) { }
+		catch(Exception e) 
+		{
+			System.out.println("Error. Db_handler::update_last:"+e);			
+		}
 
 
         db.close();
@@ -659,7 +668,10 @@ public class Db_handler extends SQLiteOpenHelper
     		{
     		    db_write.insert(MAPPING_TABLE_NAME, null, values);
     		} 
-    		catch(Exception e) { }
+    		catch(Exception e) 
+    		{
+    			System.out.println("Error. Db_handler::update_or_add_to_mapping add:"+e);
+    		}
         }
         else 
         {
@@ -672,7 +684,10 @@ public class Db_handler extends SQLiteOpenHelper
 			{
 				db_write.update(MAPPING_TABLE_NAME, args, strFilter, null);
 			} 
-			catch(Exception e) { }
+			catch(Exception e) 
+			{
+				System.out.println("Error. Db_handler::update_or_add_to_mapping update:"+e);
+			}
         }
 		db_write.close();
     }
