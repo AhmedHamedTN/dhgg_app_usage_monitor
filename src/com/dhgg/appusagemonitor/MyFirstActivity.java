@@ -251,7 +251,7 @@ public class MyFirstActivity extends FragmentActivity
 
 		// Get data to display
 		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getData( hist_pref );
+		ArrayList<Data_value> data = db_handler.getData( hist_pref, "" );
 		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
 		
     	Data_value[] normal_data_arr;
@@ -380,7 +380,7 @@ public class MyFirstActivity extends FragmentActivity
 	{	
 		// Get data to send
 		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL );
+		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL, "" );
 		
 		String data_to_send = "";
 		data_to_send += "App Name   \tTime Spent Using\n";

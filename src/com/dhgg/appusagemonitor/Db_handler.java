@@ -367,7 +367,7 @@ public class Db_handler extends SQLiteOpenHelper
     	return output_obj;
     }
 	
-    public ArrayList<Data_value> getData( String hist_pref ) 
+    public ArrayList<Data_value> getData( String hist_pref, String input_app_name ) 
     {
 		GregorianCalendar gcalendar = new GregorianCalendar( );
 		gcalendar.add( Calendar.DATE, - 1 );
@@ -393,7 +393,12 @@ public class Db_handler extends SQLiteOpenHelper
 				              
     	boolean check_for_today = false;
 		boolean check_for_24_hours = false; 
-    	if ( hist_pref.equals("s_h_p_today"))
+		
+    	if ( hist_pref.equals("s_h_p_yest"))
+    	{
+    		select_query += " WHERE "+DATE_COLUMN + " = " + yest_date;
+    	}
+    	else if ( hist_pref.equals("s_h_p_today"))
     	{
     		check_for_today = true;
     		select_query += " WHERE "+DATE_COLUMN + " > " + yest_date;
@@ -405,6 +410,11 @@ public class Db_handler extends SQLiteOpenHelper
     	
     	select_query += ") a JOIN "+MAPPING_TABLE_NAME+" b ON "+
     	                "a."+NAME_COLUMN+" = b."+NAME_COLUMN;
+    	
+    	if ( !input_app_name.equals("") )
+    	{
+    		select_query += " AND a."+NAME_COLUMN+" = '"+input_app_name+"'";
+    	}
     	
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(select_query, null);        
@@ -476,6 +486,58 @@ public class Db_handler extends SQLiteOpenHelper
         return data;
     }
 
+    public Point[] getHistoricalData( String app_name )
+    {
+    	String select_query = "SELECT " + 
+                              "  a." + DATE_COLUMN +
+                              ", a." + VALUE_COLUMN + 
+                              "  FROM " +
+                              " " + APP_HISTORY_TABLE + " a " +
+                              "  WHERE a." + NAME_COLUMN + 
+                              " = '" + app_name + "' "+
+                              " ";
+    	
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.rawQuery(select_query, null);        
+		
+		ArrayList <Point> data = new ArrayList<Point>();
+		if (cursor.moveToFirst()) 
+		{
+			do {				
+				int date = cursor.getInt( 0 );
+				int value = cursor.getInt( 1 ) / 1000;
+			
+				data.add( new Point( date, value ) );
+			} while (cursor.moveToNext());
+		}
+		db.close();
+		
+		// Add data for today as well.
+		GregorianCalendar gcalendar = new GregorianCalendar( );
+		int today_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
+		                  (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
+		                  gcalendar.get( Calendar.DATE ) ;
+		gcalendar.add( Calendar.DATE, - 1 );
+		int yest_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
+		                (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
+		                 gcalendar.get( Calendar.DATE ) ;
+
+	    ArrayList<Data_value> yest_data = getData( "s_h_p_yest", app_name );
+	    if ( yest_data.size() > 0 )
+	    {
+	    	data.add( new Point( yest_date, yest_data.get(0).value ) );
+	    }		
+		
+	    ArrayList<Data_value> today_data = getData( "s_h_p_today", app_name );
+	    if ( today_data.size() > 0 )
+	    {
+	    	data.add( new Point( today_date, today_data.get(0).value ) );
+	    }		
+		
+		Point[] point_arr = data.toArray(new Point[data.size()]);
+    	return point_arr;
+    }
+    
     @Override
 	public void onCreate(SQLiteDatabase db) 
 	{
