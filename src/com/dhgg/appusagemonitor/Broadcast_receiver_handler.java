@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 public class Broadcast_receiver_handler extends BroadcastReceiver 
 {
@@ -18,19 +19,23 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 	public void onReceive(Context context, Intent intent) 
 	{
 		String action = intent.getAction();
+		//Log.w("DHGG:","--- action --- "+action);
 		
 		PowerManager pManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		if (pManager.isScreenOn())
 		{
 			int seconds = 3;
-			if (action.equals("dhgg.app.usage.monitor.start")) 
-			{
-				logAppInfo(context);
-				SetAlarm(context,seconds);
-			} else if (action.equals("dhgg.app.usage.monitor.stop")) 
+			if (action.equals("dhgg.app.usage.monitor.stop")) 
 			{
 				logAppInfo(context);
 				CancelAlarm(context);
+			}
+			// for all other messages, tell broadcast receiver to 
+			// do updates
+			else // if (action.equals("dhgg.app.usage.monitor.stop")) 
+			{
+				logAppInfo(context);
+				SetAlarm(context,seconds);
 			} 
 		}
 		else

@@ -3,6 +3,7 @@ package com.dhgg.appusagemonitor;
 import java.util.ArrayList;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -22,8 +23,8 @@ import com.google.ads.AdView;
 public class MyFirstActivity extends FragmentActivity 
 {
 	public static Db_handler m_db_handler;
-	public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
-	
+	//public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
+    
 	public static String TURN_OFF_UPDATES = "turn_off_updates";
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
 	public static String SHOW_CHART = "show_chart";
@@ -90,6 +91,17 @@ public class MyFirstActivity extends FragmentActivity
 	    setup_fragments( savedInstanceState );
 		
         setup_admob_view();
+        
+        /*
+    	IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction("dhgg.app.usage.monitor.start");
+        filter.addAction("dhgg.app.usage.monitor.stop");
+        
+        BroadcastReceiver mReceiver = new Broadcast_receiver_handler();
+        registerReceiver(mReceiver, filter);
+    	*/
+
 	}
 	
 	@Override
