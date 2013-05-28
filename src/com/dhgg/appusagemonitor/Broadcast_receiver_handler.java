@@ -20,7 +20,16 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 	{
 		String action = intent.getAction();
 		//Log.w("DHGG:","--- action --- "+action);
-		
+		if ( action.equals("android.intent.action.BOOT_COMPLETED"))
+		{
+			save_to_db( context, "screen_off", "screen_off");
+		}
+
+		if ( action.equals("android.intent.action.ACTION_SHUTDOWN"))
+		{
+			save_to_db( context, "screen_off", "screen_off");
+		}
+	
 		PowerManager pManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		if (pManager.isScreenOn())
 		{

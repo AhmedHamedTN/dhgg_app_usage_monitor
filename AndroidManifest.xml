@@ -1,8 +1,8 @@
 <manifest 
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dhgg.appusagemonitor"
-    android:versionCode="15"
-    android:versionName="1.15" >
+    android:versionCode="16"
+    android:versionName="1.16" >
 
     <uses-sdk
         android:minSdkVersion="10"
@@ -32,6 +32,7 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" ></action>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED"></action>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"></action>
+                <action android:name="android.intent.action.ACTION_SHUTDOWN"></action>
             </intent-filter>
         </receiver>
         
