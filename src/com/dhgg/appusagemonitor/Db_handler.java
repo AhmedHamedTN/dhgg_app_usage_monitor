@@ -12,12 +12,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class Db_handler extends SQLiteOpenHelper 
 {	
 	// Version number
     private static final int DATABASE_VERSION = 3;
-    
+	
     // Database name 
     private static final String DATABASE_NAME = "test_database";
  
@@ -483,6 +484,120 @@ public class Db_handler extends SQLiteOpenHelper
         }
         
         Collections.sort( data, new DataValueComparator());
+        return data;
+    }
+
+    public ArrayList<Time_log> getTimeLog( String hist_pref, String input_app_name ) {
+		GregorianCalendar gcalendar = new GregorianCalendar( );
+		gcalendar.add( Calendar.DATE, - 1 );
+		int yest_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
+		                (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
+		                 gcalendar.get( Calendar.DATE ) ;
+
+		gcalendar.add( Calendar.DATE, - 1 );
+		int archive_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
+		                    (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
+		                    gcalendar.get( Calendar.DATE ) ;
+
+		consolidate_old_data( archive_date );
+		
+		String select_query = "SELECT " + 
+		                      "  a." + NAME_COLUMN +
+							  ", a." + DATE_COLUMN +
+				              ", b." + PROCESS_NAME_COLUMN +
+				              ", a." + START_TIME_COLUMN + 
+				              ", a." + END_TIME_COLUMN +
+				              "  FROM " +
+				              " ( SELECT  * FROM "+TABLE_NAME; ;
+				              
+    	boolean check_for_today = false;
+		boolean check_for_24_hours = false; 
+		
+    	if ( hist_pref.equals("s_h_p_yest"))
+    	{
+    		select_query += " WHERE "+DATE_COLUMN + " = " + yest_date;
+    	}
+    	else if ( hist_pref.equals("s_h_p_today"))
+    	{
+    		check_for_today = true;
+    		select_query += " WHERE "+DATE_COLUMN + " > " + yest_date;
+    	}
+    	else if (hist_pref.equals("s_h_p_24h"))
+    	{
+    		check_for_24_hours = true;
+    	}
+    	
+    	select_query += ") a JOIN "+MAPPING_TABLE_NAME+" b ON "+
+    	                "a."+NAME_COLUMN+" = b."+NAME_COLUMN;
+    	
+    	if ( !input_app_name.equals("") )
+    	{
+    		select_query += " AND a."+NAME_COLUMN+" = '"+input_app_name+"'";
+    	}
+    	//Log.w("DHGG","getTimeLog q:"+select_query);
+    	
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);        
+
+        long current_time = System.currentTimeMillis();
+ 
+        ArrayList <Time_log> data = new ArrayList<Time_log>();
+        if (cursor.moveToFirst()) {
+            do {	
+            	String app_name = cursor.getString( 0 );
+            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+            	{
+            		continue;
+            	}
+            	
+            	int date = cursor.getInt(1);
+            	if ( check_for_today )
+            	{
+            		if ( yest_date >= date )
+            		{
+            			continue;
+            		}
+            	}
+            	else if ( check_for_24_hours )
+            	{
+            		int time_diff = (int) current_time - cursor.getInt(3);
+            		if ( time_diff > 24 * 60 * 60 * 1000 )
+            		{
+            			continue;
+            		}
+            	}            	
+
+            	String process_name = cursor.getString( 2 );
+            	long startTime = cursor.getLong(3);
+            	long endTime = cursor.getLong(4);
+                //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
+            	
+            	Time_log t = new Time_log(app_name, process_name, startTime, endTime);
+
+            	int num_points = data.size();
+            	if (num_points == 0)
+            	{
+            		data.add(t);
+            		continue;
+            	}
+            	
+            	Time_log prev_log = data.get(num_points -1);
+            	if (t.description.equals(prev_log.description) &&
+            	    Math.abs(prev_log.end_time - t.start_time) < 1000)
+            	{
+            		prev_log.end_time = t.end_time;
+            		data.set(num_points - 1,  prev_log);
+            	}
+            	else
+            	{
+            		data.add(t);
+            	}
+            	
+            	
+            } while (cursor.moveToNext());
+        }
+        db.close();
+
         return data;
     }
 

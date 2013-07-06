@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     
     <item
+        android:id="@+id/item_show_log"
+        android:title="@string/button_show_log"   
+        android:showAsAction="ifRoom|withText" />
+    
+    <item
 		android:id="@+id/item_show_chart"
 		android:title="@string/button_show_chart"	
         android:showAsAction="ifRoom|withText" />
