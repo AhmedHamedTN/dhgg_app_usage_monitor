@@ -1,10 +1,13 @@
 package com.dhgg.appusagemonitor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import android.content.ContentValues;
@@ -13,6 +16,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 public class Db_handler extends SQLiteOpenHelper 
 {	
@@ -868,5 +872,4 @@ public class Db_handler extends SQLiteOpenHelper
         }
 		db_write.close();
     }
-
 }
