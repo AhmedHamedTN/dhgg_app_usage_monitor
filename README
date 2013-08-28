@@ -12,4 +12,11 @@ git push -u origin master
 ######################################################################
 ######################################################################
 
+TODO:
+Answer stackoverflow question: Look through the list of running apps. 
+  How many have importance foreground?
+  http://stackoverflow.com/questions/10480527/is-there-a-more-memory-efficient-way-of-retrieving-lists-from-the-activitymanage
+
+Update app gathering process. 
+
 

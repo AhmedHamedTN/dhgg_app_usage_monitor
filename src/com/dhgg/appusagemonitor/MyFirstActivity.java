@@ -1,19 +1,7 @@
 package com.dhgg.appusagemonitor;
 
-import com.google.cloud.backend.android.CloudBackendActivity;
-import com.google.cloud.backend.android.CloudCallbackHandler;
-import com.google.cloud.backend.android.CloudEntity;
-import com.google.cloud.backend.android.CloudQuery.Order;
-import com.google.cloud.backend.android.CloudQuery.Scope;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import android.content.BroadcastReceiver;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -21,7 +9,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -32,7 +19,7 @@ import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
-public class MyFirstActivity extends CloudBackendActivity 
+public class MyFirstActivity extends FragmentActivity 
 {
 	public static Db_handler m_db_handler;
 	//public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
@@ -279,10 +266,6 @@ public class MyFirstActivity extends CloudBackendActivity
 	@Override
 	public void onResume() 
 	{
-		Log.w("DHGG","onResume");
-		onSendButtonPressed();
-		listAllPosts();
-		
 		// Check to see if we should start the broadcast system.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
@@ -579,73 +562,4 @@ public class MyFirstActivity extends CloudBackendActivity
 		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
 		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
 	}
-    
-
-    // execute query "SELECT * FROM Guestbook ORDER BY _createdAt DESC LIMIT 50"
-    // this query will be re-executed when matching entity is updated
-    private void listAllPosts() {
-
-      Log.w("DHGG","listAllPosts");
-      // create a response handler that will receive the query result or an error
-      CloudCallbackHandler<List<CloudEntity>> handler = new CloudCallbackHandler<List<CloudEntity>>() {
-    	    
-        @Override
-        public void onComplete(List<CloudEntity> results) {
-      	  // a list of posts on the UI
-      	  List<CloudEntity> posts = new LinkedList<CloudEntity>();
-
-          posts = results;
-          
-          for (CloudEntity post : posts) {
-              Log.w("DHGG", post.getCreatedAt() + "-"+post + ": " + post.get("message"));            
-          }
-         
-          // do something
-          // updateGuestbookUI();
-        }
-
-        @Override
-        public void onError(IOException exception) {
-          Log.w("DHGG","Db_handler::listAllPosts onError"+exception);
-          handleEndpointException(exception);
-        }
-      };
-
-      // execute the query with the handler
-      getCloudBackend().listByKind("Guestbook", CloudEntity.PROP_CREATED_AT, Order.DESC, 50,
-          Scope.FUTURE_AND_PAST, handler);
-    }
-    
-    private void handleEndpointException(IOException e) {
-        Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
-        //btSend.setEnabled(true);
-    }
-
-    // post a new message to server
-    public void onSendButtonPressed() {
-
-      // create a CloudEntity with the new post
-      CloudEntity newPost = new CloudEntity("Guestbook");
-      String valStr = new String("sending authorized update from app usage monitor");
-      newPost.put("message", valStr); 
-
-      // create a response handler that will receive the result or an error
-      CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
-        @Override
-        public void onComplete(final CloudEntity result) {
-        	Log.w("DHGG","onComplete post added ok.");
-        }
-
-        @Override
-        public void onError(final IOException exception) {
-        	Log.w("DHGG","insert error:"+exception);
-          handleEndpointException(exception);
-        }
-      };
-
-      // execute the insertion with the handler
-      Log.w("DHGG","inserting data");
-      getCloudBackend().insert(newPost, handler);
-    }
-
 }

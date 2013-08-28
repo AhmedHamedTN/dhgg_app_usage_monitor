@@ -1,13 +1,10 @@
 package com.dhgg.appusagemonitor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import android.content.ContentValues;
@@ -16,8 +13,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import android.widget.Toast;
-
 public class Db_handler extends SQLiteOpenHelper 
 {	
 	// Version number
@@ -656,6 +651,37 @@ public class Db_handler extends SQLiteOpenHelper
 		Point[] point_arr = data.toArray(new Point[data.size()]);
     	return point_arr;
     }
+   
+    public Map<String,String> get_app_to_process_map(String componentName) 
+    {
+		String select_query = 
+				"SELECT " + NAME_COLUMN +"," + PROCESS_NAME_COLUMN +
+				" FROM " +MAPPING_TABLE_NAME + " WHERE " + 
+				" '" +componentName+ "' " +
+				" LIKE " +
+			    " '%' || " + PROCESS_NAME_COLUMN + " || '%' " +
+				" "	;
+    	//Log.w("DHGG","q:"+select_query);
+    	
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);        
+        
+        Map<String,String> output_obj = new HashMap<String,String>();
+        if (cursor.moveToFirst()) 
+        {
+            do {	
+            	String app_name = cursor.getString(0);
+            	String process_name = cursor.getString(1);
+            	output_obj.put(app_name, process_name);	
+            	//Log.w("DHGG","a:"+app_name+" p:"+process_name);
+            	break;
+            } while (cursor.moveToNext());
+        }
+        db.close();
+        
+        return output_obj;
+    }
+
     
     @Override
 	public void onCreate(SQLiteDatabase db) 
