@@ -67,8 +67,9 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 
 	public void SetAlarm(Context context, int seconds) 
 	{
-		CancelAlarm(context);
-
+		//CancelAlarm(context);
+		//Log.d("DHGG","Broadcast_receiver_handler::SetAlarm");
+		
 		Intent intent=new Intent( context, Broadcast_receiver_handler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
 		

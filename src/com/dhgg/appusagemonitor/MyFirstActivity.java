@@ -22,7 +22,6 @@ import com.google.ads.AdView;
 public class MyFirstActivity extends FragmentActivity 
 {
 	public static Db_handler m_db_handler;
-	//public static BroadcastReceiver receiver = new Broadcast_receiver_handler();
 	
 	public static String TURN_OFF_UPDATES = "turn_off_updates";
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
