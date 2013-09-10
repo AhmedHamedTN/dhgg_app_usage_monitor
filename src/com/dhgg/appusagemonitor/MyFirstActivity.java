@@ -1,5 +1,6 @@
 package com.dhgg.appusagemonitor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -48,28 +49,6 @@ public class MyFirstActivity extends FragmentActivity
 		refresh_screen();
 	}
 
-	private String get_time_str( int time_in_seconds)
-    {
-    	int total_secs = time_in_seconds;
-    	
-        int hours = total_secs / 3600;
-        int mins = (total_secs - (hours * 3600))/ 60;
-        int secs = total_secs - (hours * 3600) - (mins * 60);
-        
-        String time_str = "";
-        if (hours > 0)
-        {
-        	time_str += hours + "h ";
-        }
-        if (mins > 0)
-        {
-        	time_str += mins + "m ";
-        }
-        time_str += secs + "s";
-        
-    	return time_str;
-    }
-	
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
@@ -457,6 +436,7 @@ public class MyFirstActivity extends FragmentActivity
 	
 	public void send_data() 
 	{	
+		/* using normal share intent 
 		// Get data to send
 		Db_handler db_handler = new Db_handler(this);
 		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL, "" );
@@ -474,6 +454,36 @@ public class MyFirstActivity extends FragmentActivity
 		send_intent.putExtra(Intent.EXTRA_TEXT, data_to_send);
 	    
 		startActivity(send_intent);
+		*/
+
+	    // create a CloudEntity with the new post
+	    CloudEntity newPost = new CloudEntity("AppUsage");
+	    newPost.put("message", "the value of the message");
+	
+	    // create a response handler that will receive the result or an error
+	    CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+			@Override
+			public void onComplete(final CloudEntity result) {
+				Log.d("DHGG","sendData onComplete with ok result:"+result.toString());
+				/*
+				posts.add(0, result);
+				updateGuestbookUI();
+				etMessage.setText("");
+				btSend.setEnabled(true);
+				*/
+			}
+	
+	        @Override
+			public void onError(final IOException exception) {
+				Log.w("DHGG","sendData onError:"+exception.toString());
+			}
+		};
+				
+	    // execute the insertion with the handler
+		CloudBackendAct backend = new CloudBackendAct(this);
+	    backend.getCloudBackend().insert(newPost, handler);
+	    //btSend.setEnabled(false);
+  
 	}
 
 	private void send_start_broadcast() {
