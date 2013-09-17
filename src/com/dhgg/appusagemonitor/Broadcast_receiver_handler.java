@@ -26,7 +26,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 		m_db_handler = new Db_handler(context);
 		
 		String action = intent.getAction();
-		Log.w("DHGG:","--- action --- "+action);
+		//Log.w("DHGG:","--- action --- "+action);
 		if ( action.equals("android.intent.action.BOOT_COMPLETED") ||
 		     action.equals("android.intent.action.ACTION_SHUTDOWN"))
 		{
@@ -60,7 +60,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 			else 
 			{
 				save_to_db( context, "screen_off", "screen_off");
-				SetAlarm(context,15);
+				SetAlarm(context,30);
 			}
 		}
 	}
