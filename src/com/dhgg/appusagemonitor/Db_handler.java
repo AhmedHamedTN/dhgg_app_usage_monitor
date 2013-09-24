@@ -427,7 +427,7 @@ public class Db_handler extends SQLiteOpenHelper
         if (cursor.moveToFirst()) 
         {
             do {	
-            	String app_name = cursor.getString( 0 );
+            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
             	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
             	{
             		continue;
@@ -450,7 +450,7 @@ public class Db_handler extends SQLiteOpenHelper
             		}
             	}            	
 
-            	String process_name = cursor.getString( 2 );
+            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
             	int time_diff = (cursor.getInt(4) - cursor.getInt(3) ) /1000;
 
             	// store name + object value map
@@ -543,7 +543,7 @@ public class Db_handler extends SQLiteOpenHelper
         ArrayList <Time_log> data = new ArrayList<Time_log>();
         if (cursor.moveToFirst()) {
             do {	
-            	String app_name = cursor.getString( 0 );
+            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
             	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
             	{
             		continue;
@@ -566,7 +566,7 @@ public class Db_handler extends SQLiteOpenHelper
             		}
             	}            	
 
-            	String process_name = cursor.getString( 2 );
+            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
             	long startTime = cursor.getLong(3);
             	long endTime = cursor.getLong(4);
                 //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
@@ -828,6 +828,9 @@ public class Db_handler extends SQLiteOpenHelper
     
     public void update_or_add( String name, String process_name )
     {
+    	name = name.replaceAll("'", "''");
+    	process_name = process_name.replaceAll("'", "''");
+
     	if ( do_update(name) )
     	{
     		update_last( );
