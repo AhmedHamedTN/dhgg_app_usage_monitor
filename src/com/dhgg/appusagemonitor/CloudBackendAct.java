@@ -19,7 +19,7 @@ import java.util.List;
  * name of the class definition below.
  * 
  */
-public class CloudBackendAct {
+public class CloudBackendAct extends Activity {
 
   private static final int REQUEST_ACCOUNT_PICKER = 2;
 
@@ -57,15 +57,15 @@ public class CloudBackendAct {
    * {@link #onPostCreate()} that will be called after CloudBackend
    * initializations such as user authentication.
    */
+
   CloudBackendAct(Activity an_activity) {
-    //super.onCreate(savedInstanceState);
+
 
     // init backend
     m_activity = an_activity;
     cloudBackend = new CloudBackendMessaging(m_activity);
 
     // create credential
-    /*
     credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
     cloudBackend.setCredential(credential);
 
@@ -84,12 +84,11 @@ public class CloudBackendAct {
 
     // post create initialization
     _onPostCreate();
-    */
   }
 
-  /*
   private void _onPostCreate() {
 
+	/*
     // init subscription to broadcast message
     if (!isSubscribedToBroadcastMessage) {
       isSubscribedToBroadcastMessage = true;
@@ -101,20 +100,18 @@ public class CloudBackendAct {
       };
       cloudBackend.subscribeToCloudMessage(CloudBackendMessaging.TOPIC_ID_BROADCAST, handler);
     }
+    */
 
     // call onPostCreate
     this.onPostCreate();
   }
-  */
 
   /**
    * Will be called after initialization process including the account picking.
    * Subclasses may override to execute any initialization of the activity.
    */
-  /*
   protected void onPostCreate() {
   }
-  */
 
   /**
    * Handles broadcast messages from the backend. Subclasses may override this

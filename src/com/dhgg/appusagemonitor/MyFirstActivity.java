@@ -2,6 +2,8 @@ package com.dhgg.appusagemonitor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import android.accounts.AccountManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -19,6 +21,7 @@ import android.content.res.Configuration;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 public class MyFirstActivity extends FragmentActivity 
 {
@@ -39,6 +42,11 @@ public class MyFirstActivity extends FragmentActivity
 	boolean m_show_log = false;
 	
 	final int m_max_data_size = 22;
+
+	private static final int REQUEST_ACCOUNT_PICKER = 2;
+    private static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
+	private GoogleAccountCredential credential;
+	CloudBackendMessaging cloudBackend;
 
 	private void clear_database() 
 	{
@@ -69,6 +77,8 @@ public class MyFirstActivity extends FragmentActivity
 	    setup_fragments( savedInstanceState );
 		
         setup_admob_view();
+
+		cloudBackend = new CloudBackendMessaging(this);
 	}
 	
 	@Override
@@ -434,9 +444,8 @@ public class MyFirstActivity extends FragmentActivity
     	
     }
 	
-	public void send_data() 
-	{	
-		/* using normal share intent 
+	public void old_send_data() 
+	{
 		// Get data to send
 		Db_handler db_handler = new Db_handler(this);
 		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL, "" );
@@ -445,7 +454,7 @@ public class MyFirstActivity extends FragmentActivity
 		data_to_send += "App Name   \tTime Spent Using\n";
 		for (Data_value dv : data)
 		{
-			data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
+			//data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
 		}
 
 		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
@@ -454,7 +463,58 @@ public class MyFirstActivity extends FragmentActivity
 		send_intent.putExtra(Intent.EXTRA_TEXT, data_to_send);
 	    
 		startActivity(send_intent);
-		*/
+	}
+	
+	public void authenticate()
+	{
+	    // create credential
+	    credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
+	    cloudBackend.setCredential(credential);
+	
+	    // if auth enabled, get account name from the shared pref
+	    if (true) { // isAuthEnabled()) {
+	      String accountName = cloudBackend.getSharedPreferences().getString(PREF_KEY_ACCOUNT_NAME,
+	          null);
+	      if (accountName == null) {
+	        // let user pick an account
+	        super.startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+	        return; // continue init in onActivityResult
+	      } else {
+	        credential.setSelectedAccountName(accountName);
+	      }
+	    }
+	}
+
+  protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
+	  Log.w("DHGG","onActivityResult");
+	  
+    super.onActivityResult(requestCode, resultCode, data);
+
+    switch (requestCode) {
+    case REQUEST_ACCOUNT_PICKER:
+      if (data != null && data.getExtras() != null) {
+
+        // set the picked account name to the credential
+        String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+        credential.setSelectedAccountName(accountName);
+
+        // save account name to shared pref
+        SharedPreferences.Editor e = cloudBackend.getSharedPreferences().edit();
+        e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
+        e.commit();
+      }
+
+      break;
+    }
+  }
+  
+	public void send_data() 
+	{	
+		// TODO: 
+		// Get data to send first.
+		
+		// Authenticate first
+		authenticate();
 
 	    // create a CloudEntity with the new post
 	    CloudEntity newPost = new CloudEntity("AppUsage");
@@ -465,12 +525,10 @@ public class MyFirstActivity extends FragmentActivity
 			@Override
 			public void onComplete(final CloudEntity result) {
 				Log.d("DHGG","sendData onComplete with ok result:"+result.toString());
-				/*
-				posts.add(0, result);
-				updateGuestbookUI();
-				etMessage.setText("");
-				btSend.setEnabled(true);
-				*/
+				//posts.add(0, result);
+				//updateGuestbookUI();
+				//etMessage.setText("");
+				//btSend.setEnabled(true);
 			}
 	
 	        @Override
@@ -480,10 +538,7 @@ public class MyFirstActivity extends FragmentActivity
 		};
 				
 	    // execute the insertion with the handler
-		CloudBackendAct backend = new CloudBackendAct(this);
-	    backend.getCloudBackend().insert(newPost, handler);
-	    //btSend.setEnabled(false);
-  
+	    cloudBackend.insert(newPost, handler);
 	}
 
 	private void send_start_broadcast() {
