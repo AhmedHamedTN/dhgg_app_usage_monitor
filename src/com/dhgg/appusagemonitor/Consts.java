@@ -15,17 +15,19 @@ public interface Consts {
   /**
    * Set Project Number of your Google APIs Console Project.
    */
-  public static final String PROJECT_NUMBER = "*** ENTER YOUR PROJECT NUMBER ***";
+  public static final String PROJECT_NUMBER = "717356673848";
 
   /**
    * Set your Web Client ID for authentication at backend.
    */
-  public static final String WEB_CLIENT_ID = "*** ENTER YOUR WEB CLIENT ID ***";
+  //public static final String WEB_CLIENT_ID = "717356673848.apps.googleusercontent.com";
+  //public static final String WEB_CLIENT_ID = "717356673848-mect7rtecf8a001op7q87urt67f9s2e7.apps.googleusercontent.com";
+  public static final String WEB_CLIENT_ID = "717356673848-tsd31g3ta39ntl47snbccce8lt40m22a.apps.googleusercontent.com";
 
   /**
    * Set default user authentication enabled or disabled.
    */
-  public static final boolean IS_AUTH_ENABLED = false;
+  public static final boolean IS_AUTH_ENABLED = true;
 
   /**
    * Auth audience for authentication on backend.

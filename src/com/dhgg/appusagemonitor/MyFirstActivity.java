@@ -51,8 +51,7 @@ public class MyFirstActivity extends FragmentActivity
 	private void clear_database() 
 	{
 		// Get data to display
-		Db_handler db_handler = new Db_handler(this);
-		db_handler.clear_data();
+		m_db_handler.clear_data();
 		
 		refresh_screen();
 	}
@@ -290,8 +289,7 @@ public class MyFirstActivity extends FragmentActivity
 		String hist_pref = SHOW_HIST_PREF_24_H;
 
 		// Get data to display
-		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Time_log> data = db_handler.getTimeLog( hist_pref, "" );
+		ArrayList<Time_log> data = m_db_handler.getTimeLog( hist_pref, "" );
 		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
 		
     	AppListFragment list_fragment = (AppListFragment) getSupportFragmentManager().findFragmentByTag("my_list_fragment");    	
@@ -314,8 +312,7 @@ public class MyFirstActivity extends FragmentActivity
 		String hist_pref = settings.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
 
 		// Get data to display
-		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getData( hist_pref, "" );
+		ArrayList<Data_value> data = m_db_handler.getData( hist_pref, "" );
 		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
 		
     	Data_value[] normal_data_arr;
@@ -447,8 +444,7 @@ public class MyFirstActivity extends FragmentActivity
 	public void old_send_data() 
 	{
 		// Get data to send
-		Db_handler db_handler = new Db_handler(this);
-		ArrayList<Data_value> data = db_handler.getData( SHOW_HIST_PREF_ALL, "" );
+		ArrayList<Data_value> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
 		
 		String data_to_send = "";
 		data_to_send += "App Name   \tTime Spent Using\n";
@@ -465,80 +461,97 @@ public class MyFirstActivity extends FragmentActivity
 		startActivity(send_intent);
 	}
 	
-	public void authenticate()
+	public boolean authenticate()
 	{
 	    // create credential
 	    credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
 	    cloudBackend.setCredential(credential);
 	
 	    // if auth enabled, get account name from the shared pref
-	    if (true) { // isAuthEnabled()) {
-	      String accountName = cloudBackend.getSharedPreferences().getString(PREF_KEY_ACCOUNT_NAME,
-	          null);
-	      if (accountName == null) {
-	        // let user pick an account
-	        super.startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-	        return; // continue init in onActivityResult
-	      } else {
-	        credential.setSelectedAccountName(accountName);
-	      }
+		String accountName = cloudBackend.getSharedPreferences().getString(PREF_KEY_ACCOUNT_NAME,null);
+		if (accountName == null) {
+			// let user pick an account
+			super.startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+			return false; // continue init in onActivityResult
+		} else {
+		    credential.setSelectedAccountName(accountName);
+		    return true; // continue init in onActivityResult
 	    }
 	}
 
-  protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
-	  Log.w("DHGG","onActivityResult");
-	  
-    super.onActivityResult(requestCode, resultCode, data);
-
-    switch (requestCode) {
-    case REQUEST_ACCOUNT_PICKER:
-      if (data != null && data.getExtras() != null) {
-
-        // set the picked account name to the credential
-        String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-        credential.setSelectedAccountName(accountName);
-
-        // save account name to shared pref
-        SharedPreferences.Editor e = cloudBackend.getSharedPreferences().edit();
-        e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
-        e.commit();
-      }
-
-      break;
-    }
-  }
+    protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    Log.w("DHGG","onActivityResult");
   
-	public void send_data() 
-	{	
-		// TODO: 
-		// Get data to send first.
-		
-		// Authenticate first
-		authenticate();
+		super.onActivityResult(requestCode, resultCode, data);
 
-	    // create a CloudEntity with the new post
-	    CloudEntity newPost = new CloudEntity("AppUsage");
-	    newPost.put("message", "the value of the message");
+		switch (requestCode) {
+		case REQUEST_ACCOUNT_PICKER:
+			if (data != null && data.getExtras() != null) 
+			{
+			    // set the picked account name to the credential
+				String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+			    credential.setSelectedAccountName(accountName);
+
+		        // save account name to shared pref
+		        SharedPreferences.Editor e = cloudBackend.getSharedPreferences().edit();
+		        e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
+		        e.commit();
+		        
+		        send_data();
+		    }
+			break;
+        default:
+		    break;
+	    }
+	}
+	  
+	public void send_data() {	
+		Log.w("DHGG","MyFirstActivity::send_data");
+
+		if (!authenticate())
+		{
+			return;
+		}
+		
+		// TODO: 
+		// Ask appengine for last update.
+
+		// 
+		//m_db_handler.
+		// end_time
+		// Get data to display
+		String hist_pref = SHOW_HIST_PREF_24_H;
+		ArrayList<Time_log> data = m_db_handler.getTimeLog( hist_pref, "" );
+		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
+		
+		
+		
+		int numLogs = data_arr.length;
+		for ( int i = 0; i < numLogs; i++ )
+		{
+		    // create a CloudEntity with the new post
+		    CloudEntity newPost = new CloudEntity("AppUsage");
+		    newPost.put("appName", data_arr[i].description); 
+		    newPost.put("appStartTime", data_arr[i].start_time); 
+		    newPost.put("appEndTime", data_arr[i].end_time); 
+			Log.w("DHGG","sendData "+i+" post:"+newPost);
 	
-	    // create a response handler that will receive the result or an error
-	    CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
-			@Override
-			public void onComplete(final CloudEntity result) {
-				Log.d("DHGG","sendData onComplete with ok result:"+result.toString());
-				//posts.add(0, result);
-				//updateGuestbookUI();
-				//etMessage.setText("");
-				//btSend.setEnabled(true);
-			}
-	
-	        @Override
-			public void onError(final IOException exception) {
-				Log.w("DHGG","sendData onError:"+exception.toString());
-			}
-		};
-				
-	    // execute the insertion with the handler
-	    cloudBackend.insert(newPost, handler);
+		    // create a response handler that will receive the result or an error
+		    CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+				@Override
+				public void onComplete(final CloudEntity result) {
+					Log.w("DHGG","sendData onComplete with ok result:"+result.toString());
+				}
+		
+		        @Override
+				public void onError(final IOException exception) {
+					Log.w("DHGG","sendData onError:"+exception.toString());
+				}
+			};
+					
+		    // execute the insertion with the handler
+		    cloudBackend.insert(newPost, handler);
+		}
 	}
 
 	private void send_start_broadcast() {
