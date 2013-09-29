@@ -62,6 +62,8 @@ public class Db_handler extends SQLiteOpenHelper
 	    values.put(START_TIME_COLUMN, time);
 	    values.put(END_TIME_COLUMN, end_time);	 
 	    values.put(DATE_COLUMN, date);
+	    
+	    //Log.w("DHGG","add_data n:"+name+" p:"+process_name);
 
 		try 
 		{
@@ -69,7 +71,7 @@ public class Db_handler extends SQLiteOpenHelper
 		} 
 		catch(Exception e) 
 		{
-			System.out.println("Error. Db_handler::add_data."+e);
+			Log.e("DHGG","Error. Db_handler::add_data."+e);
 		}
 		
 	    db.close(); 
@@ -253,6 +255,7 @@ public class Db_handler extends SQLiteOpenHelper
         // Select All Query
         String selectQuery = "SELECT "+NAME_COLUMN+","+DATE_COLUMN+
         		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
+        //Log.w("DHGG","Db_handler::do_update n:"+name);
  
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -602,6 +605,9 @@ public class Db_handler extends SQLiteOpenHelper
 
     public Point[] getHistoricalData( String app_name )
     {
+    	//Log.w("DHGG","getHistoricalData a:"+app_name);
+    	app_name = app_name.replaceAll("'", "''");
+    	
     	String select_query = "SELECT " + 
                               "  a." + DATE_COLUMN +
                               ", a." + VALUE_COLUMN + 
@@ -654,6 +660,7 @@ public class Db_handler extends SQLiteOpenHelper
    
     public Map<String,String> get_app_to_process_map(String componentName) 
     {
+    	//Log.w("DHGG","Db_handler::get_app_to_process_map");
 		String select_query = 
 				"SELECT " + NAME_COLUMN +"," + PROCESS_NAME_COLUMN +
 				" FROM " +MAPPING_TABLE_NAME + " WHERE " + 
@@ -661,7 +668,6 @@ public class Db_handler extends SQLiteOpenHelper
 				" LIKE " +
 			    " '%' || " + PROCESS_NAME_COLUMN + " || '%' " +
 				" "	;
-    	//Log.w("DHGG","q:"+select_query);
     	
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(select_query, null);        
@@ -673,7 +679,7 @@ public class Db_handler extends SQLiteOpenHelper
             	String app_name = cursor.getString(0);
             	String process_name = cursor.getString(1);
             	output_obj.put(app_name, process_name);	
-            	//Log.w("DHGG","a:"+app_name+" p:"+process_name);
+		    	//Log.w("DHGG","Db_handler::get_app_to_process_map a:"+app_name+" p:"+process_name);
             	break;
             } while (cursor.moveToNext());
         }
@@ -734,6 +740,7 @@ public class Db_handler extends SQLiteOpenHelper
 	// eventually delete this
 	private void populate_app_process_map( SQLiteDatabase db )
 	{
+		/*
 		String selectQuery = "SELECT "+" "+NAME_COLUMN+", "+
 		                     PROCESS_NAME_COLUMN+" FROM "+ 
 				             TABLE_NAME;
@@ -783,10 +790,12 @@ public class Db_handler extends SQLiteOpenHelper
 	    	}
 	        
 	    }
+	    */
 	}
        
     private void update_last( ) 
     {
+    	//Log.w("DHGG","Db_handler::update_last");
         String selectQuery = "SELECT "+ID_COLUMN + "," + END_TIME_COLUMN +
         		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
  
@@ -828,9 +837,7 @@ public class Db_handler extends SQLiteOpenHelper
     
     public void update_or_add( String name, String process_name )
     {
-    	name = name.replaceAll("'", "''");
-    	process_name = process_name.replaceAll("'", "''");
-
+    	//Log.w("DHGG","update_or_add n:"+name+" p:"+process_name);
     	if ( do_update(name) )
     	{
     		update_last( );
@@ -845,9 +852,12 @@ public class Db_handler extends SQLiteOpenHelper
     
     private void update_or_add_to_mapping_table( String name, String process_name ) 
     {
+    	String search_name = name.replaceAll("'", "''");
+
+    	//Log.w("DHGG","update_or_add_to_mapping_table n:"+search_name+" p:"+process_name);
         String selectQuery = "SELECT "+PROCESS_NAME_COLUMN+" FROM " + 
     	                     MAPPING_TABLE_NAME +" WHERE "+
-        		             NAME_COLUMN +" = '"+ name + "'";
+        		             NAME_COLUMN +" = '"+ search_name + "'";
  
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);

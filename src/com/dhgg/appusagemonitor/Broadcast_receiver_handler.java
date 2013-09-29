@@ -46,7 +46,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 			else 
 			{
 				logAppInfo(context);
-				SetAlarm(context,4);
+				SetAlarm(context,3);
 			} 
 		}
 		else
@@ -90,6 +90,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 
 	public void save_to_db(Context context, String name, String process_name) 
 	{	
+		//Log.w("DHGG","BRH::save_to_db n:"+name+" p:"+process_name);
 		if (name.isEmpty() || context == null || name.equals("App Usage Tracker"))
 		{
 			return;
@@ -147,7 +148,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 					} catch(Exception e) { }
 					
 	
-					//Log.d("DHGG","Used ActivityManager to find n:"+name+" => p:"+process_name);
+					//Log.w("DHGG","Used ActivityManager to find n:"+name+" => p:"+process_name);
 					save_to_db( context, name, info.processName );
 					break;
 				}
@@ -158,7 +159,8 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 			Iterator<Entry<String, String>> it = app_to_process.entrySet().iterator();
 		    while (it.hasNext()) {
 		        Entry<String, String> pairs = (Entry<String, String>)it.next();
-		        //Log.d("DHGG","Used cache to get n:"+pairs.getKey() + " => " + pairs.getValue());
+		        //Log.w("DHGG","Used cache to get n:"+pairs.getKey() + " => " + pairs.getValue());
+
 		        save_to_db(context, pairs.getKey(), pairs.getValue());
 		        break;
 		    }
