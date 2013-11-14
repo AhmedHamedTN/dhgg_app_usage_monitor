@@ -74,9 +74,6 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
 
         try
         {
-        	PackageManager pm = context.getPackageManager();
-        	Drawable icon = pm.getApplicationIcon( data[position].process_name );
-        	
         	ImageView img_view = (ImageView)row.findViewById(R.id.imgIcon);
             
         	if ( m_use_colors )
@@ -85,6 +82,8 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
         	}
         	else
         	{
+	        	PackageManager pm = context.getPackageManager();
+	        	Drawable icon = pm.getApplicationIcon( data[position].process_name );
         		img_view.setImageDrawable( icon );
         	}
             

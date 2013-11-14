@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import android.accounts.AccountManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -16,12 +17,17 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-import android.content.res.Configuration;
 
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.json.gson.GsonFactory;
+
+import com.appspot.appusagemonitor.appusagemonitor.*;
+import com.appspot.appusagemonitor.*;
+import com.appspot.appusagemonitor.appusagemonitor.model.*;
 
 public class MyFirstActivity extends FragmentActivity 
 {
@@ -46,10 +52,17 @@ public class MyFirstActivity extends FragmentActivity
 	private static final int REQUEST_ACCOUNT_PICKER = 2;
     private static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
 	private GoogleAccountCredential credential;
-	CloudBackendMessaging cloudBackend;
-
+	//CloudBackendMessaging cloudBackend;
+	
+	
 	private void clear_database() 
 	{
+		Appusagemonitor.Builder app = new Appusagemonitor.Builder(
+				AndroidHttp.newCompatibleTransport(),
+				new GsonFactory(),
+				null);
+		//AppusagemonitorApiMessagesAppUsageRequestMessage a = new AppusagemonitorApiMessagesAppUsageRequestMessage();
+		
 		// Get data to display
 		m_db_handler.clear_data();
 		
@@ -77,7 +90,9 @@ public class MyFirstActivity extends FragmentActivity
 		
         setup_admob_view();
 
+		/*
 		cloudBackend = new CloudBackendMessaging(this);
+		*/
 	}
 	
 	@Override
@@ -465,6 +480,7 @@ public class MyFirstActivity extends FragmentActivity
 	{
 	    // create credential
 	    credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
+	    /*
 	    cloudBackend.setCredential(credential);
 	
 	    // if auth enabled, get account name from the shared pref
@@ -477,6 +493,8 @@ public class MyFirstActivity extends FragmentActivity
 		    credential.setSelectedAccountName(accountName);
 		    return true; // continue init in onActivityResult
 	    }
+	    */
+	    return false;
 	}
 
     protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -493,9 +511,11 @@ public class MyFirstActivity extends FragmentActivity
 			    credential.setSelectedAccountName(accountName);
 
 		        // save account name to shared pref
+			    /*
 		        SharedPreferences.Editor e = cloudBackend.getSharedPreferences().edit();
 		        e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
 		        e.commit();
+		        */
 		        
 		        send_data();
 		    }
@@ -525,7 +545,7 @@ public class MyFirstActivity extends FragmentActivity
 		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
 		
 		
-		
+		/*
 		int numLogs = data_arr.length;
 		for ( int i = 0; i < numLogs; i++ )
 		{
@@ -552,6 +572,7 @@ public class MyFirstActivity extends FragmentActivity
 		    // execute the insertion with the handler
 		    cloudBackend.insert(newPost, handler);
 		}
+		*/
 	}
 
 	private void send_start_broadcast() {
