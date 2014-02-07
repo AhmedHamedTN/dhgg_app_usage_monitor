@@ -3,3 +3,4 @@
 *libs/
 gen/
 *.swp
+src/*.jar

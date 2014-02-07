@@ -1,6 +1,5 @@
 package com.dhgg.appusagemonitor;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -22,10 +21,17 @@ public class MyLineChart
 	private String m_app_name;
 	private Point[] m_points;
 	
-	public MyLineChart( String app_name, Point[] points )
+	public MyLineChart( String app_name )
 	{
 		set_app_name( app_name );
-		set_points( points );
+	}
+
+	public void addData(String app_name, Point[] points)
+	{
+		if (app_name == m_app_name)
+		{
+			set_points( points );
+		}
 	}
 	
     public Intent getIntent( Context context )
@@ -50,25 +56,6 @@ public class MyLineChart
         for ( int i = 0; i < m_points.length; i++ )
         {      	
         	//series.add( m_points[i].x, m_points[i].y );
-        	
-        	/*
-    	    GregorianCalendar gcalendar = new GregorianCalendar();
-    	    gcalendar.set( (m_points[i].x / 10000) - 1900, 
-	                       ((m_points[i].x / 100 ) % 100 )-  1,
-	                       m_points[i].x % 100 );
-    	    
-    		Date x_date = new Date();
-    		x_date = gcalendar.getTime();
-    		
-    		System.out.println(" date is:" + x_date );
-    		
-        	time_series.add( x_date, m_points[ i ].y );
-        	
-        	Date x_date = new Date();
-    		x_date = gcalendar.getTime();
-    		
-    		System.out.println(" date is:" + x_date );
-    		*/
         	
         	double y_value = m_points[ i ].y / factor;
         	int x_value = m_points[i].x; 

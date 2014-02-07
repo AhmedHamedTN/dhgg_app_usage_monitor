@@ -20,8 +20,6 @@ public interface Consts {
   /**
    * Set your Web Client ID for authentication at backend.
    */
-  //public static final String WEB_CLIENT_ID = "717356673848.apps.googleusercontent.com";
-  //public static final String WEB_CLIENT_ID = "717356673848-mect7rtecf8a001op7q87urt67f9s2e7.apps.googleusercontent.com";
   public static final String WEB_CLIENT_ID = "717356673848-tsd31g3ta39ntl47snbccce8lt40m22a.apps.googleusercontent.com";
 
   /**
@@ -53,5 +51,5 @@ public interface Consts {
   /**
    * Tag name for logging.
    */
-  public static final String TAG = "CloudBackend";
+  public static final String TAG = "DHGG";
 }

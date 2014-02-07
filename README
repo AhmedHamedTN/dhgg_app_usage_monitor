@@ -1,22 +1,63 @@
 
-######################################################################
-##  Git hub
-######################################################################
-user name == dhan12
-repository name == dhgg_app_usage_monitor
+----------------------------------------------------------------------
+--  Repository info 
+----------------------------------------------------------------------
+- repository name 
+  dhgg_app_usage_monitor
 
-## Pushing updates
-git remote add origin https://github.com/dhan12/dhgg_app_usage_monitor.git
-git push -u origin master
+- Pushing updates
+  git remote add origin https://github.com/dhan12/dhgg_app_usage_monitor.git
+  git push -u origin master
 
-######################################################################
-######################################################################
+----------------------------------------------------------------------
+-- File information
+----------------------------------------------------------------------
+- com/appspot/appusagemonitor/appusagemonitor/*.java
+  com/appspot/appusagemonitor/appusagemonitor.model/*.java
+  These files were generated using Google Cloud EndPoints.
 
-TODO:
-Answer stackoverflow question: Look through the list of running apps. 
-  How many have importance foreground?
-  http://stackoverflow.com/questions/10480527/is-there-a-more-memory-efficient-way-of-retrieving-lists-from-the-activitymanage
+----------------------------------------------------------------------
+-- Work log
+----------------------------------------------------------------------
 
-Update app gathering process. 
+2013-11-26
+  create classes cloudbackend, cloudbackendasync
+  these classes will use your new android web backend.
+2013-11-27
+  create new api files from web back end to send long instead of datetime objects
+  Updated android code to pass in long values instead of dates
+2013-11-29
+  use new client lib to pass in vector of items
+  save last saved appEndTime
+2014-01-19
+  use sync adapter to pass data to database  
+2014-01-20
+  database query - add limit to number of items to sync 1500 items, 150 items to send
+2014-01-21
+  removing duplicates
+2014-02-01
+  do history by looking up data from server
+2014-02-06
+  publishing
 
+- TODO
+  turn on lookupbyname api 
+  add api to get get total history 
+
+  clean up - remove historical data
+  
+  admin - link app to appusagemonitor.appspot.com page
+                   
+  database updates - use transactions for sql lite operations
+  database updates - make table to hold historical data for 1 app.
+  database updates - clear out historical for 1 app.
+  
+  local testing -  move to android studio 
+  local testing - add unit tests
+  
+  new features - add step counter
+
+----------------------------------------------------------------------
+-- Other research items 
+----------------------------------------------------------------------
 

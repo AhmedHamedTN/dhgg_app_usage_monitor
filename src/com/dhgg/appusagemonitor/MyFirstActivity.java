@@ -2,8 +2,14 @@ package com.dhgg.appusagemonitor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.List;
 
+import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -18,16 +24,14 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageInsertRequest;
+import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageRecord;
+import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageResponseMessage;
+import com.dhgg.cloudbackend.SyncUtils;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
-import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.json.gson.GsonFactory;
-
-import com.appspot.appusagemonitor.appusagemonitor.*;
-import com.appspot.appusagemonitor.*;
-import com.appspot.appusagemonitor.appusagemonitor.model.*;
 
 public class MyFirstActivity extends FragmentActivity 
 {
@@ -51,30 +55,109 @@ public class MyFirstActivity extends FragmentActivity
 
 	private static final int REQUEST_ACCOUNT_PICKER = 2;
     private static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
-	private GoogleAccountCredential credential;
-	//CloudBackendMessaging cloudBackend;
+	private GoogleAccountCredential mCredential;
 	
-	
+	// Content provider authority
+    // Sync interval constants
+    public static final long MILLISECONDS_PER_SECOND = 1000L;
+    public static final long SECONDS_PER_MINUTE = 60L;
+    public static final long SYNC_INTERVAL_IN_MINUTES = 1L; //60L;
+    public static final long SYNC_INTERVAL =
+            SYNC_INTERVAL_IN_MINUTES *
+            SECONDS_PER_MINUTE *
+            MILLISECONDS_PER_SECOND;
+
+
 	private void clear_database() 
 	{
-		Appusagemonitor.Builder app = new Appusagemonitor.Builder(
-				AndroidHttp.newCompatibleTransport(),
-				new GsonFactory(),
-				null);
-		//AppusagemonitorApiMessagesAppUsageRequestMessage a = new AppusagemonitorApiMessagesAppUsageRequestMessage();
-		
 		// Get data to display
 		m_db_handler.clear_data();
 		
 		refresh_screen();
 	}
+	
+	public Data_value[] get_data_slices(Data_value[] data_arr)
+	{
+		int num_values = data_arr.length;
+		float total = 0;
+		for ( int i = 0; i < num_values; i++ )
+		{
+			total += data_arr[i].value;
+		}
+		
+		int normal_data_arr_size = num_values;
+		if ( num_values > m_max_data_size )
+		{
+			normal_data_arr_size = m_max_data_size ;
+		}
 
+		Data_value[] normal_data_arr = new Data_value[ normal_data_arr_size ];
+		System.arraycopy( data_arr, 0, normal_data_arr, 0, normal_data_arr_size );
+		
+		int subtotal = 0;
+		for ( int i = 0; i < normal_data_arr_size; i++)
+		{
+			subtotal += normal_data_arr[ i ].value;
+			
+			float fraction = (float)normal_data_arr[ i ].value / total;
+			int percent = (int)(fraction * 100);
+			normal_data_arr[ i ].value = percent;
+		}
+		
+		if ( normal_data_arr_size == m_max_data_size)
+		{
+			float remaining = total - subtotal;
+			
+			float fraction = remaining / total;
+			
+			int percent = (int) ( fraction * 100);
+			
+			normal_data_arr[ normal_data_arr_size -1 ].value = percent;
+			normal_data_arr[ normal_data_arr_size -1 ].description = "Other ...";
+		}
+		
+		return normal_data_arr;
+	}
+
+	protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    //Log.w("DHGG","onActivityResult");
+  
+		super.onActivityResult(requestCode, resultCode, data);
+
+		switch (requestCode) {
+		case REQUEST_ACCOUNT_PICKER:
+			if (data != null && data.getExtras() != null) 
+			{
+			    // set the picked account name to the mCredential
+				String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+			    mCredential.setSelectedAccountName(accountName);
+
+		        // save account name to shared pref
+		        SharedPreferences.Editor e = getSharedPreferences(
+		            PREF_KEY_ACCOUNT_NAME,
+		            Context.MODE_PRIVATE).edit();
+		        e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
+		        e.commit();
+
+		        // Set up sync account
+				//Log.w("DHGG","onActivityResult "+requestCode+" accountName: "+accountName);
+		        SyncUtils.CreateSyncAccount(this);
+		    }
+			break;
+        default:
+		    break;
+	    }
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
 		//Log.w("DHGG","onCreate");
 		super.onCreate(savedInstanceState);
 		
+        // Get account for sync-ing data, if needed
+		authenticate();
+
 		m_db_handler = new Db_handler(getApplicationContext());
 
 		setContentView(R.layout.activity_my_first);
@@ -89,12 +172,8 @@ public class MyFirstActivity extends FragmentActivity
 	    setup_fragments( savedInstanceState );
 		
         setup_admob_view();
-
-		/*
-		cloudBackend = new CloudBackendMessaging(this);
-		*/
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -131,7 +210,7 @@ public class MyFirstActivity extends FragmentActivity
 	{		
 		super.onDestroy();
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
@@ -177,7 +256,7 @@ public class MyFirstActivity extends FragmentActivity
 			refresh_screen();
 			break;
 		case R.id.item_send_data:
-			send_data();
+			sendData();
 		break;
 		case R.id.item_show_chart:
 			// Update the saved preference.
@@ -232,7 +311,7 @@ public class MyFirstActivity extends FragmentActivity
 		}
 		super.onPause();
 	}
-
+	
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) 
 	{
@@ -288,36 +367,7 @@ public class MyFirstActivity extends FragmentActivity
 		refresh_screen();
 		super.onResume();
 	}
-
-	private void refresh_screen()
-    {	
-		//Log.w("DHGG","refresh_screen l:"+m_show_log);
-		if (m_show_log) {
-			refresh_audit_screen();
-		} else {
-			refresh_amount_screen();
-		}
-    }
 	
-	private void refresh_audit_screen() {
-    	// allow only one type of lookup for now
-		String hist_pref = SHOW_HIST_PREF_24_H;
-
-		// Get data to display
-		ArrayList<Time_log> data = m_db_handler.getTimeLog( hist_pref, "" );
-		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
-		
-    	AppListFragment list_fragment = (AppListFragment) getSupportFragmentManager().findFragmentByTag("my_list_fragment");    	
-    	if ( list_fragment != null ) {
-        	list_fragment.refresh_screen_audit( data_arr );        	
-    	}    	
-
-    	update_screen_view();
-    	
-    	int data_returned_size = data_arr.length;
-    	show_toast(hist_pref, data_returned_size);
-    }
-
 	private void refresh_amount_screen() {
 		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
 		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
@@ -339,7 +389,19 @@ public class MyFirstActivity extends FragmentActivity
 
     	AppListFragment list_fragment = (AppListFragment) getSupportFragmentManager().findFragmentByTag("my_list_fragment");    	
     	if ( list_fragment != null ) {
-        	list_fragment.refresh_screen( normal_data_arr, m_show_chart );        	
+
+		    // pass account name to the activity 
+			SharedPreferences account_settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
+			String accountName = account_settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
+			if (accountName == null) 
+			{
+	        	list_fragment.refresh_screen( normal_data_arr, m_show_chart, null);
+			}
+			else
+			{
+			    mCredential.setSelectedAccountName(accountName);
+	        	list_fragment.refresh_screen( normal_data_arr, m_show_chart, mCredential);
+			}
     	}
 
     	AppChartFragment chart_fragment = (AppChartFragment) getSupportFragmentManager().findFragmentByTag("my_chart_fragment");    	
@@ -352,72 +414,140 @@ public class MyFirstActivity extends FragmentActivity
     	int data_returned_size = data_arr.length;
     	show_toast(hist_pref, data_returned_size);
     }
-	
-	private void update_screen_view() {
 
+	private void refresh_audit_screen() {
+    	// allow only one type of lookup for now
+		String hist_pref = SHOW_HIST_PREF_24_H;
+
+		// Get data to display
+		ArrayList<Time_log> data = m_db_handler.getTimeLog( hist_pref, "" );
+		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
+		
+    	AppListFragment list_fragment = (AppListFragment) getSupportFragmentManager().findFragmentByTag("my_list_fragment");    	
+    	if ( list_fragment != null ) {
+        	list_fragment.refresh_screen_audit( data_arr );        	
+    	}    	
+
+    	update_screen_view();
+    	
+    	int data_returned_size = data_arr.length;
+    	show_toast(hist_pref, data_returned_size);
+    }
+	
+	private void refresh_screen()
+    {	
+		//Log.w("DHGG","refresh_screen l:"+m_show_log);
+		if (m_show_log) {
+			refresh_audit_screen();
+		} else {
+			refresh_amount_screen();
+		}
+    }
+	
+	private void send_start_broadcast() {
+		set_update_flag(false);
+		
+	    // Send start message
+		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.start");
+		sendBroadcast(intent);		
+	}
+	
+	private void send_stop_broadcast() 
+	{
+		set_update_flag(true);
+		
+	    // Send stop message
+		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		intent.setAction("dhgg.app.usage.monitor.stop");
+		sendBroadcast(intent);		
+	}
+
+    public void sendData() 
+	{
+		// Get data to send
+		ArrayList<Data_value> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
+		
+		String data_to_send = "";
+		data_to_send += "App Name   \tTime Spent Using\n";
+		for (Data_value dv : data)
+		{
+			//data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
+		}
+
+		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
+		send_intent.setType("text/plain");
+		send_intent.putExtra(Intent.EXTRA_SUBJECT, "App Usage Monitor data");
+		send_intent.putExtra(Intent.EXTRA_TEXT, data_to_send);
+	    
+		startActivity(send_intent);
+	}
+	  
+	private void set_hist_prefs( String pref ) {
+		// Update the saved preference.
+		SharedPreferences settings = getSharedPreferences(SHOW_HIST_PREFS, 0);		
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString(SHOW_HIST_PREFS, pref);
+		editor.commit();		
+	}
+
+	private void set_update_flag( boolean flag) {
+		// Update the saved preference.
+		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putBoolean(TURN_OFF_UPDATES, flag);
+		editor.commit();		
+	}
+
+	private void setup_admob_view() {
+		// Add the ADMOB view
+		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
+		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
+		
+		if ( layout != null )
+		{
+			layout.addView(adView);
+			AdRequest adRequest = new AdRequest();
+			adView.loadAd(adRequest);
+		}
+	}
+	
+	private void setup_fragments( Bundle savedInstanceState ) {
+		// Check that the activity is using the layout version with
+        // the fragment_container FrameLayout
 		int list_fragment_id = R.id.list_fragment_container;
 		int chart_fragment_id = R.id.chart_fragment_container;
 		
-    	FrameLayout list_layout = (FrameLayout) findViewById( list_fragment_id );
-		if ( m_is_landscape ) {
-			list_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, 1.0f) );
-    	} else {
-        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
-    	}
-    	
-		FrameLayout chart_layout = (FrameLayout) findViewById( chart_fragment_id );
-		if ( m_show_chart )	{
-			if ( m_is_landscape ) {
-				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, .75f) );
-			} else {
-				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, .75f) );
-			}
-    	} else {  
-    		chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, 0, 0.0f) );
-	    }   
-	}
+		if ( savedInstanceState  != null ) {
+			return;
+		}
+		
+        if (findViewById( list_fragment_id ) != null) {
+            // Create an instance of ExampleFragment
+            AppListFragment m_list_fragment = new AppListFragment();
+            
+            // In case this activity was started with special instructions from an Intent,
+            // pass the Intent's extras to the fragment as arguments
+            m_list_fragment.setArguments(getIntent().getExtras());
+            
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction().add( list_fragment_id, m_list_fragment, "my_list_fragment").commit();
+        }
+        
+        if (findViewById( chart_fragment_id ) != null) {
+            // Create an instance of ExampleFragment
+            AppChartFragment m_chart_fragment = new AppChartFragment();
+            
+            // In case this activity was started with special instructions from an Intent,
+            // pass the Intent's extras to the fragment as arguments
+            m_chart_fragment.setArguments(getIntent().getExtras());
+            
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction().add( chart_fragment_id , m_chart_fragment, "my_chart_fragment").commit();
+        }
 
-	public Data_value[] get_data_slices(Data_value[] data_arr)
-	{
-		int num_values = data_arr.length;
-		float total = 0;
-		for ( int i = 0; i < num_values; i++ )
-		{
-			total += data_arr[i].value;
-		}
-		
-		int normal_data_arr_size = num_values;
-		if ( num_values > m_max_data_size )
-		{
-			normal_data_arr_size = m_max_data_size ;
-		}
-
-		Data_value[] normal_data_arr = new Data_value[ normal_data_arr_size ];
-		System.arraycopy( data_arr, 0, normal_data_arr, 0, normal_data_arr_size );
-		
-		int subtotal = 0;
-		for ( int i = 0; i < normal_data_arr_size; i++)
-		{
-			subtotal += normal_data_arr[ i ].value;
-			
-			float fraction = (float)normal_data_arr[ i ].value / total;
-			int percent = (int)(fraction * 100);
-			normal_data_arr[ i ].value = percent;
-		}
-		
-		if ( normal_data_arr_size == m_max_data_size)
-		{
-			float remaining = total - subtotal;
-			
-			float fraction = remaining / total;
-			
-			int percent = (int) ( fraction * 100);
-			
-			normal_data_arr[ normal_data_arr_size -1 ].value = percent;
-			normal_data_arr[ normal_data_arr_size -1 ].description = "Other ...";
-		}
-		
-		return normal_data_arr;
+		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
+		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
 	}
 	
 	public void show_toast(String hist_pref, int data_returned_size)
@@ -455,209 +585,47 @@ public class MyFirstActivity extends FragmentActivity
     	}
     	
     }
-	
-	public void old_send_data() 
-	{
-		// Get data to send
-		ArrayList<Data_value> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
-		
-		String data_to_send = "";
-		data_to_send += "App Name   \tTime Spent Using\n";
-		for (Data_value dv : data)
-		{
-			//data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
-		}
 
-		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
-		send_intent.setType("text/plain");
-		send_intent.putExtra(Intent.EXTRA_SUBJECT, "App Usage Monitor data");
-		send_intent.putExtra(Intent.EXTRA_TEXT, data_to_send);
-	    
-		startActivity(send_intent);
-	}
-	
 	public boolean authenticate()
 	{
-	    // create credential
-	    credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
-	    /*
-	    cloudBackend.setCredential(credential);
-	
-	    // if auth enabled, get account name from the shared pref
-		String accountName = cloudBackend.getSharedPreferences().getString(PREF_KEY_ACCOUNT_NAME,null);
+	    // get account name from the shared pref
+		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
+		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
+		//Log.i("DHGG","authenticate accountName:"+accountName);
+
+		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
 		if (accountName == null) {
 			// let user pick an account
-			super.startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+			super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 			return false; // continue init in onActivityResult
-		} else {
-		    credential.setSelectedAccountName(accountName);
-		    return true; // continue init in onActivityResult
-	    }
-	    */
-	    return false;
-	}
-
-    protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
-	    Log.w("DHGG","onActivityResult");
-  
-		super.onActivityResult(requestCode, resultCode, data);
-
-		switch (requestCode) {
-		case REQUEST_ACCOUNT_PICKER:
-			if (data != null && data.getExtras() != null) 
-			{
-			    // set the picked account name to the credential
-				String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-			    credential.setSelectedAccountName(accountName);
-
-		        // save account name to shared pref
-			    /*
-		        SharedPreferences.Editor e = cloudBackend.getSharedPreferences().edit();
-		        e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
-		        e.commit();
-		        */
-		        
-		        send_data();
-		    }
-			break;
-        default:
-		    break;
+		} 
+		else {
+		    SyncUtils.CreateSyncAccount(this);
+		    return true; 
 	    }
 	}
-	  
-	public void send_data() {	
-		Log.w("DHGG","MyFirstActivity::send_data");
 
-		if (!authenticate())
-		{
-			return;
-		}
-		
-		// TODO: 
-		// Ask appengine for last update.
+    private void update_screen_view() {
 
-		// 
-		//m_db_handler.
-		// end_time
-		// Get data to display
-		String hist_pref = SHOW_HIST_PREF_24_H;
-		ArrayList<Time_log> data = m_db_handler.getTimeLog( hist_pref, "" );
-		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
-		
-		
-		/*
-		int numLogs = data_arr.length;
-		for ( int i = 0; i < numLogs; i++ )
-		{
-		    // create a CloudEntity with the new post
-		    CloudEntity newPost = new CloudEntity("AppUsage");
-		    newPost.put("appName", data_arr[i].description); 
-		    newPost.put("appStartTime", data_arr[i].start_time); 
-		    newPost.put("appEndTime", data_arr[i].end_time); 
-			Log.w("DHGG","sendData "+i+" post:"+newPost);
-	
-		    // create a response handler that will receive the result or an error
-		    CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
-				@Override
-				public void onComplete(final CloudEntity result) {
-					Log.w("DHGG","sendData onComplete with ok result:"+result.toString());
-				}
-		
-		        @Override
-				public void onError(final IOException exception) {
-					Log.w("DHGG","sendData onError:"+exception.toString());
-				}
-			};
-					
-		    // execute the insertion with the handler
-		    cloudBackend.insert(newPost, handler);
-		}
-		*/
-	}
-
-	private void send_start_broadcast() {
-		set_update_flag(false);
-		
-	    // Send start message
-		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
-		intent.setAction("dhgg.app.usage.monitor.start");
-		sendBroadcast(intent);		
-	}
-
-	private void send_stop_broadcast() 
-	{
-		set_update_flag(true);
-		
-	    // Send stop message
-		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
-		intent.setAction("dhgg.app.usage.monitor.stop");
-		sendBroadcast(intent);		
-	}
-	
-	private void set_hist_prefs( String pref ) {
-		// Update the saved preference.
-		SharedPreferences settings = getSharedPreferences(SHOW_HIST_PREFS, 0);		
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString(SHOW_HIST_PREFS, pref);
-		editor.commit();		
-	}
-	
-	private void set_update_flag( boolean flag) {
-		// Update the saved preference.
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putBoolean(TURN_OFF_UPDATES, flag);
-		editor.commit();		
-	}
-
-    private void setup_admob_view() {
-		// Add the ADMOB view
-		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
-		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
-		
-		if ( layout != null )
-		{
-			layout.addView(adView);
-			AdRequest adRequest = new AdRequest();
-			adView.loadAd(adRequest);
-		}
-	}
-    
-    private void setup_fragments( Bundle savedInstanceState ) {
-		// Check that the activity is using the layout version with
-        // the fragment_container FrameLayout
 		int list_fragment_id = R.id.list_fragment_container;
 		int chart_fragment_id = R.id.chart_fragment_container;
 		
-		if ( savedInstanceState  != null ) {
-			return;
-		}
-		
-        if (findViewById( list_fragment_id ) != null) {
-            // Create an instance of ExampleFragment
-            AppListFragment m_list_fragment = new AppListFragment();
-            
-            // In case this activity was started with special instructions from an Intent,
-            // pass the Intent's extras to the fragment as arguments
-            m_list_fragment.setArguments(getIntent().getExtras());
-            
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction().add( list_fragment_id, m_list_fragment, "my_list_fragment").commit();
-        }
-        
-        if (findViewById( chart_fragment_id ) != null) {
-            // Create an instance of ExampleFragment
-            AppChartFragment m_chart_fragment = new AppChartFragment();
-            
-            // In case this activity was started with special instructions from an Intent,
-            // pass the Intent's extras to the fragment as arguments
-            m_chart_fragment.setArguments(getIntent().getExtras());
-            
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction().add( chart_fragment_id , m_chart_fragment, "my_chart_fragment").commit();
-        }
-
-		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
-		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
+    	FrameLayout list_layout = (FrameLayout) findViewById( list_fragment_id );
+		if ( m_is_landscape ) {
+			list_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, 1.0f) );
+    	} else {
+        	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
+    	}
+    	
+		FrameLayout chart_layout = (FrameLayout) findViewById( chart_fragment_id );
+		if ( m_show_chart )	{
+			if ( m_is_landscape ) {
+				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, .75f) );
+			} else {
+				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, .75f) );
+			}
+    	} else {  
+    		chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, 0, 0.0f) );
+	    }   
 	}
 }

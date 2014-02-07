@@ -1,18 +1,13 @@
 <manifest 
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dhgg.appusagemonitor"
-    android:versionCode="22"
-    android:versionName="1.22" >
+    android:versionCode="23"
+    android:versionName="1.23" >
 
     <uses-sdk
-        android:minSdkVersion="10"
-        android:targetSdkVersion="10" />
+        android:minSdkVersion="15"
+        android:targetSdkVersion="16" />
     
-    <!-- 
-    <permission
-        android:name="com.google.cloud.backend.android.permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
-     -->
     <permission
         android:name="com.dhgg.appusagemonitor.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
@@ -23,12 +18,13 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <uses-permission android:name="com.google.cloud.backend.android.permission.C2D_MESSAGE" />
-    <!-- 
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-     -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+
      
     <application
         android:icon="@drawable/ic_launcher"
@@ -71,6 +67,35 @@
             android:name="com.google.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
         <activity android:name="org.achartengine.GraphicalActivity" />
-    </application>
 
+        <service 
+            android:name="com.dhgg.cloudbackend.AuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+
+		<service
+			android:name="com.dhgg.cloudbackend.SyncService"
+			android:exported="true"
+			android:process=":sync">
+			<intent-filter>
+				<action android:name="android.content.SyncAdapter"/>
+			</intent-filter>
+			<meta-data 
+			    android:name="android.content.SyncAdapter"
+				android:resource="@xml/syncadapter" />
+        </service>
+
+		<provider
+	        android:name="com.dhgg.cloudbackend.SyncProvider"
+	        android:authorities="com.dhgg.appusagemonitor.provider"
+	        android:syncable="true"
+            android:exported="false" />
+		
+		
+    </application>
 </manifest>

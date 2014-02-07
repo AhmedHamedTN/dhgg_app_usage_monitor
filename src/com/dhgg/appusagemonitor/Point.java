@@ -10,4 +10,5 @@ public class Point
 		x = x_;
 		y = y_;
 	}
+
 }

@@ -2,10 +2,10 @@ package com.dhgg.appusagemonitor;
 
 public class Time_log {
 
-	String description;
-    String process_name;
-    long start_time;
-    long end_time;
+	public String description;
+    public String process_name;
+    public long start_time;
+    public long end_time;
     
     public Time_log(String desc, String proc, long startTime, long endTime)
     {

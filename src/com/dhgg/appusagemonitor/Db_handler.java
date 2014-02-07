@@ -36,6 +36,9 @@ public class Db_handler extends SQLiteOpenHelper
     private static final String PROCESS_NAME_COLUMN = "process_name_col";
     
     private static final String VALUE_COLUMN = "value_col"; 
+    
+    private static final int MAX_DB_ROWS_SYNC = 1500;
+    private static final int MAX_SYNC_SEND = 150;
  
     // Constructor
     public Db_handler(Context context) 
@@ -603,6 +606,81 @@ public class Db_handler extends SQLiteOpenHelper
         return data;
     }
 
+    public ArrayList<Time_log> getTimeLogFromTime(long lastAppEndTime) 
+    {
+		String select_query = "SELECT " + 
+		                      "  a." + NAME_COLUMN +
+							  ", a." + DATE_COLUMN +
+				              ", b." + PROCESS_NAME_COLUMN +
+				              ", a." + START_TIME_COLUMN + 
+				              ", a." + END_TIME_COLUMN +
+				              "  FROM " +
+				              " ( SELECT  * FROM "+TABLE_NAME; ;
+				              
+    	if (lastAppEndTime > 0)
+    	{
+    		select_query += " WHERE "+END_TIME_COLUMN + " > " + lastAppEndTime;
+    	}
+    	select_query += " ORDER BY "+END_TIME_COLUMN+" ASC ";
+    	select_query += " LIMIT  " + MAX_DB_ROWS_SYNC;
+    	select_query += ") a JOIN "+MAPPING_TABLE_NAME+" b ON "+
+    	                "a."+NAME_COLUMN+" = b."+NAME_COLUMN;
+    	
+    	
+    	
+    	Log.w("DHGG","getTimeLog q:"+select_query);
+    	
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);        
+
+        ArrayList <Time_log> data = new ArrayList<Time_log>();
+        if (cursor.moveToFirst()) {
+            do {	
+            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
+            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+            	{
+            		continue;
+            	}
+            	
+            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
+            	long startTime = cursor.getLong(3);
+            	long endTime = cursor.getLong(4);
+                //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
+            	
+            	Time_log t = new Time_log(app_name, process_name, startTime, endTime);
+
+            	int num_points = data.size();
+            	if (num_points == 0)
+            	{
+            		data.add(t);
+            		continue;
+            	}
+            	
+            	Time_log prev_log = data.get(num_points -1);
+            	if (t.description.equals(prev_log.description) &&
+            	    Math.abs(prev_log.end_time - t.start_time) < 5000)
+            	{
+            		prev_log.end_time = t.end_time;
+            		data.set(num_points - 1,  prev_log);
+            	}
+            	else
+            	{
+            		data.add(t);
+            	}
+            	
+            	// Break early 
+            	if (data.size() > MAX_SYNC_SEND)
+            	{
+            		break;
+            	}
+            	
+            } while (cursor.moveToNext());
+        }
+        db.close();
+
+        return data;
+    }
+
     public Point[] getHistoricalData( String app_name )
     {
     	//Log.w("DHGG","getHistoricalData a:"+app_name);
@@ -726,6 +804,10 @@ public class Db_handler extends SQLiteOpenHelper
 			
 			// drop column from main table
 			drop_column( db );			
+		}
+		else if (old_version == 3 && new_version == 4)
+		{
+		
 		}
 		else
 		{
