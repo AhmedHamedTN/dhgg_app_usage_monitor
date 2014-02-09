@@ -625,10 +625,8 @@ public class Db_handler extends SQLiteOpenHelper
     	select_query += " LIMIT  " + MAX_DB_ROWS_SYNC;
     	select_query += ") a JOIN "+MAPPING_TABLE_NAME+" b ON "+
     	                "a."+NAME_COLUMN+" = b."+NAME_COLUMN;
-    	
-    	
-    	
-    	Log.w("DHGG","getTimeLog q:"+select_query);
+
+    	//Log.w("DHGG","getTimeLog q:"+select_query);
     	
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(select_query, null);        
