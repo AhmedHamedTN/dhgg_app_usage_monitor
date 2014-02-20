@@ -49,4 +49,5 @@
 		android:icon="@drawable/ic_menu_delete"
 		android:title="@string/button_restart" 
         android:showAsAction="ifRoom|withText" />
+
 </menu>

@@ -31,6 +31,8 @@ import com.dhgg.cloudbackend.SyncUtils;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 public class MyFirstActivity extends FragmentActivity 
@@ -593,16 +595,34 @@ public class MyFirstActivity extends FragmentActivity
 		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
 		//Log.i("DHGG","authenticate accountName:"+accountName);
 
+		SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
+		boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);	
+
 		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
 		if (accountName == null) {
-			// let user pick an account
-			super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-			return false; // continue init in onActivityResult
+			//Log.i("DHGG","authenticate should we pick an account?" + triedSync);
+			if ( !triedSync )
+			{
+				// check if google services is up to date
+				int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+				if (isGoogleAvailable == ConnectionResult.SUCCESS)
+				{
+					// let user pick an account
+					// Log.i("DHGG","authenticate pick account");
+					super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+				}
+				//Log.i("DHGG", "Google service status = "+isGoogleAvailable);
+			}
 		} 
 		else {
+			//Log.i("DHGG","using known account");
 		    SyncUtils.CreateSyncAccount(this);
-		    return true; 
 	    }
+		SharedPreferences.Editor prefEditor = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE).edit();
+		prefEditor.putBoolean("TRIED_SYNC", true);
+		prefEditor.commit();
+
+	    return true; 
 	}
 
     private void update_screen_view() {

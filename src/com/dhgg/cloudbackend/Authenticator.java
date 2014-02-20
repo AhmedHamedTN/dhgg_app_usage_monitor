@@ -102,6 +102,15 @@ public class Authenticator extends AbstractAccountAuthenticator {
 		            Context.MODE_PRIVATE).edit();
 		        e.putString(PREF_KEY_ACCOUNT_NAME, null);
 		        e.commit();
+		        
+		        
+		        /*
+				SharedPreferences.Editor prefEditor = mContext.getSharedPreferences(
+					"TRIED_SYNC", 0).edit();
+				prefEditor.putBoolean("TRIED_SYNC", false);
+				prefEditor.commit();
+				*/
+		        
             }
         }
     	

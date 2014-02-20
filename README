@@ -39,8 +39,23 @@
   do history by looking up data from server
 2014-02-06
   publishing
+2014-02-16
+  Check if google services are available first.
+  Add check to prevent multiple attempts for adding a sync account.
 
 - TODO
+  bug fix - check all history bug.
+            Really show all history. 
+            It automatically switches to last 24 hours even though it probably shows all. 
+            Confusing. Trying different tracker now
+
+  maintenance - test latest version of achartengine
+
+  features - add support for tablet
+  features - add way to turn off logging for a given app (like launcher)
+             how do we enable again?
+             
+
   turn on lookupbyname api 
   add api to get get total history 
 

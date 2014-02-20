@@ -78,6 +78,11 @@ public class AppListFragment extends Fragment
 		{
 			public void onItemClick(AdapterView<?> parent, View view,int position, long id) 
 			{
+				if (position >= m_data_arr.length)
+				{
+					return;
+				}
+
 			    final String app_name = m_data_arr[ position ].description;
 			    
 			    /*
@@ -148,7 +153,9 @@ public class AppListFragment extends Fragment
 						Log.w("DHGG","AppListFragment AppUsageListByNameResponse onError:"+exception.toString());
 					}
 		        };
+				*/
 
+				/*
 			    // execute the lookup with the handler, on callback, we'll open the new page
 				CloudBackendAsync cloudBackend = new CloudBackendAsync();
 			    cloudBackend.setCredential(mCredential);
