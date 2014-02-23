@@ -1,14 +1,8 @@
 package com.dhgg.appusagemonitor;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.TimeZone;
-import java.util.List;
 
-import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,9 +18,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageInsertRequest;
-import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageRecord;
-import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageResponseMessage;
 import com.dhgg.cloudbackend.SyncUtils;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -39,15 +30,21 @@ public class MyFirstActivity extends FragmentActivity
 {
 	public static Db_handler m_db_handler;
 	
-	public static String TURN_OFF_UPDATES = "turn_off_updates";
-	public static String SHOW_HIST_PREFS = "show_hist_prefs";
+	// User interface preferences
+	public static String UI_PREFS = "ui_prefs";
+
 	public static String SHOW_CHART = "show_chart";
 	public static String SHOW_LOG = "show_log";
 
+	public static String SHOW_HIST_PREFS = "show_hist_prefs";
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
 	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";	
+
+	// Hidden from UI.
+	public static String TURN_OFF_UPDATES = "turn_off_updates";
 	
+	// 
 	boolean m_show_list = true;
 	boolean m_show_chart = false;
 	boolean m_is_landscape = false;
@@ -69,7 +66,47 @@ public class MyFirstActivity extends FragmentActivity
             SECONDS_PER_MINUTE *
             MILLISECONDS_PER_SECOND;
 
+	public boolean authenticate()
+	{
+	    // get account name from the shared pref
+		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
+		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
+		//Log.i("DHGG","authenticate accountName:"+accountName);
 
+		SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
+		boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);	
+
+		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
+		if (accountName == null) {
+			//Log.i("DHGG","authenticate should we pick an account?" + triedSync);
+			if ( !triedSync )
+			{
+				// check if google services is up to date
+				int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+				if (isGoogleAvailable == ConnectionResult.SUCCESS)
+				{
+					// let user pick an account
+					// Log.i("DHGG","authenticate pick account");
+					super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+				}
+				//Log.i("DHGG", "Google service status = "+isGoogleAvailable);
+			}
+		} 
+		else {
+			//Log.i("DHGG","using known account");
+		    SyncUtils.CreateSyncAccount(this);
+	    }
+		SharedPreferences.Editor prefEditor = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE).edit();
+		prefEditor.putBoolean("TRIED_SYNC", true);
+		prefEditor.commit();
+
+	    return true; 
+	}
+	
+	/*
+	 * Hidden from user. Feb 22, 2014.
+	 * Deprecate this eventually.
+	 */
 	private void clear_database() 
 	{
 		// Get data to display
@@ -77,7 +114,7 @@ public class MyFirstActivity extends FragmentActivity
 		
 		refresh_screen();
 	}
-	
+
 	public Data_value[] get_data_slices(Data_value[] data_arr)
 	{
 		int num_values = data_arr.length;
@@ -120,7 +157,7 @@ public class MyFirstActivity extends FragmentActivity
 		
 		return normal_data_arr;
 	}
-
+	
 	protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
 	    //Log.w("DHGG","onActivityResult");
   
@@ -150,7 +187,7 @@ public class MyFirstActivity extends FragmentActivity
 		    break;
 	    }
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
@@ -183,13 +220,6 @@ public class MyFirstActivity extends FragmentActivity
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.main_menu, menu);
 		
-		/*
-		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
-		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
-		
-		SharedPreferences show_log = getSharedPreferences( SHOW_LOG, 0);
-		m_show_log = show_log.getBoolean(SHOW_LOG, false);
-		*/
 		
 		//Log.w("DHGG","onCreateOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
 		if ( !m_show_chart ) {
@@ -216,14 +246,13 @@ public class MyFirstActivity extends FragmentActivity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		SharedPreferences settings = getSharedPreferences(SHOW_CHART, 0);
+		//Log.d("DHGG","onOptionsItemSelected "+item.getItemId());
+		SharedPreferences settings = getSharedPreferences(UI_PREFS, 0);
 		SharedPreferences.Editor editor = settings.edit();
-
-		SharedPreferences log_settings = getSharedPreferences(SHOW_LOG, 0);
-		SharedPreferences.Editor log_editor = log_settings.edit();
 		
 		// same as using a normal menu
 		switch(item.getItemId()) {
+		/*
 		case R.id.item_restart:
 			clear_database();
 		break;
@@ -245,16 +274,20 @@ public class MyFirstActivity extends FragmentActivity
 			
 			send_stop_broadcast();
 		break;
+		*/
 		case R.id.show_today:
 			set_hist_prefs( SHOW_HIST_PREF_TODAY );
+			m_show_log = false;
 			refresh_screen();
 		break;
 		case R.id.show_24_hours:
 			set_hist_prefs( SHOW_HIST_PREF_24_H );
+			m_show_log = false;
 			refresh_screen();
 		break;
 		case R.id.show_all:
 			set_hist_prefs( SHOW_HIST_PREF_ALL );
+			m_show_log = false;
 			refresh_screen();
 			break;
 		case R.id.item_send_data:
@@ -265,27 +298,26 @@ public class MyFirstActivity extends FragmentActivity
 			m_show_chart = !m_show_chart;
 
 			editor.putBoolean(SHOW_CHART, m_show_chart);
-			editor.commit();
 
 			if ( m_show_chart )
 			{
 				item.setTitle("Hide Chart");
 				m_show_log = false;
-				log_editor.putBoolean(SHOW_LOG, false);
+				editor.putBoolean(SHOW_LOG, false);
 			}
 			else
 			{
 				item.setTitle("Chart");
 			}
-			
+
+			editor.commit();
 			refresh_screen();
 		break;
 		case R.id.item_show_log:
 			// Update the saved preference.
 			m_show_log = !m_show_log;
 			
-			log_editor.putBoolean(SHOW_LOG, m_show_log);
-			log_editor.commit();
+			editor.putBoolean(SHOW_LOG, m_show_log);
 						
 			if ( m_show_log ) {
 				item.setTitle("Summary");
@@ -295,12 +327,16 @@ public class MyFirstActivity extends FragmentActivity
 				item.setTitle("Itemized");
 			}
 			
+			editor.commit();
 			refresh_screen();
+		break;
+		case R.id.item_add_sync_account:
+			add_sync_account();
 		break;
 		}
 		return true;
 	}
-
+	
 	public void onPause() 
 	{
 		// Check to see if we should send an initial message
@@ -313,39 +349,42 @@ public class MyFirstActivity extends FragmentActivity
 		}
 		super.onPause();
 	}
-	
+
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) 
 	{
 		menu.clear();
 	    getMenuInflater().inflate(R.layout.main_menu, menu);
 	    	 	
-	    /*
-		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
-		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
-
-		SharedPreferences show_log_settings = getSharedPreferences( SHOW_LOG, 0);
-		m_show_log = show_log_settings.getBoolean(SHOW_LOG, false);
-		*/
-	    
 		//Log.w("DHGG","onPrepareOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
-		if ( !m_show_chart ) {
+		if ( m_show_chart ) {
+			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
+			menu.findItem(R.id.item_show_log).setTitle("Show Itemized");
+
+		} else {
 			menu.findItem(R.id.item_show_chart).setTitle("Chart");
 		    
 			if ( !m_show_log ) {
-				menu.findItem(R.id.item_show_log).setTitle("Itemized");
+				menu.findItem(R.id.item_show_log).setTitle("Show Itemized");
 			} else {
 				menu.findItem(R.id.item_show_log).setTitle("Summary");
 			}
-		} else {
-			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
-			menu.findItem(R.id.item_show_log).setTitle("Itemized");
 		}
 		
+	    // get account name from the shared pref
+		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
+		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
+		//Log.i("DHGG","onCreateOptions toggling update sync visibility for: "+accountName);
+		if (accountName == null) {
+			menu.findItem(R.id.item_add_sync_account).setEnabled(true);
+		}
+		else {
+			menu.findItem(R.id.item_add_sync_account).setEnabled(false);
+		}
 		
 		return super.onPrepareOptionsMenu(menu);
 	}
-
+	
 	@Override
 	public void onResume() 
 	{
@@ -360,24 +399,20 @@ public class MyFirstActivity extends FragmentActivity
 			send_start_broadcast();
 		}
 		
-		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
-		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
-		
-		SharedPreferences show_log = getSharedPreferences( SHOW_LOG, 0);
-		m_show_log = show_log.getBoolean(SHOW_LOG, false);
+		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
+		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
+		m_show_log = ui_prefs.getBoolean(SHOW_LOG, false);
 		
 		refresh_screen();
 		super.onResume();
 	}
-	
+
 	private void refresh_amount_screen() {
-		SharedPreferences show_chart_settings = getSharedPreferences( SHOW_CHART, 0);
-		m_show_chart = show_chart_settings.getBoolean(SHOW_CHART, false);
-
-		// Find out what type of data to display.
-		SharedPreferences settings = getSharedPreferences( SHOW_HIST_PREFS, 0);
-		String hist_pref = settings.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
-
+		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
+		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
+		String hist_pref = ui_prefs.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
+		//Log.i("DHGG","refresh_amount_screen hist_pref:"+hist_pref);
+		
 		// Get data to display
 		ArrayList<Data_value> data = m_db_handler.getData( hist_pref, "" );
 		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
@@ -391,8 +426,7 @@ public class MyFirstActivity extends FragmentActivity
 
     	AppListFragment list_fragment = (AppListFragment) getSupportFragmentManager().findFragmentByTag("my_list_fragment");    	
     	if ( list_fragment != null ) {
-
-		    // pass account name to the activity 
+		    // pass account to the activity 
 			SharedPreferences account_settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
 			String accountName = account_settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
 			if (accountName == null) 
@@ -416,7 +450,7 @@ public class MyFirstActivity extends FragmentActivity
     	int data_returned_size = data_arr.length;
     	show_toast(hist_pref, data_returned_size);
     }
-
+	
 	private void refresh_audit_screen() {
     	// allow only one type of lookup for now
 		String hist_pref = SHOW_HIST_PREF_24_H;
@@ -454,8 +488,8 @@ public class MyFirstActivity extends FragmentActivity
 		intent.setAction("dhgg.app.usage.monitor.start");
 		sendBroadcast(intent);		
 	}
-	
-	private void send_stop_broadcast() 
+
+    private void send_stop_broadcast() 
 	{
 		set_update_flag(true);
 		
@@ -464,8 +498,8 @@ public class MyFirstActivity extends FragmentActivity
 		intent.setAction("dhgg.app.usage.monitor.stop");
 		sendBroadcast(intent);		
 	}
-
-    public void sendData() 
+	  
+	public void sendData() 
 	{
 		// Get data to send
 		ArrayList<Data_value> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
@@ -484,11 +518,10 @@ public class MyFirstActivity extends FragmentActivity
 	    
 		startActivity(send_intent);
 	}
-	  
+
 	private void set_hist_prefs( String pref ) {
 		// Update the saved preference.
-		SharedPreferences settings = getSharedPreferences(SHOW_HIST_PREFS, 0);		
-		SharedPreferences.Editor editor = settings.edit();
+		SharedPreferences.Editor editor = getSharedPreferences(UI_PREFS, 0).edit();
 		editor.putString(SHOW_HIST_PREFS, pref);
 		editor.commit();		
 	}
@@ -500,7 +533,7 @@ public class MyFirstActivity extends FragmentActivity
 		editor.putBoolean(TURN_OFF_UPDATES, flag);
 		editor.commit();		
 	}
-
+	
 	private void setup_admob_view() {
 		// Add the ADMOB view
 		AdView adView = new AdView(this, AdSize.BANNER, "a150686c4e8460b");
@@ -551,7 +584,7 @@ public class MyFirstActivity extends FragmentActivity
 		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
 		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
 	}
-	
+
 	public void show_toast(String hist_pref, int data_returned_size)
     {
     	// Show a toast to indicate what we are displaying
@@ -588,43 +621,6 @@ public class MyFirstActivity extends FragmentActivity
     	
     }
 
-	public boolean authenticate()
-	{
-	    // get account name from the shared pref
-		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
-		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
-		//Log.i("DHGG","authenticate accountName:"+accountName);
-
-		SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
-		boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);	
-
-		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
-		if (accountName == null) {
-			//Log.i("DHGG","authenticate should we pick an account?" + triedSync);
-			if ( !triedSync )
-			{
-				// check if google services is up to date
-				int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-				if (isGoogleAvailable == ConnectionResult.SUCCESS)
-				{
-					// let user pick an account
-					// Log.i("DHGG","authenticate pick account");
-					super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-				}
-				//Log.i("DHGG", "Google service status = "+isGoogleAvailable);
-			}
-		} 
-		else {
-			//Log.i("DHGG","using known account");
-		    SyncUtils.CreateSyncAccount(this);
-	    }
-		SharedPreferences.Editor prefEditor = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE).edit();
-		prefEditor.putBoolean("TRIED_SYNC", true);
-		prefEditor.commit();
-
-	    return true; 
-	}
-
     private void update_screen_view() {
 
 		int list_fragment_id = R.id.list_fragment_container;
@@ -647,5 +643,26 @@ public class MyFirstActivity extends FragmentActivity
     	} else {  
     		chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, 0, 0.0f) );
 	    }   
+	}
+
+	public boolean add_sync_account()
+	{
+		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
+
+		// check if google services is up to date
+		int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+		if (isGoogleAvailable == ConnectionResult.SUCCESS)
+		{
+			// let user pick an account
+			super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+		}
+		else
+		{
+			String toast_msg = "Google Services is not up to date. Cannot create sync account.";
+    		Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_LONG);
+    		toast.show();
+		}
+
+	    return true; 
 	}
 }

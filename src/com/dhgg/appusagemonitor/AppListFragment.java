@@ -84,91 +84,93 @@ public class AppListFragment extends Fragment
 				}
 
 			    final String app_name = m_data_arr[ position ].description;
+			    final String packageName = m_data_arr[ position ].process_name;
 			    
-			    /*
-				if (mCredential == null)
-				{
-				    Log.w("DHGG", "no credentials set. exiting early");
-					return;
-				}
-
-				// Create the request
-		        AppusagemonitorApiMessagesAppUsageListByNameRequest request =  
-			        new AppusagemonitorApiMessagesAppUsageListByNameRequest();
-		        request.setAppName(app_name);
+			    if (false) 
+			    {
+					if (mCredential == null)
+					{
+					    Log.w("DHGG", "no credentials set. exiting early");
+						return;
+					}
+	
+					// Create the request
+			        AppusagemonitorApiMessagesAppUsageListByNameRequest request =  
+				        new AppusagemonitorApiMessagesAppUsageListByNameRequest();
+			        request.setPackageName(packageName);
 		        
-                // Create a response handler that will receive the result or an error
-		        CloudCallbackHandler<AppusagemonitorApiMessagesAppUsageListByNameResponse> handler = 
-		            new CloudCallbackHandler<AppusagemonitorApiMessagesAppUsageListByNameResponse>() {
-					@Override
-                    public void onComplete(final AppusagemonitorApiMessagesAppUsageListByNameResponse result) {
-
-						ArrayList <Point> data = new ArrayList<Point>();
-					    int yyyymmdd = 0;
-					    long totalForDay = 0;
-
-						int numItems = result.getItems().size();
-						for (int i = 0; i < numItems; i++)
-						{
-						    AppusagemonitorApiMessagesAppUsageHistResponseMessage h = 
-						    		 result.getItems().get(i);
-							Date dt = new Date(h.getStart());
-
-							Calendar cal = Calendar.getInstance();
-                            cal.setTime(dt);
-							  
-							int tmp_yyyymmdd = ( (cal.get(Calendar.YEAR) * 10000) + 
-									             (cal.get(Calendar.MONTH) + 1) * 100 + 
-									             cal.get(Calendar.DATE) );
-									        		   
-
-							if (i == 0)
+	                // Create a response handler that will receive the result or an error
+			        CloudCallbackHandler<AppusagemonitorApiMessagesAppUsageListByNameResponse> handler = 
+			            new CloudCallbackHandler<AppusagemonitorApiMessagesAppUsageListByNameResponse>() {
+						@Override
+	                    public void onComplete(final AppusagemonitorApiMessagesAppUsageListByNameResponse result) {
+	
+							ArrayList <Point> data = new ArrayList<Point>();
+						    int yyyymmdd = 0;
+						    long totalForDay = 0;
+	
+							int numItems = result.getItems().size();
+							for (int i = 0; i < numItems; i++)
 							{
-								yyyymmdd = tmp_yyyymmdd;
+							    AppusagemonitorApiMessagesAppUsageHistResponseMessage h = 
+							    		 result.getItems().get(i);
+								Date dt = new Date(h.getStart());
+	
+								Calendar cal = Calendar.getInstance();
+	                            cal.setTime(dt);
+								  
+								int tmp_yyyymmdd = ( (cal.get(Calendar.YEAR) * 10000) + 
+										             (cal.get(Calendar.MONTH) + 1) * 100 + 
+										             cal.get(Calendar.DATE) );
+										        		   
+	
+								if (i == 0)
+								{
+									yyyymmdd = tmp_yyyymmdd;
+								}
+	
+								if (tmp_yyyymmdd == yyyymmdd)
+									totalForDay += (h.getDuration() / 1000);
+								else
+								{
+									data.add( new Point( yyyymmdd, (int) totalForDay ) );
+	
+									yyyymmdd = tmp_yyyymmdd;
+									totalForDay = (h.getDuration() / 1000);
+								}
+	
+								if (i == (numItems -1))
+									data.add( new Point( yyyymmdd, (int) totalForDay ) );
 							}
-
-							if (tmp_yyyymmdd == yyyymmdd)
-								totalForDay += (h.getDuration() / 1000);
-							else
-							{
-								data.add( new Point( yyyymmdd, (int) totalForDay ) );
-
-								yyyymmdd = tmp_yyyymmdd;
-								totalForDay = (h.getDuration() / 1000);
-							}
-
-							if (i == (numItems -1))
-								data.add( new Point( yyyymmdd, (int) totalForDay ) );
+	
+							Point[] point_arr = data.toArray(new Point[data.size()]);
+							
+							MyLineChart aChart = new MyLineChart(app_name);
+						    aChart.addData(app_name, point_arr);
+						    Intent aChartIntent = aChart.getIntent( getActivity().getApplicationContext() );
+						    startActivity( aChartIntent );
 						}
+				        @Override
+						public void onError(final IOException exception) {
+							Log.w("DHGG","AppListFragment AppUsageListByNameResponse onError:"+exception.toString());
+						}
+			        };
 
-						Point[] point_arr = data.toArray(new Point[data.size()]);
-						
-						MyLineChart aChart = new MyLineChart(app_name);
-					    aChart.addData(app_name, point_arr);
-					    Intent aChartIntent = aChart.getIntent( getActivity().getApplicationContext() );
-					    startActivity( aChartIntent );
-					}
-			        @Override
-					public void onError(final IOException exception) {
-						Log.w("DHGG","AppListFragment AppUsageListByNameResponse onError:"+exception.toString());
-					}
-		        };
-				*/
-
-				/*
-			    // execute the lookup with the handler, on callback, we'll open the new page
-				CloudBackendAsync cloudBackend = new CloudBackendAsync();
-			    cloudBackend.setCredential(mCredential);
-				cloudBackend.listByName(request, handler);
-				*/
-		
-				Db_handler db_handler = new Db_handler( getActivity() );
-				Point[] points = db_handler.getHistoricalData( app_name );
-
-				MyLineChart aChart = new MyLineChart(app_name);
-			    aChart.addData(app_name, points);
-			    Intent aChartIntent = aChart.getIntent( getActivity().getApplicationContext() );
-			    startActivity( aChartIntent );
+				    // execute the lookup with the handler, on callback, we'll open the new page
+					CloudBackendAsync cloudBackend = new CloudBackendAsync();
+				    cloudBackend.setCredential(mCredential);
+					cloudBackend.listByName(request, handler);
+			    }
+			    else
+			    {
+					Db_handler db_handler = new Db_handler( getActivity() );
+					Point[] points = db_handler.getHistoricalData( app_name );
+	
+					MyLineChart aChart = new MyLineChart(app_name);
+				    aChart.addData(app_name, points);
+				    Intent aChartIntent = aChart.getIntent( getActivity().getApplicationContext() );
+				    startActivity( aChartIntent );
+			    }
             }
 	    });
 		return -1;

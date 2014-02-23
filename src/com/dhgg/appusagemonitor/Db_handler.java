@@ -328,7 +328,37 @@ public class Db_handler extends SQLiteOpenHelper
 		}
 	}
 	
-	private Map <String, Data_value> get_archive_data( Map<String, Data_value> input_obj )
+	public Map<String,String> get_app_to_process_map(String componentName) 
+    {
+    	//Log.w("DHGG","Db_handler::get_app_to_process_map");
+		String select_query = 
+				"SELECT " + NAME_COLUMN +"," + PROCESS_NAME_COLUMN +
+				" FROM " +MAPPING_TABLE_NAME + " WHERE " + 
+				" '" +componentName+ "' " +
+				" LIKE " +
+			    " '%' || " + PROCESS_NAME_COLUMN + " || '%' " +
+				" "	;
+    	
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);        
+        
+        Map<String,String> output_obj = new HashMap<String,String>();
+        if (cursor.moveToFirst()) 
+        {
+            do {	
+            	String app_name = cursor.getString(0);
+            	String process_name = cursor.getString(1);
+            	output_obj.put(app_name, process_name);	
+		    	//Log.w("DHGG","Db_handler::get_app_to_process_map a:"+app_name+" p:"+process_name);
+            	break;
+            } while (cursor.moveToNext());
+        }
+        db.close();
+        
+        return output_obj;
+    }
+	
+    private Map <String, Data_value> get_archive_data( Map<String, Data_value> input_obj )
     {
     	Map <String, Data_value> output_obj = input_obj;
 
@@ -372,7 +402,7 @@ public class Db_handler extends SQLiteOpenHelper
     	
     	return output_obj;
     }
-	
+
     public ArrayList<Data_value> getData( String hist_pref, String input_app_name ) 
     {
 		GregorianCalendar gcalendar = new GregorianCalendar( );
@@ -492,6 +522,61 @@ public class Db_handler extends SQLiteOpenHelper
         return data;
     }
 
+    public Point[] getHistoricalData( String app_name )
+    {
+    	//Log.w("DHGG","getHistoricalData a:"+app_name);
+    	app_name = app_name.replaceAll("'", "''");
+    	
+    	String select_query = "SELECT " + 
+                              "  a." + DATE_COLUMN +
+                              ", a." + VALUE_COLUMN + 
+                              "  FROM " +
+                              " " + APP_HISTORY_TABLE + " a " +
+                              "  WHERE a." + NAME_COLUMN + 
+                              " = '" + app_name + "' "+
+                              " ";
+    	
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.rawQuery(select_query, null);        
+		
+		ArrayList <Point> data = new ArrayList<Point>();
+		if (cursor.moveToFirst()) 
+		{
+			do {				
+				int date = cursor.getInt( 0 );
+				int value = cursor.getInt( 1 ) / 1000;
+			
+				data.add( new Point( date, value ) );
+			} while (cursor.moveToNext());
+		}
+		db.close();
+		
+		// Add data for today as well.
+		GregorianCalendar gcalendar = new GregorianCalendar( );
+		int today_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
+		                  (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
+		                  gcalendar.get( Calendar.DATE ) ;
+		gcalendar.add( Calendar.DATE, - 1 );
+		int yest_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
+		                (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
+		                 gcalendar.get( Calendar.DATE ) ;
+
+	    ArrayList<Data_value> yest_data = getData( "s_h_p_yest", app_name );
+	    if ( yest_data.size() > 0 )
+	    {
+	    	data.add( new Point( yest_date, yest_data.get(0).value ) );
+	    }		
+		
+	    ArrayList<Data_value> today_data = getData( "s_h_p_today", app_name );
+	    if ( today_data.size() > 0 )
+	    {
+	    	data.add( new Point( today_date, today_data.get(0).value ) );
+	    }		
+		
+		Point[] point_arr = data.toArray(new Point[data.size()]);
+    	return point_arr;
+    }
+
     public ArrayList<Time_log> getTimeLog( String hist_pref, String input_app_name ) {
 		GregorianCalendar gcalendar = new GregorianCalendar( );
 		gcalendar.add( Calendar.DATE, - 1 );
@@ -605,7 +690,7 @@ public class Db_handler extends SQLiteOpenHelper
 
         return data;
     }
-
+   
     public ArrayList<Time_log> getTimeLogFromTime(long lastAppEndTime) 
     {
 		String select_query = "SELECT " + 
@@ -677,91 +762,6 @@ public class Db_handler extends SQLiteOpenHelper
         db.close();
 
         return data;
-    }
-
-    public Point[] getHistoricalData( String app_name )
-    {
-    	//Log.w("DHGG","getHistoricalData a:"+app_name);
-    	app_name = app_name.replaceAll("'", "''");
-    	
-    	String select_query = "SELECT " + 
-                              "  a." + DATE_COLUMN +
-                              ", a." + VALUE_COLUMN + 
-                              "  FROM " +
-                              " " + APP_HISTORY_TABLE + " a " +
-                              "  WHERE a." + NAME_COLUMN + 
-                              " = '" + app_name + "' "+
-                              " ";
-    	
-		SQLiteDatabase db = this.getReadableDatabase();
-		Cursor cursor = db.rawQuery(select_query, null);        
-		
-		ArrayList <Point> data = new ArrayList<Point>();
-		if (cursor.moveToFirst()) 
-		{
-			do {				
-				int date = cursor.getInt( 0 );
-				int value = cursor.getInt( 1 ) / 1000;
-			
-				data.add( new Point( date, value ) );
-			} while (cursor.moveToNext());
-		}
-		db.close();
-		
-		// Add data for today as well.
-		GregorianCalendar gcalendar = new GregorianCalendar( );
-		int today_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
-		                  (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
-		                  gcalendar.get( Calendar.DATE ) ;
-		gcalendar.add( Calendar.DATE, - 1 );
-		int yest_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
-		                (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
-		                 gcalendar.get( Calendar.DATE ) ;
-
-	    ArrayList<Data_value> yest_data = getData( "s_h_p_yest", app_name );
-	    if ( yest_data.size() > 0 )
-	    {
-	    	data.add( new Point( yest_date, yest_data.get(0).value ) );
-	    }		
-		
-	    ArrayList<Data_value> today_data = getData( "s_h_p_today", app_name );
-	    if ( today_data.size() > 0 )
-	    {
-	    	data.add( new Point( today_date, today_data.get(0).value ) );
-	    }		
-		
-		Point[] point_arr = data.toArray(new Point[data.size()]);
-    	return point_arr;
-    }
-   
-    public Map<String,String> get_app_to_process_map(String componentName) 
-    {
-    	//Log.w("DHGG","Db_handler::get_app_to_process_map");
-		String select_query = 
-				"SELECT " + NAME_COLUMN +"," + PROCESS_NAME_COLUMN +
-				" FROM " +MAPPING_TABLE_NAME + " WHERE " + 
-				" '" +componentName+ "' " +
-				" LIKE " +
-			    " '%' || " + PROCESS_NAME_COLUMN + " || '%' " +
-				" "	;
-    	
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);        
-        
-        Map<String,String> output_obj = new HashMap<String,String>();
-        if (cursor.moveToFirst()) 
-        {
-            do {	
-            	String app_name = cursor.getString(0);
-            	String process_name = cursor.getString(1);
-            	output_obj.put(app_name, process_name);	
-		    	//Log.w("DHGG","Db_handler::get_app_to_process_map a:"+app_name+" p:"+process_name);
-            	break;
-            } while (cursor.moveToNext());
-        }
-        db.close();
-        
-        return output_obj;
     }
 
     

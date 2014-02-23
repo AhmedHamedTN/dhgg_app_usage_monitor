@@ -13,5 +13,7 @@
     <string name="button_send_data">Share</string>
     <string name="button_sync_data">Sync Data</string>
     <string name="button_show_chart">Chart</string>
-    <string name="button_show_log">Itemized</string>
+    <string name="button_show_log">Show Audit For Today</string>
+    <string name="button_update_sync">Update Sync Account</string>
+    <string name="button_view_options">Update View</string>
 </resources>
