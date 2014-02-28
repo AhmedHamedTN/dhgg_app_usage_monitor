@@ -71,7 +71,6 @@ public class MyFirstActivity extends FragmentActivity
 	    // get account name from the shared pref
 		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
 		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
-		//Log.i("DHGG","authenticate accountName:"+accountName);
 
 		SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
 		boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);	
@@ -191,9 +190,8 @@ public class MyFirstActivity extends FragmentActivity
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
-		//Log.w("DHGG","onCreate");
 		super.onCreate(savedInstanceState);
-		
+
         // Get account for sync-ing data, if needed
 		authenticate();
 
@@ -278,16 +276,22 @@ public class MyFirstActivity extends FragmentActivity
 		case R.id.show_today:
 			set_hist_prefs( SHOW_HIST_PREF_TODAY );
 			m_show_log = false;
+			editor.putBoolean(SHOW_LOG, m_show_log);
+			editor.commit();
 			refresh_screen();
 		break;
 		case R.id.show_24_hours:
 			set_hist_prefs( SHOW_HIST_PREF_24_H );
 			m_show_log = false;
+			editor.putBoolean(SHOW_LOG, m_show_log);
+			editor.commit();
 			refresh_screen();
 		break;
 		case R.id.show_all:
 			set_hist_prefs( SHOW_HIST_PREF_ALL );
 			m_show_log = false;
+			editor.putBoolean(SHOW_LOG, m_show_log);
+			editor.commit();
 			refresh_screen();
 			break;
 		case R.id.item_send_data:
@@ -600,6 +604,11 @@ public class MyFirstActivity extends FragmentActivity
     		show_toast = true;
     		toast_msg = "Showing usage for last 24 hours.";
     	}
+    	else if ( hist_pref.equals( SHOW_HIST_PREF_ALL ) )
+    	{
+    		show_toast = true;
+    		toast_msg = "Showing usage for all history.";
+	    }
     			
     	if ( data_returned_size == 1)
     	{
