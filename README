@@ -50,6 +50,7 @@
 - TODO
             
   maintenance - test latest version of achartengine
+  add unique device id to things to save.
 
   features - add way to turn off logging for a given app (like launcher)
              how do we enable again?

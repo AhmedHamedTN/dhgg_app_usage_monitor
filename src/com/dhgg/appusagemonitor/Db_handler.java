@@ -37,8 +37,8 @@ public class Db_handler extends SQLiteOpenHelper
     
     private static final String VALUE_COLUMN = "value_col"; 
     
-    private static final int MAX_DB_ROWS_SYNC = 1500;
-    private static final int MAX_SYNC_SEND = 150;
+    private static final int MAX_DB_ROWS_SYNC = 2000;
+    private static final int MAX_SYNC_SEND = 300;
  
     // Constructor
     public Db_handler(Context context) 
@@ -92,38 +92,49 @@ public class Db_handler extends SQLiteOpenHelper
         String selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE "+
                              DATE_COLUMN + " = " + date_to_archive;
 
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);        
- 
-        // Get data to archive
         Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();          
-        if (cursor.moveToFirst()) 
-        {
-            do 
-            {	
-            	String app_name = cursor.getString(1);
-            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
-            	{
-            		continue;
-            	}
-            	
-            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ); 
-            	String process_name = cursor.getString(4);
-        
-            	// store name + object value map
-            	if (mp_obj.containsKey(app_name))
-            	{
-            		Data_value dv = (mp_obj.get(app_name));
-            		mp_obj.put(app_name, new Data_value(app_name, process_name,
-            				                            dv.value + time_diff));
-            	}
-            	else
-            	{
-            		Data_value dv = new Data_value(app_name, process_name, time_diff);
-            		mp_obj.put(app_name, dv );
-            	}
 
-            } while (cursor.moveToNext());
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        try 
+        {
+        	cursor = db.rawQuery(selectQuery, null);        
+ 
+	        // Get data to archive
+	        if (cursor.moveToFirst()) 
+	        {
+	            do 
+	            {	
+	            	String app_name = cursor.getString(1);
+	            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+	            	{
+	            		continue;
+	            	}
+	            	
+	            	int time_diff = (cursor.getInt(3) - cursor.getInt(2) ); 
+	            	String process_name = cursor.getString(4);
+	        
+	            	// store name + object value map
+	            	if (mp_obj.containsKey(app_name))
+	            	{
+	            		Data_value dv = (mp_obj.get(app_name));
+	            		mp_obj.put(app_name, new Data_value(app_name, process_name,
+	            				                            dv.value + time_diff));
+	            	}
+	            	else
+	            	{
+	            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+	            		mp_obj.put(app_name, dv );
+	            	}
+	
+	            } while (cursor.moveToNext());
+	        }
+        }
+        finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::consolidate_old_data::closing the cursor");
+        		cursor.close();
+        	}
         }
         db.close();
 
@@ -261,23 +272,34 @@ public class Db_handler extends SQLiteOpenHelper
         //Log.w("DHGG","Db_handler::do_update n:"+name);
  
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
- 
-        // looping through all rows and dumping out the info
+        Cursor cursor = null;
         String prev_name = "";
         int db_date = 0;
-        if (cursor.moveToFirst()) 
-        {
-        	prev_name = cursor.getString(0);
-        	db_date = cursor.getInt(1);
+        
+        try {
+	        cursor = db.rawQuery(selectQuery, null);
+	 
+	        // looping through all rows and dumping out the info
+	        if (cursor.moveToFirst()) 
+	        {
+	        	prev_name = cursor.getString(0);
+	        	db_date = cursor.getInt(1);
+	        }
+        } finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::do_update::closing the cursor");
+        		cursor.close();
+        	}
         }
         db.close();
+        
         
         // If it's from a new date, make a new row.
         GregorianCalendar gcalendar = new GregorianCalendar();
 		int todays_date = gcalendar.get(Calendar.YEAR) * 10000 +
 			              (gcalendar.get(Calendar.MONTH)+1)  * 100 +
 			              gcalendar.get(Calendar.DATE) ;
+
 		if (todays_date != db_date)
 		{
 			return false;
@@ -338,21 +360,32 @@ public class Db_handler extends SQLiteOpenHelper
 				" LIKE " +
 			    " '%' || " + PROCESS_NAME_COLUMN + " || '%' " +
 				" "	;
+
+        Map<String,String> output_obj = new HashMap<String,String>();
     	
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);        
-        
-        Map<String,String> output_obj = new HashMap<String,String>();
-        if (cursor.moveToFirst()) 
+        Cursor cursor = null;
+        try 
         {
-            do {	
-            	String app_name = cursor.getString(0);
-            	String process_name = cursor.getString(1);
-            	output_obj.put(app_name, process_name);	
-		    	//Log.w("DHGG","Db_handler::get_app_to_process_map a:"+app_name+" p:"+process_name);
-            	break;
-            } while (cursor.moveToNext());
+	        cursor = db.rawQuery(select_query, null);        
+        
+	        if (cursor.moveToFirst()) 
+	        {
+	            do {	
+	            	String app_name = cursor.getString(0);
+	            	String process_name = cursor.getString(1);
+	            	output_obj.put(app_name, process_name);	
+			    	//Log.w("DHGG","Db_handler::get_app_to_process_map a:"+app_name+" p:"+process_name);
+	            	break;
+	            } while (cursor.moveToNext());
+	        }
+        } finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::get_app_to_process_map closing the cursor");
+        		cursor.close();
+        	}
         }
+        
         db.close();
         
         return output_obj;
@@ -372,31 +405,40 @@ public class Db_handler extends SQLiteOpenHelper
                               " a."+NAME_COLUMN+" = b."+NAME_COLUMN;
     	                      
 		SQLiteDatabase db = this.getReadableDatabase();
-		Cursor cursor = db.rawQuery(select_query, null);        
+        Cursor cursor = null;
+        try 
+        {
+			cursor = db.rawQuery(select_query, null);        
 		
-		if (cursor.moveToFirst()) 
-		{
-			do {				
-				String app_name = cursor.getString( 0 );
-				int value = cursor.getInt( 1 ) / 1000;
-			
-				// store name + object value map
-				if ( output_obj.containsKey( app_name ) )
-				{
-					Data_value dv = (output_obj.get( app_name ));
-					output_obj.put(app_name, new Data_value(app_name, dv.process_name,
-	  						                                dv.value + value));
-				}
-				else
-				{
-					String process_name = cursor.getString( 2 );
-					
-					Data_value dv = new Data_value(app_name, process_name, value);
-					output_obj.put(app_name, dv );
-				}
-			
-			} while (cursor.moveToNext());
-		}
+			if (cursor.moveToFirst()) 
+			{
+				do {				
+					String app_name = cursor.getString( 0 );
+					int value = cursor.getInt( 1 ) / 1000;
+				
+					// store name + object value map
+					if ( output_obj.containsKey( app_name ) )
+					{
+						Data_value dv = (output_obj.get( app_name ));
+						output_obj.put(app_name, new Data_value(app_name, dv.process_name,
+		  						                                dv.value + value));
+					}
+					else
+					{
+						String process_name = cursor.getString( 2 );
+						
+						Data_value dv = new Data_value(app_name, process_name, value);
+						output_obj.put(app_name, dv );
+					}
+				
+				} while (cursor.moveToNext());
+			}
+        } finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::get_archive_data closing the cursor");
+        		cursor.close();
+        	}
+        }
 		db.close();
 		   	
     	
@@ -452,60 +494,72 @@ public class Db_handler extends SQLiteOpenHelper
     		select_query += " AND a."+NAME_COLUMN+" = '"+input_app_name+"'";
     	}
     	
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);        
-
-        long current_time = System.currentTimeMillis();
- 
         // Looping through all rows and dumping out the info
         Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();  
-        
-        if (cursor.moveToFirst()) 
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        try 
         {
-            do {	
-            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
-            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
-            	{
-            		continue;
-            	}
-            	
-            	int date = cursor.getInt(1);
-            	if ( check_for_today )
-            	{
-            		if ( yest_date >= date )
-            		{
-            			continue;
-            		}
-            	}
-            	else if ( check_for_24_hours )
-            	{
-            		int time_diff = (int) current_time - cursor.getInt(3);
-            		if ( time_diff > 24 * 60 * 60 * 1000 )
-            		{
-            			continue;
-            		}
-            	}            	
+	        cursor = db.rawQuery(select_query, null);        
 
-            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
-            	int time_diff = (cursor.getInt(4) - cursor.getInt(3) ) /1000;
+	        long current_time = System.currentTimeMillis();
+	 
+	        
+	        if (cursor.moveToFirst()) 
+	        {
+	            do {	
+	            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
+	            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+	            	{
+	            		continue;
+	            	}
+	            	
+	            	int date = cursor.getInt(1);
+	            	if ( check_for_today )
+	            	{
+	            		if ( yest_date >= date )
+	            		{
+	            			continue;
+	            		}
+	            	}
+	            	else if ( check_for_24_hours )
+	            	{
+	            		int time_diff = (int) current_time - cursor.getInt(3);
+	            		if ( time_diff > 24 * 60 * 60 * 1000 )
+	            		{
+	            			continue;
+	            		}
+	            	}            	
 
-            	// store name + object value map
-            	if (mp_obj.containsKey(app_name))
-            	{
-            		Data_value dv = (mp_obj.get(app_name));
-            		mp_obj.put(app_name, new Data_value(app_name, process_name,
-            				                            dv.value + time_diff));
-            	}
-            	else
-            	{
-            		Data_value dv = new Data_value(app_name, process_name, time_diff);
-            		mp_obj.put(app_name, dv );
-            	}
-
-            } while (cursor.moveToNext());
+	            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
+	            	int time_diff = (cursor.getInt(4) - cursor.getInt(3) ) /1000;
+	
+	            	// store name + object value map
+	            	if (mp_obj.containsKey(app_name))
+	            	{
+	            		Data_value dv = (mp_obj.get(app_name));
+	            		mp_obj.put(app_name, new Data_value(app_name, process_name,
+	            				                            dv.value + time_diff));
+	            	}
+	            	else
+	            	{
+	            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+	            		mp_obj.put(app_name, dv );
+	            	}
+	
+	            } while (cursor.moveToNext());
+	        }
         }
-        db.close();
+    	finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::getData closing the cursor");
+        		cursor.close();
+        	}
+        }
 
+        db.close();
+	
         // Get data from history archive 
         if ( hist_pref.equals( "s_h_p_all" ) )
         {
@@ -535,20 +589,31 @@ public class Db_handler extends SQLiteOpenHelper
                               "  WHERE a." + NAME_COLUMN + 
                               " = '" + app_name + "' "+
                               " ";
+		ArrayList <Point> data = new ArrayList<Point>();
     	
 		SQLiteDatabase db = this.getReadableDatabase();
-		Cursor cursor = db.rawQuery(select_query, null);        
+        Cursor cursor = null;
+        try 
+        {
+			cursor = db.rawQuery(select_query, null);        
 		
-		ArrayList <Point> data = new ArrayList<Point>();
-		if (cursor.moveToFirst()) 
-		{
-			do {				
-				int date = cursor.getInt( 0 );
-				int value = cursor.getInt( 1 ) / 1000;
-			
-				data.add( new Point( date, value ) );
-			} while (cursor.moveToNext());
-		}
+			if (cursor.moveToFirst()) 
+			{
+				do {				
+					int date = cursor.getInt( 0 );
+					int value = cursor.getInt( 1 ) / 1000;
+				
+					data.add( new Point( date, value ) );
+				} while (cursor.moveToNext());
+			}
+        }
+    	finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::getHistoricalData closing the cursor");
+        		cursor.close();
+        	}
+    	}
+
 		db.close();
 		
 		// Add data for today as well.
@@ -625,67 +690,77 @@ public class Db_handler extends SQLiteOpenHelper
     		select_query += " AND a."+NAME_COLUMN+" = '"+input_app_name+"'";
     	}
     	//Log.w("DHGG","getTimeLog q:"+select_query);
+
+        ArrayList <Time_log> data = new ArrayList<Time_log>();
     	
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);        
+        Cursor cursor = null;
+        try 
+        {
+	        cursor = db.rawQuery(select_query, null);        
 
-        long current_time = System.currentTimeMillis();
- 
-        ArrayList <Time_log> data = new ArrayList<Time_log>();
-        if (cursor.moveToFirst()) {
-            do {	
-            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
-            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
-            	{
-            		continue;
-            	}
-            	
-            	int date = cursor.getInt(1);
-            	if ( check_for_today )
-            	{
-            		if ( yest_date >= date )
-            		{
-            			continue;
-            		}
-            	}
-            	else if ( check_for_24_hours )
-            	{
-            		int time_diff = (int) current_time - cursor.getInt(3);
-            		if ( time_diff > 24 * 60 * 60 * 1000 )
-            		{
-            			continue;
-            		}
-            	}            	
-
-            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
-            	long startTime = cursor.getLong(3);
-            	long endTime = cursor.getLong(4);
-                //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
-            	
-            	Time_log t = new Time_log(app_name, process_name, startTime, endTime);
-
-            	int num_points = data.size();
-            	if (num_points == 0)
-            	{
-            		data.add(t);
-            		continue;
-            	}
-            	
-            	Time_log prev_log = data.get(num_points -1);
-            	if (t.description.equals(prev_log.description) &&
+	        long current_time = System.currentTimeMillis();
+	 
+	        if (cursor.moveToFirst()) {
+	            do {	
+	            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
+	            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+	            	{
+	            		continue;
+	            	}
+	            	
+	            	int date = cursor.getInt(1);
+	            	if ( check_for_today )
+	            	{
+	            		if ( yest_date >= date )
+	            		{
+	            			continue;
+	            		}
+	            	}
+	            	else if ( check_for_24_hours )
+	            	{
+	            		int time_diff = (int) current_time - cursor.getInt(3);
+	            		if ( time_diff > 24 * 60 * 60 * 1000 )
+	            		{
+	            			continue;
+	            		}
+	            	}            	
+	
+	            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
+	            	long startTime = cursor.getLong(3);
+	            	long endTime = cursor.getLong(4);
+	                //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
+	            	
+	            	Time_log t = new Time_log(app_name, process_name, startTime, endTime);
+	
+	            	int num_points = data.size();
+	            	if (num_points == 0)
+	            	{
+	            		data.add(t);
+	            		continue;
+	            	}
+	            	
+	            	Time_log prev_log = data.get(num_points -1);
+	            	if (t.description.equals(prev_log.description) &&
             	    Math.abs(prev_log.end_time - t.start_time) < 1000)
-            	{
-            		prev_log.end_time = t.end_time;
-            		data.set(num_points - 1,  prev_log);
-            	}
-            	else
-            	{
-            		data.add(t);
-            	}
-            	
-            	
-            } while (cursor.moveToNext());
+	            	{
+	            		prev_log.end_time = t.end_time;
+	            		data.set(num_points - 1,  prev_log);
+	            	}
+	            	else
+	            	{
+	            		data.add(t);
+	            	}
+	            	
+	            } while (cursor.moveToNext());
+	        }
         }
+    	finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::getTimeLog closing the cursor");
+        		cursor.close();
+        	}
+    	}
         db.close();
 
         return data;
@@ -712,53 +787,62 @@ public class Db_handler extends SQLiteOpenHelper
     	                "a."+NAME_COLUMN+" = b."+NAME_COLUMN;
 
     	//Log.w("DHGG","getTimeLog q:"+select_query);
+        ArrayList <Time_log> data = new ArrayList<Time_log>();
     	
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);        
+        Cursor cursor = null;
+        try 
+        {
+	        cursor = db.rawQuery(select_query, null);        
 
-        ArrayList <Time_log> data = new ArrayList<Time_log>();
-        if (cursor.moveToFirst()) {
-            do {	
-            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
-            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
-            	{
-            		continue;
-            	}
-            	
-            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
-            	long startTime = cursor.getLong(3);
-            	long endTime = cursor.getLong(4);
-                //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
-            	
-            	Time_log t = new Time_log(app_name, process_name, startTime, endTime);
-
-            	int num_points = data.size();
-            	if (num_points == 0)
-            	{
-            		data.add(t);
-            		continue;
-            	}
-            	
-            	Time_log prev_log = data.get(num_points -1);
-            	if (t.description.equals(prev_log.description) &&
-            	    Math.abs(prev_log.end_time - t.start_time) < 5000)
-            	{
-            		prev_log.end_time = t.end_time;
-            		data.set(num_points - 1,  prev_log);
-            	}
-            	else
-            	{
-            		data.add(t);
-            	}
-            	
-            	// Break early 
-            	if (data.size() > MAX_SYNC_SEND)
-            	{
-            		break;
-            	}
-            	
-            } while (cursor.moveToNext());
+	        if (cursor.moveToFirst()) {
+	            do {	
+	            	String app_name = cursor.getString( 0 ).replaceAll("''", "'");
+	            	if (app_name.equals("screen_on") || app_name.equals("screen_off"))
+	            	{
+	            		continue;
+	            	}
+	            	
+	            	String process_name = cursor.getString( 2 ).replaceAll("''", "'");
+	            	long startTime = cursor.getLong(3);
+	            	long endTime = cursor.getLong(4);
+	                //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
+	            	
+	            	Time_log t = new Time_log(app_name, process_name, startTime, endTime);
+	
+	            	int num_points = data.size();
+	            	if (num_points == 0)
+	            	{
+	            		data.add(t);
+	            		continue;
+	            	}
+	            	
+	            	Time_log prev_log = data.get(num_points -1);
+	            	if (t.description.equals(prev_log.description) &&
+	            	    Math.abs(prev_log.end_time - t.start_time) < 5000)
+	            	{
+	            		prev_log.end_time = t.end_time;
+	            		data.set(num_points - 1,  prev_log);
+	            	}
+	            	else
+	            	{
+	            		data.add(t);
+	            	}
+	            	
+	            	// Break early 
+	            	if (data.size() > MAX_SYNC_SEND)
+	            	{
+	            		break;
+	            	}
+	            } while (cursor.moveToNext());
+	        }
         }
+    	finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::getTimeLogFromTime closing the cursor");
+        		cursor.close();
+        	}
+    	}
         db.close();
 
         return data;
@@ -880,37 +964,46 @@ public class Db_handler extends SQLiteOpenHelper
         		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
  
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
- 
-        // looping through all rows and dumping out the info
-        String id = "";
-        long last_end_time = -999;
-        if (cursor.moveToFirst()) 
+        Cursor cursor = null;
+        try 
         {
-        	id = cursor.getString(0);
-        	last_end_time = cursor.getLong(1);
+	        cursor = db.rawQuery(selectQuery, null);
+	 
+	        // looping through all rows and dumping out the info
+	        String id = "";
+	        long last_end_time = -999;
+	        if (cursor.moveToFirst()) 
+	        {
+	        	id = cursor.getString(0);
+	        	last_end_time = cursor.getLong(1);
+	        }
+	        
+	        long new_end_time = System.currentTimeMillis();
+	        if ( last_end_time == -999 || last_end_time > new_end_time )
+	        {
+	        	return;
+	        }
+	        
+	        String strFilter = "id=" + id;
+	        ContentValues args = new ContentValues();
+	        
+	        args.put(END_TIME_COLUMN, new_end_time);
+	        
+			try 
+			{
+		        db.update(TABLE_NAME, args, strFilter, null);
+			} 
+			catch(Exception e) 
+			{
+				System.out.println("Error. Db_handler::update_last:"+e);			
+			}
         }
-        
-        long new_end_time = System.currentTimeMillis();
-        if ( last_end_time == -999 || last_end_time > new_end_time )
-        {
-        	return;
-        }
-        
-        String strFilter = "id=" + id;
-        ContentValues args = new ContentValues();
-        
-        args.put(END_TIME_COLUMN, new_end_time);
-        
-		try 
-		{
-	        db.update(TABLE_NAME, args, strFilter, null);
-		} 
-		catch(Exception e) 
-		{
-			System.out.println("Error. Db_handler::update_last:"+e);			
-		}
-
+    	finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::update_last closing the cursor");
+        		cursor.close();
+        	}
+    	}
 
         db.close();
     }
@@ -939,15 +1032,26 @@ public class Db_handler extends SQLiteOpenHelper
     	                     MAPPING_TABLE_NAME +" WHERE "+
         		             NAME_COLUMN +" = '"+ search_name + "'";
  
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
- 
-        // looping through all rows and dumping out the info
         String prev_process_name = "";
-        if (cursor.moveToFirst()) 
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        try 
         {
+	        cursor = db.rawQuery(selectQuery, null);
+	 
+	        // looping through all rows and dumping out the info
+	        if (cursor.moveToFirst()) 
+	        {
         	prev_process_name = cursor.getString(0);
+	        }
         }
+    	finally {
+        	if (cursor != null) {
+        		//Log.i("DHGG","Db_handler::update_or_add_to_mapping_table closing the cursor");
+        		cursor.close();
+        	}
+    	}
         db.close();
     	
         if ( prev_process_name.equals( process_name ))
