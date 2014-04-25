@@ -66,6 +66,27 @@ public class MyFirstActivity extends FragmentActivity
             SECONDS_PER_MINUTE *
             MILLISECONDS_PER_SECOND;
 
+	public boolean add_sync_account()
+	{
+		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
+
+		// check if google services is up to date
+		int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+		if (isGoogleAvailable == ConnectionResult.SUCCESS)
+		{
+			// let user pick an account
+			super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+		}
+		else
+		{
+			String toast_msg = "Google Services is not up to date. Cannot create sync account.";
+    		Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_LONG);
+    		toast.show();
+		}
+
+	    return true; 
+	}
+	
 	public boolean authenticate()
 	{
 	    // get account name from the shared pref
@@ -102,18 +123,6 @@ public class MyFirstActivity extends FragmentActivity
 	    return true; 
 	}
 	
-	/*
-	 * Hidden from user. Feb 22, 2014.
-	 * Deprecate this eventually.
-	 */
-	private void clear_database() 
-	{
-		// Get data to display
-		m_db_handler.clear_data();
-		
-		refresh_screen();
-	}
-
 	public Data_value[] get_data_slices(Data_value[] data_arr)
 	{
 		int num_values = data_arr.length;
@@ -156,7 +165,29 @@ public class MyFirstActivity extends FragmentActivity
 		
 		return normal_data_arr;
 	}
-	
+
+	public String get_time_str( int time_in_seconds)
+    {
+    	int total_secs = time_in_seconds;
+    	
+        int hours = total_secs / 3600;
+        int mins = (total_secs - (hours * 3600))/ 60;
+        int secs = total_secs - (hours * 3600) - (mins * 60);
+        
+        String time_str = "";
+        if (hours > 0)
+        {
+        	time_str += hours + "h ";
+        }
+        if (mins > 0)
+        {
+        	time_str += mins + "m ";
+        }
+        time_str += secs + "s";
+        
+    	return time_str;
+    }
+
 	protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
 	    //Log.w("DHGG","onActivityResult");
   
@@ -234,7 +265,7 @@ public class MyFirstActivity extends FragmentActivity
 
 		return true;
 	}
-
+	
 	@Override
 	public void onDestroy() 
 	{		
@@ -410,7 +441,7 @@ public class MyFirstActivity extends FragmentActivity
 		refresh_screen();
 		super.onResume();
 	}
-
+	
 	private void refresh_amount_screen() {
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
 		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
@@ -473,8 +504,8 @@ public class MyFirstActivity extends FragmentActivity
     	int data_returned_size = data_arr.length;
     	show_toast(hist_pref, data_returned_size);
     }
-	
-	private void refresh_screen()
+
+    private void refresh_screen()
     {	
 		//Log.w("DHGG","refresh_screen l:"+m_show_log);
 		if (m_show_log) {
@@ -483,7 +514,7 @@ public class MyFirstActivity extends FragmentActivity
 			refresh_amount_screen();
 		}
     }
-	
+
 	private void send_start_broadcast() {
 		set_update_flag(false);
 		
@@ -493,16 +524,6 @@ public class MyFirstActivity extends FragmentActivity
 		sendBroadcast(intent);		
 	}
 
-    private void send_stop_broadcast() 
-	{
-		set_update_flag(true);
-		
-	    // Send stop message
-		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
-		intent.setAction("dhgg.app.usage.monitor.stop");
-		sendBroadcast(intent);		
-	}
-	  
 	public void sendData() 
 	{
 		// Get data to send
@@ -512,7 +533,7 @@ public class MyFirstActivity extends FragmentActivity
 		data_to_send += "App Name   \tTime Spent Using\n";
 		for (Data_value dv : data)
 		{
-			//data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
+			data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
 		}
 
 		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
@@ -529,7 +550,7 @@ public class MyFirstActivity extends FragmentActivity
 		editor.putString(SHOW_HIST_PREFS, pref);
 		editor.commit();		
 	}
-
+	
 	private void set_update_flag( boolean flag) {
 		// Update the saved preference.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
@@ -550,7 +571,7 @@ public class MyFirstActivity extends FragmentActivity
 			adView.loadAd(adRequest);
 		}
 	}
-	
+
 	private void setup_fragments( Bundle savedInstanceState ) {
 		// Check that the activity is using the layout version with
         // the fragment_container FrameLayout
@@ -589,7 +610,7 @@ public class MyFirstActivity extends FragmentActivity
 		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
 	}
 
-	public void show_toast(String hist_pref, int data_returned_size)
+    public void show_toast(String hist_pref, int data_returned_size)
     {
     	// Show a toast to indicate what we are displaying
     	String toast_msg = "Showing usage ...";
@@ -630,7 +651,7 @@ public class MyFirstActivity extends FragmentActivity
     	
     }
 
-    private void update_screen_view() {
+	private void update_screen_view() {
 
 		int list_fragment_id = R.id.list_fragment_container;
 		int chart_fragment_id = R.id.chart_fragment_container;
@@ -652,26 +673,5 @@ public class MyFirstActivity extends FragmentActivity
     	} else {  
     		chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, 0, 0.0f) );
 	    }   
-	}
-
-	public boolean add_sync_account()
-	{
-		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
-
-		// check if google services is up to date
-		int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-		if (isGoogleAvailable == ConnectionResult.SUCCESS)
-		{
-			// let user pick an account
-			super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-		}
-		else
-		{
-			String toast_msg = "Google Services is not up to date. Cannot create sync account.";
-    		Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_LONG);
-    		toast.show();
-		}
-
-	    return true; 
 	}
 }

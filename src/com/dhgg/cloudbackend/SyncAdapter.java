@@ -3,7 +3,6 @@ package com.dhgg.cloudbackend;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageInsertRequest;
@@ -93,14 +92,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	{
 		// Check preferences to see last update. 
 		SharedPreferences settings = mContext.getSharedPreferences("CLOUD_INFO",0);
-		long last_app_end_time = settings.getLong("LAST_APP_END_TIME",0);
-		//Log.w("DHGG","SyncAdapter::makeRequest - saved last_app_end_time:"+(new Date(last_app_end_time)).toString());
+		long last_app_date = settings.getLong("LAST_APP_DATE", 0);
+		String last_app_name = settings.getString("LAST_APP_NAME", "");
+		Log.w("DHGG","SyncAdapter::makeRequest - saved last_app date:"+last_app_date+" name:"+last_app_name);
 
 		// Use latest data.
 		Db_handler dbHandler = new Db_handler(mContext);
 
-		ArrayList<Time_log> data = dbHandler.getTimeLogFromTime(last_app_end_time);
-	    //Log.w(TAG, "start from:"+(new Date(last_app_end_time)));
+		ArrayList<Time_log> data = dbHandler.getTimeLogFromTime(last_app_date, last_app_name);
 		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
 		
 		// Set up items to send to cloud backend.
@@ -111,15 +110,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		int numLogs = data_arr.length;
 		for ( int i = 0; i < numLogs; i++ )
 		{
-			AppusagemonitorApiMessagesAppUsageRecord record = 
-			    new AppusagemonitorApiMessagesAppUsageRecord();
-     	    // Log.d(TAG, "next item :"+(new Date(data_arr[i].start_time))+" "+(new Date(data_arr[i].end_time)));
+			AppusagemonitorApiMessagesAppUsageRecord record = new AppusagemonitorApiMessagesAppUsageRecord();
+     	    //Log.d(TAG, "next item :" + data_arr[i].description + " " + data_arr[i].start_time +" "+data_arr[i].end_time);
 
 			record.setAppName(data_arr[i].description);
-			record.setAppStartTime(data_arr[i].start_time);
-			record.setAppEndTime(data_arr[i].end_time);
+			record.setAppDate(data_arr[i].start_time);     // date
+			record.setAppDuration(data_arr[i].end_time);   // duration
 			record.setPackageName(data_arr[i].process_name); 
-			
+
 			items.add(record);
 		}
 			
@@ -138,15 +136,24 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         try {
         	// insert data
 			AppusagemonitorApiMessagesAppUsageResponseMessage result = mCloudBackend.insert(request);
-			//Log.w("DHGG","syncData onComplete. returned appEndTime:"+(new Date(result.getAppEndTime())).toString());
+
+            // TODO: check result for good response.
 
 			// Save this to shared pref
-			SharedPreferences updateSettings = mContext.getSharedPreferences("CLOUD_INFO",0);
-			SharedPreferences.Editor editor = updateSettings.edit();
-			editor.putLong("LAST_APP_END_TIME", result.getAppEndTime());	
-			editor.commit();
+			long appDate = result.getAppDate();
+			String appName = result.getAppName();
+			//Log.w("DHGG", "Last app date:"+appDate+" name:"+appName);
+			
+			if (appDate > 0)
+			{
+				SharedPreferences updateSettings = mContext.getSharedPreferences("CLOUD_INFO",0);
+				SharedPreferences.Editor editor = updateSettings.edit();
+				editor.putLong("LAST_APP_DATE", appDate);
+				editor.putString("LAST_APP_NAME", appName);
+				editor.commit();
+			}
         } catch (IOException e) {
-        	// 
+            // 
 			//Log.w("DHGG","syncData onError:"+e.toString());
         }
 	}

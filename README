@@ -46,9 +46,24 @@
   Added way to create a new sync account.
   Modified menus (order, hierarchy, and hid some items).
   Using new appengine libraries.
+2014-04-16
+  modification - send date and duration to save to cloud (instead of start and end)
+               - this will reduce the load on my cloud instance.
+            
 
 - TODO
-            
+  crash: 
+  android.database.sqlite.SQLiteDatabaseLockedException: database is locked
+at android.database.sqlite.SQLiteDatabase.native_setLocale(Native Method)
+at android.database.sqlite.SQLiteDatabase.setLocale(SQLiteDatabase.java:2077)
+at android.database.sqlite.SQLiteDatabase.openDatabase(SQLiteDatabase.java:1017)
+at android.database.sqlite.SQLiteDatabase.openDatabase(SQLiteDatabase.java:986)
+at android.database.sqlite.SQLiteOpenHelper.getReadableDatabase(SQLiteOpenHelper.java:241)
+at com.dhgg.appusagemonitor.Db_handler.getTimeLogFromTime(Db_handler.java:792)
+at com.dhgg.cloudbackend.SyncAdapter.makeRequest(SyncAdapter.java:102)
+at com.dhgg.cloudbackend.SyncAdapter.onPerformSync(SyncAdapter.java:88)
+at android.content.AbstractThreadedSyncAdapter$SyncThread.run(AbstractThreadedSyncAdapter.java:265)
+
   maintenance - test latest version of achartengine
   add unique device id to things to save.
 
