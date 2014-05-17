@@ -12,4 +12,5 @@ bin/
 
 *libs/
 
+app/build/*
 local.properties
