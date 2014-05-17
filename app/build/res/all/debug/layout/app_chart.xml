@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:custom="http://schemas.android.com/apk/res/com.dhgg.appusagemonitor" >
+    
+
+    <com.dhgg.appusagemonitor.PieChart
+        xmlns:android="http://schemas.android.com/apk/res/android"        
+        android:id="@+id/pie_chart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        custom:showText="true"
+        custom:labelPosition="left" />
+    
+</LinearLayout><!-- From: file:/Users/dhan/projects/dhgg_app_usage_monitor/app/src/main/res/layout/app_chart.xml -->

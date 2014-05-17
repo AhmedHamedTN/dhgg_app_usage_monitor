@@ -1,0 +1,26 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+	   
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:layout_width="fill_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="1"
+	    android:orientation="horizontal" >
+		   
+		<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    	android:id="@+id/list_fragment_container"
+	        android:layout_width="0dp"
+	        android:layout_height="fill_parent" 
+	        android:layout_weight="1"  />
+			
+		<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    	android:id="@+id/chart_fragment_container"
+	        android:layout_width="0dp"
+	        android:layout_height="fill_parent" 
+	        android:layout_weight="1"  />	
+	</LinearLayout>
+	
+	
+</LinearLayout><!-- From: file:/Users/dhan/projects/dhgg_app_usage_monitor/app/src/main/res/layout-land/activity_my_first.xml -->

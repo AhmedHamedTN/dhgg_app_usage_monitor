@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+	<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:id="@+id/chart_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" 
+        android:layout_weight="1"  />	
+        
+	<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:id="@+id/list_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" 
+        android:layout_weight="1"  />
+		
+	<LinearLayout android:id="@+id/linear_layout_for_adview"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads" >
+	</LinearLayout>
+	   
+</LinearLayout><!-- From: file:/Users/dhan/projects/dhgg_app_usage_monitor/app/src/main/res/layout/activity_my_first.xml -->
