@@ -15,12 +15,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint.Align;
+import android.util.Log;
 
 public class MyLineChart 
 {
 	private String m_app_name;
 	private Point[] m_points;
-	
+    private XYMultipleSeriesDataset m_dataset;
+
 	public MyLineChart( String app_name )
 	{
 		set_app_name( app_name );
@@ -33,6 +35,26 @@ public class MyLineChart
 			set_points( points );
 		}
 	}
+
+    public void addCloudData()
+    {
+        Log.d("DHGG", "MyLineChart::addCloudData");
+
+        int numSeries = m_dataset.getSeriesCount();
+        if (numSeries < 1)
+        {
+            return;
+        }
+
+        TimeSeries series = (TimeSeries) m_dataset.getSeriesAt(0);
+        series.add( new Date( 114, 4, 11 ), 100 ); 
+
+
+
+        Log.d("DHGG", "MyLineChart::addCloudData done");
+
+
+    }
 	
     public Intent getIntent( Context context )
     {
@@ -59,10 +81,11 @@ public class MyLineChart
         	
         	double y_value = m_points[ i ].y / factor;
         	int x_value = m_points[i].x; 
-        	time_series.add( new Date( (x_value / 10000) - 1900, 
+        	time_series.add( new Date( (x_value / 10000) - 1900,
  		                     ((x_value / 100 ) % 100 )-  1,
 			                 x_value % 100 ),
 			                 y_value );
+            Log.d("DHGG","MyLineChart::getIntent "+y_value+" "+x_value);
         	if ( y_value < y_min )
         	{
         		y_min = y_value;
@@ -88,8 +111,8 @@ public class MyLineChart
         time_series.add( increment_date( x_min, -1 ), 0 );
         time_series.add( increment_date( x_max,  1 ), 0 );
         
-        XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
-        dataset.addSeries(time_series);
+        m_dataset = new XYMultipleSeriesDataset();
+        m_dataset.addSeries(time_series);
         //dataset.addSeries(series);
   
         XYSeriesRenderer renderer = new XYSeriesRenderer();
@@ -148,7 +171,7 @@ public class MyLineChart
         
         //Intent intent = ChartFactory.getLineChartIntent(context, dataset,mrenderer, "Usage for: "+m_app_name );
         String activityTitle = m_app_name+" usage in "+units;
-        Intent intent = ChartFactory.getTimeChartIntent(context, dataset, mrenderer, "MMM dd", activityTitle );
+        Intent intent = ChartFactory.getTimeChartIntent(context, m_dataset, mrenderer, "MMM dd", activityTitle );
 
         return intent;
     }

@@ -1,4 +1,6 @@
-<resources>	
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
     <string name="app_name">App Usage Monitor</string>
     <string name="title_activity">App Usage Monitor</string>
     <string name="menu_settings">Settings</string>
@@ -16,4 +18,8 @@
     <string name="button_show_log">Show Audit For Today</string>
     <string name="button_update_sync">Update Sync Account</string>
     <string name="button_view_options">Update View</string>
+    <string name="title_activity_history_plot">HistoryPlotActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
 </resources>

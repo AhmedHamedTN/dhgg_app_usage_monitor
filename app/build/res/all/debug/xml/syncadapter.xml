@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<sync-adapter
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:contentAuthority="com.dhgg.appusagemonitor.provider" 
-        android:accountType="com.dhgg.appusagemonitor"
-        android:userVisible="false"
-        android:supportsUploading="true"
-        android:allowParallelSyncs="false"
-        android:isAlwaysSyncable="true"/><!-- From: file:/Users/dhan/projects/dhgg_app_usage_monitor/app/src/main/res/xml/syncadapter.xml -->

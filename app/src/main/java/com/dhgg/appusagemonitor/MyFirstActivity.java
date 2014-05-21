@@ -53,7 +53,7 @@ public class MyFirstActivity extends FragmentActivity
 	final int m_max_data_size = 22;
 
 	private static final int REQUEST_ACCOUNT_PICKER = 2;
-    private static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
+    public static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
 	private GoogleAccountCredential mCredential;
 	
 	// Content provider authority
@@ -89,16 +89,19 @@ public class MyFirstActivity extends FragmentActivity
 	
 	public boolean authenticate()
 	{
+        Log.d("DHGG","MyFirstActivity::authenticate");
+
 	    // get account name from the shared pref
 		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
 		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
 
-		SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
-		boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);	
-
 		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
 		if (accountName == null) {
-			//Log.i("DHGG","authenticate should we pick an account?" + triedSync);
+
+            SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
+            boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);
+
+            Log.d("DHGG","MyFirstActivity::authenticate should we pick an account?" + triedSync);
 			if ( !triedSync )
 			{
 				// check if google services is up to date
@@ -106,21 +109,21 @@ public class MyFirstActivity extends FragmentActivity
 				if (isGoogleAvailable == ConnectionResult.SUCCESS)
 				{
 					// let user pick an account
-					// Log.i("DHGG","authenticate pick account");
+					Log.d("DHGG","MyFirstActivity::authenticate pick account");
 					super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 				}
-				//Log.i("DHGG", "Google service status = "+isGoogleAvailable);
+				Log.d("DHGG", "MyFirstActivity::Google service status = "+isGoogleAvailable);
 			}
 		} 
 		else {
-			//Log.i("DHGG","using known account");
+			Log.d("DHGG","MyFirstActivity::authenticate using known account");
 		    SyncUtils.CreateSyncAccount(this);
 	    }
 		SharedPreferences.Editor prefEditor = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE).edit();
 		prefEditor.putBoolean("TRIED_SYNC", true);
 		prefEditor.commit();
 
-	    return true; 
+	    return true;
 	}
 	
 	public Data_value[] get_data_slices(Data_value[] data_arr)
@@ -189,7 +192,7 @@ public class MyFirstActivity extends FragmentActivity
     }
 
 	protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
-	    //Log.w("DHGG","onActivityResult");
+	    //Log.w("DHGG","MyFirstActivity::onActivityResult");
   
 		super.onActivityResult(requestCode, resultCode, data);
 
@@ -209,7 +212,7 @@ public class MyFirstActivity extends FragmentActivity
 		        e.commit();
 
 		        // Set up sync account
-				//Log.w("DHGG","onActivityResult "+requestCode+" accountName: "+accountName);
+				//Log.w("DHGG","MyFirstActivity::onActivityResult "+requestCode+" accountName: "+accountName);
 		        SyncUtils.CreateSyncAccount(this);
 		    }
 			break;
@@ -221,6 +224,7 @@ public class MyFirstActivity extends FragmentActivity
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
+        Log.w("DHGG", "MyFirstActivity::onCreate");
 		super.onCreate(savedInstanceState);
 
         // Get account for sync-ing data, if needed
@@ -228,11 +232,10 @@ public class MyFirstActivity extends FragmentActivity
 
 		m_db_handler = new Db_handler(getApplicationContext());
 
-		setContentView(R.layout.activity_my_first);
-		
 		// Check if Activity has been switched to landscape mode
 	    // If yes, finished and go back to the start Activity
-	    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) 
+        setContentView(R.layout.activity_my_first);
+	    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
 	    {
 	    	m_is_landscape = true;
 	    }
@@ -250,7 +253,7 @@ public class MyFirstActivity extends FragmentActivity
 		inflater.inflate(R.layout.main_menu, menu);
 		
 		
-		//Log.w("DHGG","onCreateOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
+		//Log.w("DHGG", "MyFirstActivity::onCreateOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
 		if ( !m_show_chart ) {
 			menu.findItem(R.id.item_show_chart).setTitle("Chart");
 			if ( !m_show_log ) {
@@ -275,35 +278,12 @@ public class MyFirstActivity extends FragmentActivity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		//Log.d("DHGG","onOptionsItemSelected "+item.getItemId());
+		//Log.d("DHGG","MyFirstActivity::onOptionsItemSelected "+item.getItemId());
 		SharedPreferences settings = getSharedPreferences(UI_PREFS, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		
 		// same as using a normal menu
 		switch(item.getItemId()) {
-		/*
-		case R.id.item_restart:
-			clear_database();
-		break;
-		case R.id.item_start:
-
-			Toast start_toast = Toast.makeText(getApplicationContext(), 
-					                           "Monitoring Started.",
-					                           Toast.LENGTH_SHORT);
-			start_toast.show();
-			
-			send_start_broadcast();
-		break;		
-		case R.id.item_stop:
-			
-			Toast stop_toast = Toast.makeText(getApplicationContext(), 
-											  "Monitoring Stopped.",
-											  Toast.LENGTH_SHORT);
-			stop_toast.show();
-			
-			send_stop_broadcast();
-		break;
-		*/
 		case R.id.show_today:
 			set_hist_prefs( SHOW_HIST_PREF_TODAY );
 			m_show_log = false;
@@ -391,7 +371,7 @@ public class MyFirstActivity extends FragmentActivity
 		menu.clear();
 	    getMenuInflater().inflate(R.layout.main_menu, menu);
 	    	 	
-		//Log.w("DHGG","onPrepareOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
+		//Log.w("DHGG","MyFirstActivity::onPrepareOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
 		if ( m_show_chart ) {
 			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
 			menu.findItem(R.id.item_show_log).setTitle("Show Itemized");
@@ -409,7 +389,7 @@ public class MyFirstActivity extends FragmentActivity
 	    // get account name from the shared pref
 		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
 		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
-		//Log.i("DHGG","onCreateOptions toggling update sync visibility for: "+accountName);
+		//Log.i("DHGG","MyFirstActivity::onCreateOptions toggling update sync visibility for: "+accountName);
 		if (accountName == null) {
 			menu.findItem(R.id.item_add_sync_account).setEnabled(true);
 		}
@@ -423,6 +403,8 @@ public class MyFirstActivity extends FragmentActivity
 	@Override
 	public void onResume() 
 	{
+        Log.w("DHGG", "MyFirstActivity::onResume");
+
 		// Check to see if we should start the broadcast system.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
 		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
@@ -440,13 +422,15 @@ public class MyFirstActivity extends FragmentActivity
 		
 		refresh_screen();
 		super.onResume();
+
+        Log.w("DHGG", "MyFirstActivity::onResume done");
 	}
 	
 	private void refresh_amount_screen() {
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
 		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
 		String hist_pref = ui_prefs.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
-		//Log.i("DHGG","refresh_amount_screen hist_pref:"+hist_pref);
+		//Log.i("DHGG","MyFirstActivity::refresh_amount_screen hist_pref:"+hist_pref);
 		
 		// Get data to display
 		ArrayList<Data_value> data = m_db_handler.getData( hist_pref, "" );
@@ -507,7 +491,7 @@ public class MyFirstActivity extends FragmentActivity
 
     private void refresh_screen()
     {	
-		//Log.w("DHGG","refresh_screen l:"+m_show_log);
+		//Log.w("DHGG","MyFirstActivity::refresh_screen l:"+m_show_log);
 		if (m_show_log) {
 			refresh_audit_screen();
 		} else {
