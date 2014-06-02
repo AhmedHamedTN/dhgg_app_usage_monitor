@@ -621,8 +621,7 @@ public class Db_handler extends SQLiteOpenHelper
     	app_name = app_name.replaceAll("'", "''");
 		ArrayList <Point> data = new ArrayList<Point>();
     	
-    	/*
-    	String select_query = "SELECT " + 
+    	String select_query = "SELECT " +
                               "  a." + DATE_COLUMN +
                               ", a." + VALUE_COLUMN + 
                               "  FROM " +
@@ -659,8 +658,7 @@ public class Db_handler extends SQLiteOpenHelper
         {
     		db.close();
         }
-        */
-		
+
 		// Add data for today as well.
 		GregorianCalendar gcalendar = new GregorianCalendar( );
 		int today_date =  gcalendar.get( Calendar.YEAR ) * 10000 +

@@ -89,7 +89,7 @@ public class MyFirstActivity extends FragmentActivity
 	
 	public boolean authenticate()
 	{
-        Log.d("DHGG","MyFirstActivity::authenticate");
+        //Log.d("DHGG","MyFirstActivity::authenticate");
 
 	    // get account name from the shared pref
 		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
@@ -101,7 +101,7 @@ public class MyFirstActivity extends FragmentActivity
             SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
             boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);
 
-            Log.d("DHGG","MyFirstActivity::authenticate should we pick an account?" + triedSync);
+            //Log.d("DHGG","MyFirstActivity::authenticate should we pick an account?" + triedSync);
 			if ( !triedSync )
 			{
 				// check if google services is up to date
@@ -109,14 +109,14 @@ public class MyFirstActivity extends FragmentActivity
 				if (isGoogleAvailable == ConnectionResult.SUCCESS)
 				{
 					// let user pick an account
-					Log.d("DHGG","MyFirstActivity::authenticate pick account");
+					//Log.d("DHGG","MyFirstActivity::authenticate pick account");
 					super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 				}
-				Log.d("DHGG", "MyFirstActivity::Google service status = "+isGoogleAvailable);
+				//Log.d("DHGG", "MyFirstActivity::Google service status = "+isGoogleAvailable);
 			}
 		} 
 		else {
-			Log.d("DHGG","MyFirstActivity::authenticate using known account");
+			//Log.d("DHGG","MyFirstActivity::authenticate using known account");
 		    SyncUtils.CreateSyncAccount(this);
 	    }
 		SharedPreferences.Editor prefEditor = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE).edit();
@@ -224,7 +224,7 @@ public class MyFirstActivity extends FragmentActivity
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
-        Log.w("DHGG", "MyFirstActivity::onCreate");
+        //Log.w("DHGG", "MyFirstActivity::onCreate");
 		super.onCreate(savedInstanceState);
 
         // Get account for sync-ing data, if needed
@@ -403,7 +403,7 @@ public class MyFirstActivity extends FragmentActivity
 	@Override
 	public void onResume() 
 	{
-        Log.w("DHGG", "MyFirstActivity::onResume");
+        //Log.w("DHGG", "MyFirstActivity::onResume");
 
 		// Check to see if we should start the broadcast system.
 		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
@@ -423,7 +423,7 @@ public class MyFirstActivity extends FragmentActivity
 		refresh_screen();
 		super.onResume();
 
-        Log.w("DHGG", "MyFirstActivity::onResume done");
+        //Log.w("DHGG", "MyFirstActivity::onResume done");
 	}
 	
 	private void refresh_amount_screen() {
