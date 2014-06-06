@@ -7,6 +7,8 @@
 *.dex
 *.class
 
+.DS_Store
+
 gen/
 bin/
 

@@ -18,6 +18,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.util.Date;
+
 import com.dhgg.cloudbackend.SyncUtils;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -29,7 +31,8 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 public class MyFirstActivity extends FragmentActivity 
 {
 	public static Db_handler m_db_handler;
-	
+    private AdView m_adView = null;
+
 	// User interface preferences
 	public static String UI_PREFS = "ui_prefs";
 
@@ -39,15 +42,12 @@ public class MyFirstActivity extends FragmentActivity
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
-	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";	
+	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";
 
-	// Hidden from UI.
-	public static String TURN_OFF_UPDATES = "turn_off_updates";
-	
-	// 
-	boolean m_show_list = true;
+    private static String RUN_MODULUS = "run_modulus";
+    private static int SHOW_AD_INTERVAL = 1;
+
 	boolean m_show_chart = false;
-	boolean m_is_landscape = false;
 	boolean m_show_log = false;
 	
 	final int m_max_data_size = 22;
@@ -58,16 +58,8 @@ public class MyFirstActivity extends FragmentActivity
 	
 	// Content provider authority
     // Sync interval constants
-    public static final long MILLISECONDS_PER_SECOND = 1000L;
-    public static final long SECONDS_PER_MINUTE = 60L;
-    public static final long SYNC_INTERVAL_IN_MINUTES = 1L; //60L;
-    public static final long SYNC_INTERVAL =
-            SYNC_INTERVAL_IN_MINUTES *
-            SECONDS_PER_MINUTE *
-            MILLISECONDS_PER_SECOND;
 
-	public boolean add_sync_account()
-	{
+	public boolean add_sync_account() {
 		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
 
 		// check if google services is up to date
@@ -87,8 +79,7 @@ public class MyFirstActivity extends FragmentActivity
 	    return true; 
 	}
 	
-	public boolean authenticate()
-	{
+	public boolean authenticate() {
         //Log.d("DHGG","MyFirstActivity::authenticate");
 
 	    // get account name from the shared pref
@@ -126,8 +117,7 @@ public class MyFirstActivity extends FragmentActivity
 	    return true;
 	}
 	
-	public Data_value[] get_data_slices(Data_value[] data_arr)
-	{
+	public Data_value[] get_data_slices(Data_value[] data_arr) {
 		int num_values = data_arr.length;
 		float total = 0;
 		for ( int i = 0; i < num_values; i++ )
@@ -169,8 +159,7 @@ public class MyFirstActivity extends FragmentActivity
 		return normal_data_arr;
 	}
 
-	public String get_time_str( int time_in_seconds)
-    {
+	public String get_time_str( int time_in_seconds) {
     	int total_secs = time_in_seconds;
     	
         int hours = total_secs / 3600;
@@ -222,9 +211,9 @@ public class MyFirstActivity extends FragmentActivity
 	}
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) 
-	{
-        //Log.w("DHGG", "MyFirstActivity::onCreate");
+	public void onCreate(Bundle savedInstanceState) {
+        //Log.w("DHGG", "MyFirstActivity::onCreate start");
+        long start = new Date().getTime();
 		super.onCreate(savedInstanceState);
 
         // Get account for sync-ing data, if needed
@@ -232,22 +221,19 @@ public class MyFirstActivity extends FragmentActivity
 
 		m_db_handler = new Db_handler(getApplicationContext());
 
-		// Check if Activity has been switched to landscape mode
-	    // If yes, finished and go back to the start Activity
         setContentView(R.layout.activity_my_first);
-	    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
-	    {
-	    	m_is_landscape = true;
-	    }
-	    
+
 	    setup_fragments( savedInstanceState );
-		
+
         setup_admob_view();
+
+        long end = new Date().getTime();
+        //Log.w("DHGG", "Elapsed Time In onCreate:" + (end-start));
+        //Log.w("DHGG", "MyFirstActivity::onCreate done");
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) 
-	{
+	public boolean onCreateOptionsMenu(Menu menu) {
 		// use an inflater to populate the ActionBar with items
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.main_menu, menu);
@@ -270,14 +256,16 @@ public class MyFirstActivity extends FragmentActivity
 	}
 	
 	@Override
-	public void onDestroy() 
-	{		
+	public void onDestroy() {
 		super.onDestroy();
+        if (m_adView != null)
+        {
+            m_adView.destroy();
+        }
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
+	public boolean onOptionsItemSelected(MenuItem item) {
 		//Log.d("DHGG","MyFirstActivity::onOptionsItemSelected "+item.getItemId());
 		SharedPreferences settings = getSharedPreferences(UI_PREFS, 0);
 		SharedPreferences.Editor editor = settings.edit();
@@ -352,22 +340,19 @@ public class MyFirstActivity extends FragmentActivity
 		return true;
 	}
 	
-	public void onPause() 
-	{
+	public void onPause() {
 		// Check to see if we should send an initial message
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
-		if (!updates_are_off) 
-		{
-			m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
-			m_db_handler.update_or_add("screen_off", "screen_off");
-		}
+        m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
+        m_db_handler.update_or_add("screen_off", "screen_off");
 		super.onPause();
+
+        if (m_adView != null) {
+            m_adView.pause();
+        }
 	}
 
 	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) 
-	{
+	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
 	    getMenuInflater().inflate(R.layout.main_menu, menu);
 	    	 	
@@ -401,21 +386,15 @@ public class MyFirstActivity extends FragmentActivity
 	}
 	
 	@Override
-	public void onResume() 
-	{
-        //Log.w("DHGG", "MyFirstActivity::onResume");
+	public void onResume() {
+        //Log.w("DHGG", "MyFirstActivity::onResume start");
+        long start = new Date().getTime();
 
-		// Check to see if we should start the broadcast system.
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		boolean updates_are_off = settings.getBoolean(TURN_OFF_UPDATES, false);		
-		if (!updates_are_off) 
-		{
-			m_db_handler.update_or_add("screen_on", "screen_on");
-			m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
-	
-			send_start_broadcast();
-		}
-		
+        m_db_handler.update_or_add("screen_on", "screen_on");
+        m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
+
+        send_start_broadcast();
+
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
 		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
 		m_show_log = ui_prefs.getBoolean(SHOW_LOG, false);
@@ -423,6 +402,10 @@ public class MyFirstActivity extends FragmentActivity
 		refresh_screen();
 		super.onResume();
 
+        if (m_adView != null)
+            m_adView.resume();
+        long end = new Date().getTime();
+        //Log.w("DHGG", "Elapsed Time in onResume:" + (end-start));
         //Log.w("DHGG", "MyFirstActivity::onResume done");
 	}
 	
@@ -489,27 +472,34 @@ public class MyFirstActivity extends FragmentActivity
     	show_toast(hist_pref, data_returned_size);
     }
 
-    private void refresh_screen()
-    {	
-		//Log.w("DHGG","MyFirstActivity::refresh_screen l:"+m_show_log);
+    private void refresh_screen() {
+		//Log.w("DHGG","MyFirstActivity::refresh_screen start l:"+m_show_log);
+        long start = new Date().getTime();
+
 		if (m_show_log) {
 			refresh_audit_screen();
 		} else {
 			refresh_amount_screen();
 		}
+
+        long end = new Date().getTime();
+        //Log.w("DHGG", "Elapsed Time in refresh_screen:" + (end-start));
+        //Log.w("DHGG", "MyFirstActivity::refresh_screen done");
     }
 
 	private void send_start_broadcast() {
-		set_update_flag(false);
-		
+        long start = new Date().getTime();
+
 	    // Send start message
 		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
-		sendBroadcast(intent);		
+		sendBroadcast(intent);
+
+        long end = new Date().getTime();
+        //Log.w("DHGG", "Elapsed Time in send_start_broadcast:" + (end-start));
 	}
 
-	public void sendData() 
-	{
+	public void sendData() {
 		// Get data to send
 		ArrayList<Data_value> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
 		
@@ -535,27 +525,48 @@ public class MyFirstActivity extends FragmentActivity
 		editor.commit();		
 	}
 	
-	private void set_update_flag( boolean flag) {
-		// Update the saved preference.
-		SharedPreferences settings = getSharedPreferences(TURN_OFF_UPDATES, 0);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putBoolean(TURN_OFF_UPDATES, flag);
-		editor.commit();		
-	}
-	
 	private void setup_admob_view() {
-		// Add the ADMOB view
-		AdView adView = new AdView(this);
-        adView.setAdSize(AdSize.BANNER);
-        adView.setAdUnitId("a150686c4e8460b");
-		LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
-		
-		if ( layout != null )
-		{
-			layout.addView(adView);
-			AdRequest adRequest = new AdRequest.Builder().build();
-			adView.loadAd(adRequest);
+
+        SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
+        int numTimesRun = ui_prefs.getInt(RUN_MODULUS, 0);
+        //Log.w("DHGG","MyFirstActivity::setup_admob_view numTimesRun="+numTimesRun);
+        if (numTimesRun < SHOW_AD_INTERVAL)
+        {
+            // Not showing the ad. Increment counter and exit.
+            numTimesRun++;
+
+            SharedPreferences.Editor uiPrefsEditor = ui_prefs.edit();
+            uiPrefsEditor.putInt(RUN_MODULUS,numTimesRun);
+            uiPrefsEditor.commit();
+
+            return;
+        }
+        else
+        {
+            // Showing the ad. Reset counter so it doesn't show next time.
+            // Allow function to continue.
+            SharedPreferences.Editor uiPrefsEditor = ui_prefs.edit();
+            uiPrefsEditor.putInt(RUN_MODULUS,0);
+            uiPrefsEditor.commit();
+        }
+
+        //Log.w("DHGG", "MyFirstActivity::setup_admob_view start");
+        long start = new Date().getTime();
+
+        m_adView = new AdView(this);
+        m_adView.setAdSize(AdSize.BANNER);
+        m_adView.setAdUnitId("a150686c4e8460b");
+        LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
+        if (layout != null)
+        {
+            layout.addView(m_adView);
+            AdRequest adRequest = new AdRequest.Builder().build();
+			m_adView.loadAd(adRequest);
 		}
+
+        long end = new Date().getTime();
+        //Log.w("DHGG", "Elapsed Time in setup_admob_view:" + (end - start));
+        //Log.w("DHGG", "MyFirstActivity::setup_admob_view done");
 	}
 
 	private void setup_fragments( Bundle savedInstanceState ) {
@@ -596,8 +607,7 @@ public class MyFirstActivity extends FragmentActivity
 		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
 	}
 
-    public void show_toast(String hist_pref, int data_returned_size)
-    {
+    public void show_toast(String hist_pref, int data_returned_size) {
     	// Show a toast to indicate what we are displaying
     	String toast_msg = "Showing usage ...";
     	boolean show_toast = false;
@@ -641,9 +651,15 @@ public class MyFirstActivity extends FragmentActivity
 
 		int list_fragment_id = R.id.list_fragment_container;
 		int chart_fragment_id = R.id.chart_fragment_container;
-		
+
+        boolean is_landscape = false;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+        {
+            is_landscape = true;
+        }
+
     	FrameLayout list_layout = (FrameLayout) findViewById( list_fragment_id );
-		if ( m_is_landscape ) {
+		if ( is_landscape ) {
 			list_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, 1.0f) );
     	} else {
         	list_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 1.0f) );
@@ -651,7 +667,7 @@ public class MyFirstActivity extends FragmentActivity
     	
 		FrameLayout chart_layout = (FrameLayout) findViewById( chart_fragment_id );
 		if ( m_show_chart )	{
-			if ( m_is_landscape ) {
+			if ( is_landscape ) {
 				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( 0, LayoutParams.MATCH_PARENT, .75f) );
 			} else {
 				chart_layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, .75f) );
