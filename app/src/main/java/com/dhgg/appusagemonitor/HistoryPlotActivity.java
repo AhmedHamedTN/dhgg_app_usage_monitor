@@ -153,7 +153,8 @@ public class HistoryPlotActivity extends Activity {
                 makeRenderer(),
                 "MMM dd");
 
-        setContentView(m_graphicalView);
+        //setContentView(m_graphicalView);
+        setContentView(R.layout.activity_history_plot);
 
         // Get local data.
         Db_handler db_handler = new Db_handler( this );
@@ -225,6 +226,7 @@ public class HistoryPlotActivity extends Activity {
 
         if (accountName == null) {
             //Log.d("DHGG","HistoryPlotActivity::fetchCloudData - no account, not using cloud data");
+            setContentView(m_graphicalView);
             return;
         }
 
@@ -269,10 +271,12 @@ public class HistoryPlotActivity extends Activity {
                         }
 
                         refreshData();
+                        setContentView(m_graphicalView);
                     }
                     @Override
                     public void onError(final IOException exception) {
                         //Log.w("DHGG","HistoryPlotActivity::fetchCloudData AppUsageListByNameResponse onError:"+exception.toString());
+                        setContentView(m_graphicalView);
                     }
                 };
 
@@ -281,6 +285,4 @@ public class HistoryPlotActivity extends Activity {
         cloudBackend.setCredential(credential);
         cloudBackend.listByName(request, handler);
     }
-
-
 }
