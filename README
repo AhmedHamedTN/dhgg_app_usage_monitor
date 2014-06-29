@@ -1,69 +1,104 @@
 
 ----------------------------------------------------------------------
---  Repository info 
+Repository info 
 ----------------------------------------------------------------------
-- repository name 
-  dhgg_app_usage_monitor
 
-- Pushing updates
+https://github.com/dhan12/dhgg_app_usage_monitor.git
+
+Pushing updates
   git remote add origin https://github.com/dhan12/dhgg_app_usage_monitor.git
   git push -u origin master
 
+
 ----------------------------------------------------------------------
--- File information
+File information
 ----------------------------------------------------------------------
-- com/appspot/appusagemonitor/appusagemonitor/*.java
-  com/appspot/appusagemonitor/appusagemonitor.model/*.java
+com/appspot/appusagemonitor/appusagemonitor/*.java
+com/appspot/appusagemonitor/appusagemonitor.model/*.java
   These files were generated using Google Cloud EndPoints.
 
-----------------------------------------------------------------------
--- Work log
-----------------------------------------------------------------------
 
-2013-11-26
-  create classes cloudbackend, cloudbackendasync
-  these classes will use your new android web backend.
-2013-11-27
-  create new api files from web back end to send long instead of datetime objects
-  Updated android code to pass in long values instead of dates
-2013-11-29
-  use new client lib to pass in vector of items
-  save last saved appEndTime
-2014-01-19
-  use sync adapter to pass data to database  
-2014-01-20
-  database query - add limit to number of items to sync 1500 items, 150 items to send
-2014-01-21
-  removing duplicates
-2014-02-01
-  do history by looking up data from server
-2014-02-06
-  publishing
-2014-02-16
-  Check if google services are available first.
-  Add check to prevent multiple attempts for adding a sync account.
-2014-02-22
-  Added way to create a new sync account.
-  Modified menus (order, hierarchy, and hid some items).
-  Using new appengine libraries.
-2014-04-16
-  modification - send date and duration to save to cloud (instead of start and end)
-               - this will reduce the load on my cloud instance.
+----------------------------------------------------------------------
+Work log
+----------------------------------------------------------------------
+see git log 
+
             
+----------------------------------------------------------------------
+Crash logs 
+----------------------------------------------------------------------
 
-- TODO
-  crash: 
-  android.database.sqlite.SQLiteDatabaseLockedException: database is locked
-at android.database.sqlite.SQLiteDatabase.native_setLocale(Native Method)
-at android.database.sqlite.SQLiteDatabase.setLocale(SQLiteDatabase.java:2077)
-at android.database.sqlite.SQLiteDatabase.openDatabase(SQLiteDatabase.java:1017)
-at android.database.sqlite.SQLiteDatabase.openDatabase(SQLiteDatabase.java:986)
-at android.database.sqlite.SQLiteOpenHelper.getReadableDatabase(SQLiteOpenHelper.java:241)
-at com.dhgg.appusagemonitor.Db_handler.getTimeLogFromTime(Db_handler.java:792)
-at com.dhgg.cloudbackend.SyncAdapter.makeRequest(SyncAdapter.java:102)
-at com.dhgg.cloudbackend.SyncAdapter.onPerformSync(SyncAdapter.java:88)
-at android.content.AbstractThreadedSyncAdapter$SyncThread.run(AbstractThreadedSyncAdapter.java:265)
+doing a staged roll out. getting history from api. got this error
+  java.lang.OutOfMemoryError
+    at android.graphics.BitmapFactory.nativeDecodeAsset(Native Method)
+    at android.graphics.BitmapFactory.decodeStream(BitmapFactory.java:596)
+    at android.graphics.BitmapFactory.decodeResourceStream(BitmapFactory.java:444)
+    at android.graphics.drawable.Drawable.createFromResourceStream(Drawable.java:817)
+    at android.content.res.Resources.loadDrawable(Resources.java:2854)
+    at android.content.res.Resources.getDrawable(Resources.java:1521)
+    at android.app.ApplicationPackageManager.getDrawable(ApplicationPackageManager.java:691)
+    at android.content.pm.PackageItemInfo.loadIcon(PackageItemInfo.java:149)
+    at android.app.ApplicationPackageManager.getApplicationIcon(ApplicationPackageManager.java:748)
+    at android.app.ApplicationPackageManager.getApplicationIcon(ApplicationPackageManager.java:753)
+    at com.dhgg.appusagemonitor.Data_value_adapter.getView(Data_value_adapter.java:86)
+    at android.widget.AbsListView.obtainView(AbsListView.java:2603)
+    at android.widget.ListView.makeAndAddView(ListView.java:1838)
+    at android.widget.ListView.fillDown(ListView.java:681)
+    at android.widget.ListView.fillGap(ListView.java:645)
+    at android.widget.AbsListView.trackMotionScroll(AbsListView.java:6402)
+    at android.widget.AbsListView.scrollIfNeeded(AbsListView.java:3675)
+    at android.widget.AbsListView.onTouchEvent(AbsListView.java:4286)
+    at android.view.View.dispatchTouchEvent(View.java:7485)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2267)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:1995)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2273)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2010)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2273)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2010)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2273)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2010)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2273)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2010)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2273)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2010)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2273)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2010)
+    at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2273)
+    at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2010)
+    at com.android.internal.policy.impl.PhoneWindow$DecorView.superDispatchTouchEvent(PhoneWindow.java:2239)
+    at com.android.internal.policy.impl.PhoneWindow.superDispatchTouchEvent(PhoneWindow.java:1534)
+    at android.app.Activity.dispatchTouchEvent(Activity.java:2466)
+    at com.android.internal.policy.impl.PhoneWindow$DecorView.dispatchTouchEvent(PhoneWindow.java:2187)
+    at android.view.View.dispatchPointerEvent(View.java:7665)
+    at android.view.ViewRootImpl.deliverPointerEvent(ViewRootImpl.java:3800)
+    at android.view.ViewRootImpl.deliverInputEvent(ViewRootImpl.java:3684)
+    at android.view.ViewRootImpl.doProcessInputEvents(ViewRootImpl.java:4922)
+    at android.view.ViewRootImpl.enqueueInputEvent(ViewRootImpl.java:4901)
+    at android.view.ViewRootImpl$WindowInputEventReceiver.onInputEvent(ViewRootImpl.java:4999)
+    at android.view.InputEventReceiver.dispatchInputEvent(InputEventReceiver.java:185)
+    at android.view.InputEventReceiver.nativeConsumeBatchedInputEvents(Native Method)
+    at android.view.InputEventReceiver.consumeBatchedInputEvents(InputEventReceiver.java:174)
+    at android.view.ViewRootImpl.doConsumeBatchedInput(ViewRootImpl.java:4972)
+    at android.view.ViewRootImpl$ConsumeBatchedInputRunnable.run(ViewRootImpl.java:5018)
+    at android.view.Choreographer$CallbackRecord.run(Choreographer.java:791)
+    at android.view.Choreographer.doCallbacks(Choreographer.java:591)
+    at android.view.Choreographer.doFrame(Choreographer.java:559)
+    at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:777)
+    at android.os.Handler.handleCallback(Handler.java:725)
+    at android.os.Handler.dispatchMessage(Handler.java:92)
+    at android.os.Looper.loop(Looper.java:137)
+    at android.app.ActivityThread.main(ActivityThread.java:5306)
+    at java.lang.reflect.Method.invokeNative(Native Method)
+    at java.lang.reflect.Method.invoke(Method.java:511)
+    at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:1102)
+    at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:869)
+    at dalvik.system.NativeStart.main(Native Method)
 
+
+
+----------------------------------------------------------------------
+TODO
+----------------------------------------------------------------------
   maintenance - test latest version of achartengine
   add unique device id to things to save.
 
@@ -74,24 +109,22 @@ at android.content.AbstractThreadedSyncAdapter$SyncThread.run(AbstractThreadedSy
   features - add support for tablet
   features - add device name for an account
 
-  features - turn on lookupbyname api 
   add api to get get total history 
 
   clean up - remove historical data
   
   admin - link app to appusagemonitor.appspot.com page
-                   
+                  
   database updates - use transactions for sql lite operations
   database updates - make table to hold historical data for 1 app.
   database updates - clear out historical for 1 app.
   
-  local testing -  move to android studio 
   local testing - add unit tests
   
   new features - add step counter
 
 ----------------------------------------------------------------------
--- Other research items 
+Other notes
 ----------------------------------------------------------------------
 
 

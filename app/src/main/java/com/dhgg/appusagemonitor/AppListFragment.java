@@ -81,6 +81,7 @@ public class AppListFragment extends Fragment
                 Intent intent = new Intent(fActivity, HistoryPlotActivity.class);
                 intent.putExtra("app_name",app_name);
                 intent.putExtra("package_name", packageName);
+                intent.putExtra("refresh_data", true);
                 startActivity(intent);
             }
 	    });

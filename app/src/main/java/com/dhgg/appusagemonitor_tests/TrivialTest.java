@@ -2,15 +2,15 @@
  * A trivial test. Used to test if I can run a test.
  */
 
-package com.dhgg.tests;
+package com.dhgg.appusagemonitor_tests;
 
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.dhgg.appusagemonitor.MyFirstActivity;
+import com.dhgg.appusagemonitor.MainActivity;
 
-public class TrivialTest extends ActivityInstrumentationTestCase2<MyFirstActivity> {
+public class TrivialTest extends ActivityInstrumentationTestCase2<MainActivity> {
     public TrivialTest() {
-        super("com.dhgg.appusagemonitor", MyFirstActivity.class);
+        super("com.dhgg.appusagemonitor", MainActivity.class);
     }
 
     public void test() throws Exception {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dhgg.appusagemonitor"
-    android:versionCode="245"
+    android:versionCode="246"
     android:versionName="1.24" >
 
     <uses-sdk
@@ -33,7 +33,7 @@
             android:value="4030500" />
 
         <activity
-            android:name="com.dhgg.appusagemonitor.MyFirstActivity"
+            android:name="com.dhgg.appusagemonitor.MainActivity"
             android:label="@string/title_activity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -143,6 +143,7 @@ public class HistoryPlotActivity extends Activity {
         Intent intent = getIntent();
         m_app_name = intent.getStringExtra("app_name");
         m_package_name = intent.getStringExtra("package_name");
+        boolean refresh_data_now = intent.getBooleanExtra("refresh_data", true);
         //Log.i("DHGG","HistoryPlotActivity::onCreate a:"+m_app_name+" p:"+m_package_name);
 
         m_dataset = new XYMultipleSeriesDataset();
@@ -157,9 +158,12 @@ public class HistoryPlotActivity extends Activity {
         setContentView(R.layout.activity_history_plot);
 
         // Get local data.
-        Db_handler db_handler = new Db_handler( this );
-        m_local_points = db_handler.getHistoricalData( m_app_name );
-        refreshData();
+        if (refresh_data_now)
+        {
+            Db_handler db_handler = new Db_handler( this );
+            m_local_points = db_handler.getHistoricalData( m_app_name );
+            refreshData();
+        }
     }
 
     private TimeSeries makeTimeSeries() {
@@ -221,8 +225,8 @@ public class HistoryPlotActivity extends Activity {
 
         GoogleAccountCredential credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
 
-        SharedPreferences settings = getSharedPreferences(MyFirstActivity.PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
-        String accountName = settings.getString(MyFirstActivity.PREF_KEY_ACCOUNT_NAME, null);
+        SharedPreferences settings = getSharedPreferences(MainActivity.PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
+        String accountName = settings.getString(MainActivity.PREF_KEY_ACCOUNT_NAME, null);
 
         if (accountName == null) {
             //Log.d("DHGG","HistoryPlotActivity::fetchCloudData - no account, not using cloud data");
