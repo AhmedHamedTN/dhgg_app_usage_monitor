@@ -4,18 +4,18 @@ import android.test.AndroidTestCase;
 import android.test.RenamingDelegatingContext;
 import android.util.Log;
 
-import com.dhgg.appusagemonitor.Db_handler;
+import com.dhgg.appusagemonitor.DbHandler;
 
 /**
  * Created by dhan on 7/4/14.
  */
-public class Db_handler_test extends AndroidTestCase {
-    private Db_handler m_db_handler;
+public class DbHandlerTest extends AndroidTestCase {
+    private DbHandler m_db_handler;
 
     @Override
     public void setUp() {
         RenamingDelegatingContext context = new RenamingDelegatingContext(getContext(), "test_");
-        m_db_handler = new Db_handler(context);
+        m_db_handler = new DbHandler(context);
     }
 
     @Override

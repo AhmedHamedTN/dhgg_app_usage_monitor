@@ -9,11 +9,7 @@ import android.content.Context;
 import android.util.Log;
 import android.test.ActivityInstrumentationTestCase2;
 
-import org.mockito.Mock;
-import static org.mockito.Mockito.*;
-import org.mockito.MockitoAnnotations;
-
-import com.dhgg.appusagemonitor.Db_handler;
+import com.dhgg.appusagemonitor.DbHandler;
 import com.dhgg.appusagemonitor.HistoryPlotActivity;
 
 public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<HistoryPlotActivity> {
@@ -25,7 +21,7 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
         super(HistoryPlotActivity.class);
     }
 
-    Db_handler mock_db_handler;
+    DbHandler mock_db_handler;
 
     @Override
     protected void setUp() throws Exception {
@@ -33,7 +29,7 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
         Log.w(m_logTag, "setUp");
 
         // MockitoAnnotations.initMocks(this);
-        // mock_db_handler = mock(Db_handler.class);
+        // mock_db_handler = mock(DbHandler.class);
 
         // Passing a custom intent
         Intent intent = new Intent();

@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -30,7 +29,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 
 public class MainActivity extends FragmentActivity 
 {
-	public Db_handler m_db_handler;
+	public DbHandler m_db_handler;
     private AdView m_adView = null;
 
 	// User interface preferences
@@ -117,7 +116,7 @@ public class MainActivity extends FragmentActivity
 	    return true;
 	}
 	
-	public Data_value[] get_data_slices(Data_value[] data_arr) {
+	public DataValue[] get_data_slices(DataValue[] data_arr) {
 		int num_values = data_arr.length;
 		float total = 0;
 		for ( int i = 0; i < num_values; i++ )
@@ -131,7 +130,7 @@ public class MainActivity extends FragmentActivity
 			normal_data_arr_size = m_max_data_size ;
 		}
 
-		Data_value[] normal_data_arr = new Data_value[ normal_data_arr_size ];
+		DataValue[] normal_data_arr = new DataValue[ normal_data_arr_size ];
 		System.arraycopy( data_arr, 0, normal_data_arr, 0, normal_data_arr_size );
 		
 		int subtotal = 0;
@@ -219,7 +218,7 @@ public class MainActivity extends FragmentActivity
         // Get account for sync-ing data, if needed
 		authenticate();
 
-		m_db_handler = new Db_handler(getApplicationContext());
+		m_db_handler = new DbHandler(getApplicationContext());
 
         setContentView(R.layout.activity_my_first);
 
@@ -420,10 +419,10 @@ public class MainActivity extends FragmentActivity
 		//Log.i("DHGG","MainActivity::refresh_amount_screen hist_pref:"+hist_pref);
 		
 		// Get data to display
-		ArrayList<Data_value> data = m_db_handler.getData( hist_pref, "" );
-		Data_value[] data_arr = data.toArray(new Data_value[data.size()]);
+		ArrayList<DataValue> data = m_db_handler.getData( hist_pref, "" );
+		DataValue[] data_arr = data.toArray(new DataValue[data.size()]);
 		
-    	Data_value[] normal_data_arr;
+    	DataValue[] normal_data_arr;
     	if ( m_show_chart ) {	
     		normal_data_arr = get_data_slices(data_arr);
     	} else {
@@ -462,8 +461,8 @@ public class MainActivity extends FragmentActivity
 		String hist_pref = SHOW_HIST_PREF_24_H;
 
 		// Get data to display
-		ArrayList<Time_log> data = m_db_handler.getTimeLog( hist_pref, "" );
-		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
+		ArrayList<TimeLog> data = m_db_handler.getTimeLog( hist_pref, "" );
+		TimeLog[] data_arr = data.toArray(new TimeLog[data.size()]);
 		
     	AppListFragment list_fragment = (AppListFragment) getSupportFragmentManager().findFragmentByTag("my_list_fragment");    	
     	if ( list_fragment != null ) {
@@ -495,7 +494,7 @@ public class MainActivity extends FragmentActivity
         long start = new Date().getTime();
 
 	    // Send start message
-		Intent intent=new Intent( this, Broadcast_receiver_handler.class);
+		Intent intent=new Intent( this, BroadcastReceiverHandler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
 		sendBroadcast(intent);
 
@@ -505,11 +504,11 @@ public class MainActivity extends FragmentActivity
 
 	public void sendData() {
 		// Get data to send
-		ArrayList<Data_value> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
+		ArrayList<DataValue> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
 		
 		String data_to_send = "";
 		data_to_send += "App Name   \tTime Spent Using\n";
-		for (Data_value dv : data)
+		for (DataValue dv : data)
 		{
 			data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
 		}

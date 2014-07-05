@@ -13,7 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class Data_value_adapter extends ArrayAdapter<Data_value> 
+public class DataValueAdapter extends ArrayAdapter<DataValue>
 {
 	public int m_colors[] = { 
 	        Color.CYAN,    //
@@ -31,10 +31,10 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
 	
 	Context context;
     int layoutResourceId;   
-    Data_value data[] = null;
+    DataValue data[] = null;
     boolean m_use_colors = false;
     
-    public Data_value_adapter(Context context, int layoutResourceId, Data_value[] data) 
+    public DataValueAdapter(Context context, int layoutResourceId, DataValue[] data)
     {
         super(context, layoutResourceId, data);
         this.layoutResourceId = layoutResourceId;
@@ -45,7 +45,6 @@ public class Data_value_adapter extends ArrayAdapter<Data_value>
     @Override
     public View getView(int position, View convertView, ViewGroup parent) 
     {
-    	// System.out.println("+++ Data_value_adapter::getView +++" );    	
         View row = convertView;
         
         LayoutInflater inflater = ((Activity)context).getLayoutInflater();

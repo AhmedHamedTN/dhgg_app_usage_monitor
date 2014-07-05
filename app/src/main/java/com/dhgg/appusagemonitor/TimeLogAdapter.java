@@ -8,7 +8,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +15,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class Time_log_adapter extends ArrayAdapter<Time_log> 
+public class TimeLogAdapter extends ArrayAdapter<TimeLog>
 {	
 	Context context;
     int layoutResourceId;   
-    Time_log data[] = null;
+    TimeLog data[] = null;
     boolean m_use_colors = false;
     
-    public Time_log_adapter(Context context, int layoutResourceId, Time_log[] data) 
+    public TimeLogAdapter(Context context, int layoutResourceId, TimeLog[] data)
     {
         super(context, layoutResourceId, data);
         this.layoutResourceId = layoutResourceId;
@@ -34,7 +33,6 @@ public class Time_log_adapter extends ArrayAdapter<Time_log>
     @Override
     public View getView(int position, View convertView, ViewGroup parent) 
     {
-    	// System.out.println("+++ Data_value_adapter::getView +++" );    	
         View row = convertView;
         
         LayoutInflater inflater = ((Activity)context).getLayoutInflater();

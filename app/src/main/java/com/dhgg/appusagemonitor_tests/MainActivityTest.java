@@ -7,17 +7,11 @@ package com.dhgg.appusagemonitor_tests;
 import android.content.Intent;
 import android.test.ActivityUnitTestCase;
 import android.util.Log;
-import android.test.ActivityInstrumentationTestCase2;
-import android.widget.FrameLayout;
 
 import org.mockito.Mock;
-import static org.mockito.Mockito.*;
-import org.mockito.MockitoAnnotations;
 
-import com.dhgg.appusagemonitor.Db_handler;
+import com.dhgg.appusagemonitor.DbHandler;
 import com.dhgg.appusagemonitor.MainActivity;
-import com.dhgg.appusagemonitor.Data_value;
-import com.dhgg.appusagemonitor.R;
 
 public class MainActivityTest extends ActivityUnitTestCase<MainActivity> {
 
@@ -26,7 +20,7 @@ public class MainActivityTest extends ActivityUnitTestCase<MainActivity> {
     private String m_logTag = "DHGG::MainActivityTest";
 
     @Mock
-    Db_handler db_handler;
+    DbHandler db_handler;
 
     public MainActivityTest() {
         super(MainActivity.class);

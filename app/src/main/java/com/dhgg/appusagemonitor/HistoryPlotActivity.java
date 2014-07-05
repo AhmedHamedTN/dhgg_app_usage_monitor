@@ -4,20 +4,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import android.os.Bundle;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.PointStyle;
 import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
-import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
@@ -157,7 +154,7 @@ public class HistoryPlotActivity extends Activity {
         setContentView(R.layout.activity_history_plot);
 
         // Get local data.
-        Db_handler db_handler = new Db_handler( this );
+        DbHandler db_handler = new DbHandler( this );
         m_local_points = db_handler.getHistoricalData( m_app_name );
         refreshData();
     }
