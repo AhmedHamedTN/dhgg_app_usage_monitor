@@ -1,9 +1,7 @@
 package com.dhgg.appusagemonitor;
 
-import java.util.Comparator;
-
 public class DataValue {
-    String description;
+    public String description;
     String process_name;
     int value;
 
@@ -16,9 +14,4 @@ public class DataValue {
 }
 
 
-class DataValueComparator implements Comparator<DataValue> {
-    public int compare(DataValue v1, DataValue v2)
-    {
-        return v2.value - v1.value;
-    }
-}
+
