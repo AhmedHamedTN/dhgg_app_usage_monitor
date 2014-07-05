@@ -2,19 +2,17 @@ package com.dhgg.appusagemonitor;
 
 import java.util.Comparator;
 
-public class Data_value 
-{
+public class Data_value {
     String description;
     String process_name;
-    int    value;
-    
-    public Data_value(String desc, String proc, int val)
-    {
-    	super();
-    	description = desc;
-    	process_name = proc;
-    	value = val;
-    }    
+    int value;
+
+    public Data_value(String desc, String proc, int val) {
+        super();
+        description = desc;
+        process_name = proc;
+        value = val;
+    }
 }
 
 

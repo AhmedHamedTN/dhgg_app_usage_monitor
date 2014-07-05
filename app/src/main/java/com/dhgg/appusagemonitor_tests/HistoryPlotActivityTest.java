@@ -1,36 +1,76 @@
 /*
- * A trivial test. Used to test if I can run a test.
+ * Testing the historical plot activity with a range of data inputs
+ * with Mockito.
  */
-
 package com.dhgg.appusagemonitor_tests;
 
+import android.content.Intent;
+import android.content.Context;
+import android.util.Log;
 import android.test.ActivityInstrumentationTestCase2;
 
+import org.mockito.Mock;
+import static org.mockito.Mockito.*;
+import org.mockito.MockitoAnnotations;
+
+import com.dhgg.appusagemonitor.Db_handler;
 import com.dhgg.appusagemonitor.HistoryPlotActivity;
-import com.dhgg.appusagemonitor.MainActivity;
 
-//public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<HistoryPlotActivity> {
-public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<MainActivity> {
+public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<HistoryPlotActivity> {
 
-    private MainActivity m_activity;
+    private HistoryPlotActivity m_activity;
+    private String m_logTag = "DHGG::HistoryPlotActivityTest";
 
     public HistoryPlotActivityTest() {
-        // super("com.dhgg.appusagemonitor", HistoryPlotActivity.class);
-        // super(MainActivity.class);
-        super(MainActivity.class);
+        super(HistoryPlotActivity.class);
     }
+
+    Db_handler mock_db_handler;
 
     @Override
     protected void setUp() throws Exception {
-        super.setUp();
+        // Will be called before each test.
+        Log.w(m_logTag, "setUp");
+
+        // MockitoAnnotations.initMocks(this);
+        // mock_db_handler = mock(Db_handler.class);
+
+        // Passing a custom intent
+        Intent intent = new Intent();
+        intent.setClassName("com.dhgg.appusagemonitor","com.dhgg.appusagemonitor.HistoryPlotActivity");
+        intent.putExtra("app_name","App Usage Monitor");
+        intent.putExtra("package_name", "com.dhgg.appusagemonitor");
+        intent.putExtra("refresh_data", true);
+        setActivityIntent(intent);
+
+        // when(mock_db_handler.)
+
         setActivityInitialTouchMode(false);
         m_activity = getActivity();
+
+        super.setUp();
     }
 
-    public void testSendData() throws Exception {
+    @Override
+    protected void tearDown() throws Exception {
+        // Will be called after each test.
+        super.tearDown();
+    }
+
+    public void createDatabaseFixture(Context mockContext) {
+        Log.w(m_logTag, "createDatabaseFixture");
+    }
+
+    public void testDoSomeTest() throws Exception {
+        Log.w(m_logTag, "testDoSomeTest");
         int a = 1;
-        int b = 21;
+        int b = 1;
         assertEquals(a,b);
+
     }
 
+
+    // TODO: Test how to handle no data.
+    // TODO: Test how to handle a lot of data.
+    // TODO: Test no network
 }

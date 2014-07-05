@@ -143,7 +143,6 @@ public class HistoryPlotActivity extends Activity {
         Intent intent = getIntent();
         m_app_name = intent.getStringExtra("app_name");
         m_package_name = intent.getStringExtra("package_name");
-        boolean refresh_data_now = intent.getBooleanExtra("refresh_data", true);
         //Log.i("DHGG","HistoryPlotActivity::onCreate a:"+m_app_name+" p:"+m_package_name);
 
         m_dataset = new XYMultipleSeriesDataset();
@@ -158,12 +157,9 @@ public class HistoryPlotActivity extends Activity {
         setContentView(R.layout.activity_history_plot);
 
         // Get local data.
-        if (refresh_data_now)
-        {
-            Db_handler db_handler = new Db_handler( this );
-            m_local_points = db_handler.getHistoricalData( m_app_name );
-            refreshData();
-        }
+        Db_handler db_handler = new Db_handler( this );
+        m_local_points = db_handler.getHistoricalData( m_app_name );
+        refreshData();
     }
 
     private TimeSeries makeTimeSeries() {
@@ -177,42 +173,29 @@ public class HistoryPlotActivity extends Activity {
         renderer.setFillPoints( true );
         renderer.setLineWidth( 5 );
 
-        //renderer.setFillBelowLine( true );
-        //renderer.setChartValuesTextSize( 10 );
-
         XYMultipleSeriesRenderer mrenderer = new XYMultipleSeriesRenderer();
         mrenderer.addSeriesRenderer(renderer);
 
         mrenderer.setXTitle( "" );
         mrenderer.setShowLegend( false );
         mrenderer.setShowAxes( false );
-        //mrenderer.setAxesColor( Color.BLACK );
 
         mrenderer.setLabelsTextSize( 30 );
         mrenderer.setXLabelsColor( Color.BLACK );
-        //mrenderer.setXLabelsAngle( 45 );
 
         mrenderer.setAxisTitleTextSize( 30 );
         mrenderer.setYLabelsAlign( Align.RIGHT );
         mrenderer.setYLabelsColor( 0 , Color.BLACK );
-        //mrenderer.setAxesColor( Color.GREEN );
-
-        //mrenderer.setLabelsColor( Color.BLACK );
-        //mrenderer.setYTitle("Usage in seconds");
 
         mrenderer.setApplyBackgroundColor( true );
         mrenderer.setBackgroundColor( Color.WHITE );
 
         mrenderer.setGridColor( Color.BLACK );
         mrenderer.setShowGridX( true );
-        //mrenderer.setShowGrid( true );
 
         // Margins are for bottom, left, top, right
         mrenderer.setMargins(new int[] { 60, 60, 50, 20 });
         mrenderer.setMarginsColor( Color.LTGRAY );
-
-        //mrenderer.setChartTitle("App Usage (seconds)");
-        //mrenderer.setChartTitleTextSize( 80 );
 
         mrenderer.setShowCustomTextGrid( true );
 
@@ -235,8 +218,7 @@ public class HistoryPlotActivity extends Activity {
         }
 
         // Get cloud data
-        // If  we have credentials
-        // and we have internet connection
+        // If  we have credentials and we have internet connection
         credential.setSelectedAccountName(accountName);
         //Log.w("DHGG", "HistoryPlotActivity::fetchCloudData getting cloud info");
 

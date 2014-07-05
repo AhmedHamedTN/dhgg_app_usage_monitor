@@ -13,8 +13,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-public class Db_handler extends SQLiteOpenHelper 
-{	
+
+public class Db_handler extends SQLiteOpenHelper {
 	// Version number
     private static final int DATABASE_VERSION = 3;
 	
@@ -41,13 +41,11 @@ public class Db_handler extends SQLiteOpenHelper
     private static final int MAX_SYNC_SEND = 300;
  
     // Constructor
-    public Db_handler(Context context) 
-    {
+    public Db_handler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
-    
-	private void add_data(String name, String process_name ) 
-	{
+
+	private void add_data(String name, String process_name ) {
 	    SQLiteDatabase db = this.getWritableDatabase();
 
 	    GregorianCalendar gcalendar = new GregorianCalendar();
@@ -1014,11 +1012,9 @@ public class Db_handler extends SQLiteOpenHelper
     }
     
     @Override
-	public void onCreate(SQLiteDatabase db) 
-	{
-		// System.out.println("Db_handler::onCreate");		
+	public void onCreate(SQLiteDatabase db)	{
 		create_main_table( db );
-		
+
 		create_mapping_table( db );
 		
 		create_history_table( db );

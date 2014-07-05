@@ -30,7 +30,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 
 public class MainActivity extends FragmentActivity 
 {
-	public static Db_handler m_db_handler;
+	public Db_handler m_db_handler;
     private AdView m_adView = null;
 
 	// User interface preferences
@@ -225,7 +225,13 @@ public class MainActivity extends FragmentActivity
 
 	    setup_fragments( savedInstanceState );
 
-        setup_admob_view();
+        // Check intent.
+        // We may turn admob off when we are doing unit tests.
+        Intent intent = getIntent();
+        boolean setupAdmob = intent.getBooleanExtra("startAdmob", true);
+        if (setupAdmob) {
+            setup_admob_view();
+        }
 
         long end = new Date().getTime();
         //Log.w("DHGG", "Elapsed Time In onCreate:" + (end-start));
@@ -390,9 +396,7 @@ public class MainActivity extends FragmentActivity
         //Log.w("DHGG", "MainActivity::onResume start");
         long start = new Date().getTime();
 
-        m_db_handler.update_or_add("screen_on", "screen_on");
-        m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
-
+        // Need to start the broacasts
         send_start_broadcast();
 
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);

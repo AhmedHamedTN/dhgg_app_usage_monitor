@@ -27,13 +27,15 @@ public class AppListFragment extends Fragment
 {	
 	public static View m_view;
 	private Data_value[] m_data_arr;
-	private Time_log[] m_data_audit_arr;
+    private Time_log[] m_data_audit_arr;
+    Activity m_activity;
 
 	private GoogleAccountCredential mCredential;
 	
     @Override
     public void onAttach(Activity activity) {
     	super.onAttach(activity);
+        m_activity = activity;
     }
     
     @Override
@@ -81,15 +83,14 @@ public class AppListFragment extends Fragment
                 Intent intent = new Intent(fActivity, HistoryPlotActivity.class);
                 intent.putExtra("app_name",app_name);
                 intent.putExtra("package_name", packageName);
-                intent.putExtra("refresh_data", true);
+
                 startActivity(intent);
             }
 	    });
 		return -1;
 	}
 
-    public int refresh_screen_audit( Time_log[] data_arr ) 
-	{    	
+    public int refresh_screen_audit( Time_log[] data_arr ) {
     	m_data_audit_arr = data_arr ;
     	View view = m_view;
     	if (view == null)
