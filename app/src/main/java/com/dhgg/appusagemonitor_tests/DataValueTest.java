@@ -18,19 +18,22 @@ public class DataValueTest extends TestCase {
     }
 
     public void testSort() {
+
+        // Setup
         ArrayList<DataValue> data = new ArrayList<DataValue>();
 
         DataValue a = new DataValue("AAA","A process", 222);
         DataValue b = new DataValue("BBB","B process", 333);
 
-        // Adding data with smallest value first.
         data.add(0,a);
         data.add(0,b);
 
-        // This should sort the data so that highest value is first.
+
+        // Run
         Collections.sort(data, new DataValueComparator());
 
-        // Check assertions.
+
+        // Verify
         DataValue tmp = (DataValue) data.get(0);
         assertEquals("After sorting by value, we expect B to be first.",
                      "BBB", tmp.description);

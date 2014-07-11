@@ -53,6 +53,7 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
         super.tearDown();
     }
 
+    /*
     public void createDatabaseFixture(Context mockContext) {
         Log.w(m_logTag, "createDatabaseFixture");
     }
@@ -64,6 +65,7 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
         assertEquals(a,b);
 
     }
+    */
 
 
     // TODO: Test how to handle no data.
