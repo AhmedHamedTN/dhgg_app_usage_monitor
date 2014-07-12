@@ -13,8 +13,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-public class Db_handler extends SQLiteOpenHelper 
-{	
+
+public class DbHandler extends SQLiteOpenHelper {
 	// Version number
     private static final int DATABASE_VERSION = 3;
 	
@@ -41,13 +41,11 @@ public class Db_handler extends SQLiteOpenHelper
     private static final int MAX_SYNC_SEND = 300;
  
     // Constructor
-    public Db_handler(Context context) 
-    {
+    public DbHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
-    
-	private void add_data(String name, String process_name ) 
-	{
+
+	private void add_data(String name, String process_name ) {
 	    SQLiteDatabase db = this.getWritableDatabase();
 
 	    GregorianCalendar gcalendar = new GregorianCalendar();
@@ -74,7 +72,7 @@ public class Db_handler extends SQLiteOpenHelper
 		} 
 		catch(Exception e) 
 		{
-			Log.e("DHGG","Error. Db_handler::add_data."+e);
+			Log.e("DHGG","Error. DbHandler::add_data."+e);
 		}
 		
 
@@ -94,7 +92,7 @@ public class Db_handler extends SQLiteOpenHelper
 		}
 		catch(Exception e)
 		{
-			Log.e("DHGG","Error. Db_handler::clear_data."+e);
+			Log.e("DHGG","Error. DbHandler::clear_data."+e);
 		}
 
         if (db != null)
@@ -114,7 +112,7 @@ public class Db_handler extends SQLiteOpenHelper
         String selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE "+
                              DATE_COLUMN + " = " + archive_date;
 
-        Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();          
+        Map <String, DataValue> mp_obj=new HashMap<String, DataValue>();
 
         SQLiteDatabase db = null;
         Cursor cursor = null;
@@ -140,13 +138,13 @@ public class Db_handler extends SQLiteOpenHelper
 	            	// store name + object value map
 	            	if (mp_obj.containsKey(app_name))
 	            	{
-	            		Data_value dv = (mp_obj.get(app_name));
-	            		mp_obj.put(app_name, new Data_value(app_name, process_name,
+	            		DataValue dv = (mp_obj.get(app_name));
+	            		mp_obj.put(app_name, new DataValue(app_name, process_name,
 	            				                            dv.value + time_diff));
 	            	}
 	            	else
 	            	{
-	            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+	            		DataValue dv = new DataValue(app_name, process_name, time_diff);
 	            		mp_obj.put(app_name, dv );
 	            	}
 	
@@ -155,7 +153,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
         finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::consolidate_old_data::closing the cursor");
+        		//Log.i("DHGG","DbHandler::consolidate_old_data::closing the cursor");
         		cursor.close();
         	}
         }
@@ -171,9 +169,9 @@ public class Db_handler extends SQLiteOpenHelper
 	    db_write.delete(TABLE_NAME, delete_command, null);       
 
         // Move consolidated data to archive.
-        for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
+        for (Map.Entry<String, DataValue> entry : mp_obj.entrySet())
         {
-        	Data_value dv = entry.getValue();
+        	DataValue dv = entry.getValue();
    		
         	ContentValues values = new ContentValues();
     	    values.put( NAME_COLUMN, dv.description );	 
@@ -185,7 +183,7 @@ public class Db_handler extends SQLiteOpenHelper
 	    	    db_write.insert( APP_HISTORY_TABLE, null, values);
 			} catch(Exception e) 
 			{
-				System.out.println("Error. Db_handler::consolidate_old_data."+e);
+				System.out.println("Error. DbHandler::consolidate_old_data."+e);
 			}
         }
         
@@ -296,7 +294,7 @@ public class Db_handler extends SQLiteOpenHelper
         // Select All Query
         String selectQuery = "SELECT "+NAME_COLUMN+","+DATE_COLUMN+
         		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
-        //Log.w("DHGG","Db_handler::do_update n:"+name);
+        //Log.w("DHGG","DbHandler::do_update n:"+name);
  
         SQLiteDatabase db = null;
         Cursor cursor = null;
@@ -315,7 +313,7 @@ public class Db_handler extends SQLiteOpenHelper
 	        }
         } finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::do_update::closing the cursor");
+        		//Log.i("DHGG","DbHandler::do_update::closing the cursor");
         		cursor.close();
         	}
         }
@@ -385,7 +383,7 @@ public class Db_handler extends SQLiteOpenHelper
 	
 	public Map<String,String> get_app_to_process_map(String componentName) 
     {
-    	//Log.w("DHGG","Db_handler::get_app_to_process_map");
+    	//Log.w("DHGG","DbHandler::get_app_to_process_map");
 		String select_query = 
 				"SELECT " + NAME_COLUMN +"," + PROCESS_NAME_COLUMN +
 				" FROM " +MAPPING_TABLE_NAME + " WHERE " + 
@@ -409,13 +407,13 @@ public class Db_handler extends SQLiteOpenHelper
 	            	String app_name = cursor.getString(0);
 	            	String process_name = cursor.getString(1);
 	            	output_obj.put(app_name, process_name);	
-			    	//Log.w("DHGG","Db_handler::get_app_to_process_map a:"+app_name+" p:"+process_name);
+			    	//Log.w("DHGG","DbHandler::get_app_to_process_map a:"+app_name+" p:"+process_name);
 	            	break;
 	            } while (cursor.moveToNext());
 	        }
         } finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::get_app_to_process_map closing the cursor");
+        		//Log.i("DHGG","DbHandler::get_app_to_process_map closing the cursor");
         		cursor.close();
         	}
         }
@@ -428,9 +426,9 @@ public class Db_handler extends SQLiteOpenHelper
         return output_obj;
     }
 	
-    private Map <String, Data_value> get_archive_data( Map<String, Data_value> input_obj )
+    private Map <String, DataValue> get_archive_data( Map<String, DataValue> input_obj )
     {
-    	Map <String, Data_value> output_obj = input_obj;
+    	Map <String, DataValue> output_obj = input_obj;
 
     	String select_query = "SELECT " + 
                               " a." + NAME_COLUMN +
@@ -457,15 +455,15 @@ public class Db_handler extends SQLiteOpenHelper
 					// store name + object value map
 					if ( output_obj.containsKey( app_name ) )
 					{
-						Data_value dv = (output_obj.get( app_name ));
-						output_obj.put(app_name, new Data_value(app_name, dv.process_name,
+						DataValue dv = (output_obj.get( app_name ));
+						output_obj.put(app_name, new DataValue(app_name, dv.process_name,
 		  						                                dv.value + value));
 					}
 					else
 					{
 						String process_name = cursor.getString( 2 );
 						
-						Data_value dv = new Data_value(app_name, process_name, value);
+						DataValue dv = new DataValue(app_name, process_name, value);
 						output_obj.put(app_name, dv );
 					}
 				
@@ -473,7 +471,7 @@ public class Db_handler extends SQLiteOpenHelper
 			}
         } finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::get_archive_data closing the cursor");
+        		//Log.i("DHGG","DbHandler::get_archive_data closing the cursor");
         		cursor.close();
         	}
         }
@@ -487,7 +485,7 @@ public class Db_handler extends SQLiteOpenHelper
     	return output_obj;
     }
 
-    public ArrayList<Data_value> getData( String hist_pref, String input_app_name ) 
+    public ArrayList<DataValue> getData( String hist_pref, String input_app_name )
     {
 		GregorianCalendar gcalendar = new GregorianCalendar( );
 		gcalendar.add( Calendar.DATE, - 1 );
@@ -530,7 +528,7 @@ public class Db_handler extends SQLiteOpenHelper
     	}
     	
         // Looping through all rows and dumping out the info
-        Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();  
+        Map <String, DataValue> mp_obj=new HashMap<String, DataValue>();
 
         SQLiteDatabase db = null;
         Cursor cursor = null;
@@ -574,13 +572,13 @@ public class Db_handler extends SQLiteOpenHelper
 	            	// store name + object value map
 	            	if (mp_obj.containsKey(app_name))
 	            	{
-	            		Data_value dv = (mp_obj.get(app_name));
-	            		mp_obj.put(app_name, new Data_value(app_name, process_name,
+	            		DataValue dv = (mp_obj.get(app_name));
+	            		mp_obj.put(app_name, new DataValue(app_name, process_name,
 	            				                            dv.value + time_diff));
 	            	}
 	            	else
 	            	{
-	            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+	            		DataValue dv = new DataValue(app_name, process_name, time_diff);
 	            		mp_obj.put(app_name, dv );
 	            	}
 	
@@ -589,7 +587,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
     	finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::getData closing the cursor");
+        		//Log.i("DHGG","DbHandler::getData closing the cursor");
         		cursor.close();
         	}
         }
@@ -605,8 +603,8 @@ public class Db_handler extends SQLiteOpenHelper
             mp_obj = get_archive_data( mp_obj );
         }
         	
-        ArrayList <Data_value> data = new ArrayList<Data_value>();
-        for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
+        ArrayList <DataValue> data = new ArrayList<DataValue>();
+        for (Map.Entry<String, DataValue> entry : mp_obj.entrySet())
         {
         	data.add(0,entry.getValue());
         }
@@ -649,7 +647,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
     	finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::getHistoricalData closing the cursor");
+        		//Log.i("DHGG","DbHandler::getHistoricalData closing the cursor");
         		cursor.close();
         	}
     	}
@@ -669,13 +667,13 @@ public class Db_handler extends SQLiteOpenHelper
 		                (gcalendar.get( Calendar.MONTH ) + 1 )  * 100 +
 		                 gcalendar.get( Calendar.DATE ) ;
 
-	    ArrayList<Data_value> yest_data = getData( "s_h_p_yest", app_name );
+	    ArrayList<DataValue> yest_data = getData( "s_h_p_yest", app_name );
 	    if ( yest_data.size() > 0 )
 	    {
 	    	data.add( new Point( yest_date, yest_data.get(0).value ) );
 	    }		
 		
-	    ArrayList<Data_value> today_data = getData( "s_h_p_today", app_name );
+	    ArrayList<DataValue> today_data = getData( "s_h_p_today", app_name );
 	    if ( today_data.size() > 0 )
 	    {
 	    	data.add( new Point( today_date, today_data.get(0).value ) );
@@ -685,7 +683,7 @@ public class Db_handler extends SQLiteOpenHelper
     	return point_arr;
     }
 
-    public ArrayList<Time_log> getTimeLog( String hist_pref, String input_app_name ) {
+    public ArrayList<TimeLog> getTimeLog( String hist_pref, String input_app_name ) {
 		GregorianCalendar gcalendar = new GregorianCalendar( );
 		gcalendar.add( Calendar.DATE, - 1 );
 		int yest_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
@@ -727,7 +725,7 @@ public class Db_handler extends SQLiteOpenHelper
     	}
     	//Log.w("DHGG","getTimeLog q:"+select_query);
 
-        ArrayList <Time_log> data = new ArrayList<Time_log>();
+        ArrayList <TimeLog> data = new ArrayList<TimeLog>();
     	
         SQLiteDatabase db = null;
         Cursor cursor = null;
@@ -768,7 +766,7 @@ public class Db_handler extends SQLiteOpenHelper
 	            	long endTime = cursor.getLong(4);
 	                //Log.w("DHGG","getTimeLog s:"+startTime+" :e"+endTime );
 	            	
-	            	Time_log t = new Time_log(app_name, process_name, startTime, endTime);
+	            	TimeLog t = new TimeLog(app_name, process_name, startTime, endTime);
 	
 	            	int num_points = data.size();
 	            	if (num_points == 0)
@@ -777,7 +775,7 @@ public class Db_handler extends SQLiteOpenHelper
 	            		continue;
 	            	}
 	            	
-	            	Time_log prev_log = data.get(num_points -1);
+	            	TimeLog prev_log = data.get(num_points -1);
 	            	if (t.description.equals(prev_log.description) &&
             	    Math.abs(prev_log.end_time - t.start_time) < 1000)
 	            	{
@@ -794,7 +792,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
     	finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::getTimeLog closing the cursor");
+        		//Log.i("DHGG","DbHandler::getTimeLog closing the cursor");
         		cursor.close();
         	}
     	}
@@ -807,7 +805,7 @@ public class Db_handler extends SQLiteOpenHelper
         return data;
     }
    
-    private void getHistoryData(long lastAppDate, String lastAppName, Map <String, Data_value> mp_obj)
+    private void getHistoryData(long lastAppDate, String lastAppName, Map <String, DataValue> mp_obj)
     {
 		String select_query = "SELECT " + 
 		                      "  a." + NAME_COLUMN +
@@ -859,13 +857,13 @@ public class Db_handler extends SQLiteOpenHelper
 	            	String key = app_name + dateName_separator + dataDate;
 	            	if (mp_obj.containsKey(key))
 	            	{
-	            		Data_value dv = (mp_obj.get(key));
-	            		mp_obj.put(key, new Data_value(app_name, process_name,
+	            		DataValue dv = (mp_obj.get(key));
+	            		mp_obj.put(key, new DataValue(app_name, process_name,
 	            				                       dv.value + time_diff));
 	            	}
 	            	else
 	            	{
-	            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+	            		DataValue dv = new DataValue(app_name, process_name, time_diff);
 	            		mp_obj.put(key, dv );
 	            	}
 	            	
@@ -880,7 +878,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
     	finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::getHistoryData closing the cursor");
+        		//Log.i("DHGG","DbHandler::getHistoryData closing the cursor");
         		cursor.close();
         	}
     	}
@@ -891,7 +889,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
     }
 
-    private void getRecentData(long lastAppDate, String lastAppName, Map <String, Data_value> mp_obj)
+    private void getRecentData(long lastAppDate, String lastAppName, Map <String, DataValue> mp_obj)
     {
 		GregorianCalendar gcalendar = new GregorianCalendar( );
 		int today_date =  gcalendar.get( Calendar.YEAR ) * 10000 +
@@ -952,13 +950,13 @@ public class Db_handler extends SQLiteOpenHelper
 	            	String key = app_name + dateName_separator + dataDate;
 	            	if (mp_obj.containsKey(key))
 	            	{
-	            		Data_value dv = (mp_obj.get(key));
-	            		mp_obj.put(key, new Data_value(app_name, process_name,
+	            		DataValue dv = (mp_obj.get(key));
+	            		mp_obj.put(key, new DataValue(app_name, process_name,
 	            				                       dv.value + time_diff));
 	            	}
 	            	else
 	            	{
-	            		Data_value dv = new Data_value(app_name, process_name, time_diff);
+	            		DataValue dv = new DataValue(app_name, process_name, time_diff);
 	            		mp_obj.put(key, dv );
 	            	}
 	            	
@@ -973,7 +971,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
     	finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::getRecentData closing the cursor");
+        		//Log.i("DHGG","DbHandler::getRecentData closing the cursor");
         		cursor.close();
         	}
     	}
@@ -984,27 +982,27 @@ public class Db_handler extends SQLiteOpenHelper
         }
     }
 
-    public ArrayList<Time_log> getTimeLogFromTime(long lastAppDate, String lastAppName) 
+    public ArrayList<TimeLog> getTimeLogFromTime(long lastAppDate, String lastAppName)
     {
     	// consolidate old data
     	// doing this in background jobs (not UI)
     	consolidate_old_data();
         
     	// Get data from appHistoryTable
-        Map <String, Data_value> mp_obj=new HashMap<String, Data_value>();          
+        Map <String, DataValue> mp_obj=new HashMap<String, DataValue>();
 		getHistoryData(lastAppDate, lastAppName, mp_obj);
 		getRecentData(lastAppDate, lastAppName, mp_obj);
 
         // Return consolidated data to store in cloud 
-        ArrayList <Time_log> data = new ArrayList<Time_log>();
+        ArrayList <TimeLog> data = new ArrayList<TimeLog>();
         String dateName_separator = ":::";
-        for (Map.Entry<String, Data_value> entry : mp_obj.entrySet()) 
+        for (Map.Entry<String, DataValue> entry : mp_obj.entrySet())
         {
         	String key = entry.getKey();
         	String parts[] = key.split(dateName_separator);
-        	Data_value dv = entry.getValue();
+        	DataValue dv = entry.getValue();
    		    
-        	Time_log t = new Time_log(dv.description, dv.process_name, Integer.parseInt(parts[1]), dv.value); 
+        	TimeLog t = new TimeLog(dv.description, dv.process_name, Integer.parseInt(parts[1]), dv.value);
         	
         	data.add(t);    	    
         }
@@ -1014,11 +1012,9 @@ public class Db_handler extends SQLiteOpenHelper
     }
     
     @Override
-	public void onCreate(SQLiteDatabase db) 
-	{
-		// System.out.println("Db_handler::onCreate");		
+	public void onCreate(SQLiteDatabase db)	{
 		create_main_table( db );
-		
+
 		create_mapping_table( db );
 		
 		create_history_table( db );
@@ -1027,7 +1023,7 @@ public class Db_handler extends SQLiteOpenHelper
     @Override
 	public void onUpgrade(SQLiteDatabase db, int old_version, int new_version) 
 	{
-		// System.out.println("Db_handler::onUpgrade "+" "+old_version+" "+new_version);
+		// System.out.println("DbHandler::onUpgrade "+" "+old_version+" "+new_version);
 		// create new mapping table		
 		
 		// From version 2 --> 3, we are 
@@ -1123,7 +1119,7 @@ public class Db_handler extends SQLiteOpenHelper
        
     private void update_last( ) 
     {
-    	//Log.w("DHGG","Db_handler::update_last");
+    	//Log.w("DHGG","DbHandler::update_last");
         String selectQuery = "SELECT "+ID_COLUMN + "," + END_TIME_COLUMN +
         		             " FROM " + TABLE_NAME +" ORDER BY "+END_TIME_COLUMN+" desc";
  
@@ -1160,12 +1156,12 @@ public class Db_handler extends SQLiteOpenHelper
 			} 
 			catch(Exception e) 
 			{
-				System.out.println("Error. Db_handler::update_last:"+e);			
+				System.out.println("Error. DbHandler::update_last:"+e);
 			}
         }
     	finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::update_last closing the cursor");
+        		//Log.i("DHGG","DbHandler::update_last closing the cursor");
         		cursor.close();
         	}
     	}
@@ -1218,7 +1214,7 @@ public class Db_handler extends SQLiteOpenHelper
         }
     	finally {
         	if (cursor != null) {
-        		//Log.i("DHGG","Db_handler::update_or_add_to_mapping_table closing the cursor");
+        		//Log.i("DHGG","DbHandler::update_or_add_to_mapping_table closing the cursor");
         		cursor.close();
         	}
     	}
@@ -1248,7 +1244,7 @@ public class Db_handler extends SQLiteOpenHelper
     		} 
     		catch(Exception e) 
     		{
-    			System.out.println("Error. Db_handler::update_or_add_to_mapping add:"+e);
+    			System.out.println("Error. DbHandler::update_or_add_to_mapping add:"+e);
     		}
         }
         else 
@@ -1264,7 +1260,7 @@ public class Db_handler extends SQLiteOpenHelper
 			} 
 			catch(Exception e) 
 			{
-				System.out.println("Error. Db_handler::update_or_add_to_mapping update:"+e);
+				System.out.println("Error. DbHandler::update_or_add_to_mapping update:"+e);
 			}
         }
 		db_write.close();

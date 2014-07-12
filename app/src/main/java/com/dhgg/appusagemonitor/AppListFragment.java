@@ -1,13 +1,5 @@
 package com.dhgg.appusagemonitor;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-
-import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageHistResponseMessage;
-import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageListByNameRequest;
-import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageListByNameResponse;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 import android.app.Activity;
@@ -15,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,14 +17,16 @@ import android.widget.ListView;
 public class AppListFragment extends Fragment 
 {	
 	public static View m_view;
-	private Data_value[] m_data_arr;
-	private Time_log[] m_data_audit_arr;
+	private DataValue[] m_data_arr;
+    private TimeLog[] m_data_audit_arr;
+    Activity m_activity;
 
 	private GoogleAccountCredential mCredential;
 	
     @Override
     public void onAttach(Activity activity) {
     	super.onAttach(activity);
+        m_activity = activity;
     }
     
     @Override
@@ -44,7 +37,7 @@ public class AppListFragment extends Fragment
   	    return m_view;
     }
     
-    public int refresh_screen( Data_value[] data_arr, boolean show_chart, GoogleAccountCredential cred) {
+    public int refresh_screen( DataValue[] data_arr, boolean show_chart, GoogleAccountCredential cred) {
     	m_data_arr = data_arr ;
     	mCredential = cred;
 
@@ -53,7 +46,7 @@ public class AppListFragment extends Fragment
     	    return -2;
     	}
 
-    	Data_value_adapter adapter = new Data_value_adapter( getActivity(), R.layout.name_value_row, m_data_arr);    	
+    	DataValueAdapter adapter = new DataValueAdapter( getActivity(), R.layout.name_value_row, m_data_arr);
 		ListView list_view = (ListView) getActivity().findViewById(R.id.task_list_view);
 		if ( list_view == null) {
 	    	return -3;
@@ -81,15 +74,14 @@ public class AppListFragment extends Fragment
                 Intent intent = new Intent(fActivity, HistoryPlotActivity.class);
                 intent.putExtra("app_name",app_name);
                 intent.putExtra("package_name", packageName);
-                intent.putExtra("refresh_data", true);
+
                 startActivity(intent);
             }
 	    });
 		return -1;
 	}
 
-    public int refresh_screen_audit( Time_log[] data_arr ) 
-	{    	
+    public int refresh_screen_audit( TimeLog[] data_arr ) {
     	m_data_audit_arr = data_arr ;
     	View view = m_view;
     	if (view == null)
@@ -98,7 +90,7 @@ public class AppListFragment extends Fragment
     	    return -2;
     	}
 
-    	Time_log_adapter adapter = new Time_log_adapter( getActivity(), R.layout.name_value_row, m_data_audit_arr);    	
+    	TimeLogAdapter adapter = new TimeLogAdapter( getActivity(), R.layout.name_value_row, m_data_audit_arr);
 		ListView list_view = (ListView) getActivity().findViewById(R.id.task_list_view);
 		if ( list_view == null )
 		{

@@ -140,8 +140,7 @@ public class MyLineChart
         mrenderer.setXTitle( "" );
         mrenderer.setShowLegend( false );
         mrenderer.setShowAxes( false );
-        //mrenderer.setAxesColor( Color.BLACK );
-        
+
         mrenderer.setLabelsTextSize( 30 );
         mrenderer.setXLabelsColor( Color.BLACK );
         //mrenderer.setXLabelsAngle( 45 );
@@ -158,7 +157,6 @@ public class MyLineChart
 
         mrenderer.setGridColor( Color.BLACK );
         mrenderer.setShowGridX( true );
-        //mrenderer.setShowGrid( true );
 
         // Margins are for bottom, left, top, right
         mrenderer.setMargins(new int[] { 60, 60, 50, 20 });

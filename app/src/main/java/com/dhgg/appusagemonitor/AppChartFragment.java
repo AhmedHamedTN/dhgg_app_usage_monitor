@@ -20,7 +20,7 @@ public class AppChartFragment extends Fragment
   	    return m_view;
     }
     
-    public int refresh_screen( Data_value[] data_arr  ) 
+    public int refresh_screen( DataValue[] data_arr  )
 	{
     	View view = m_view;
     	if (view == null)

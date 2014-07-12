@@ -14,16 +14,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
-public class Broadcast_receiver_handler extends BroadcastReceiver 
+public class BroadcastReceiverHandler extends BroadcastReceiver
 {
-	private Db_handler m_db_handler;
+	private DbHandler m_db_handler;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) 
 	{
-		m_db_handler = new Db_handler(context);
+		m_db_handler = new DbHandler(context);
 		
 		String action = intent.getAction();
 		//Log.w("DHGG:","--- action --- "+action);
@@ -68,9 +67,9 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 	public void SetAlarm(Context context, int seconds) 
 	{
 		//CancelAlarm(context);
-		//Log.d("DHGG","Broadcast_receiver_handler::SetAlarm");
+		//Log.d("DHGG","BroadcastReceiverHandler::SetAlarm");
 		
-		Intent intent=new Intent( context, Broadcast_receiver_handler.class);
+		Intent intent=new Intent( context, BroadcastReceiverHandler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
 		
 		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -80,7 +79,7 @@ public class Broadcast_receiver_handler extends BroadcastReceiver
 	
 	public void CancelAlarm(Context context) 
 	{
-		Intent intent=new Intent( context, Broadcast_receiver_handler.class);
+		Intent intent=new Intent( context, BroadcastReceiverHandler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
 		
 		PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);

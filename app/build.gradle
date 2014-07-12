@@ -1,9 +1,39 @@
+apply plugin: 'android'
+// apply plugin: 'robolectric' // could not be found.
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.1.0"
+
+    defaultConfig {
+        minSdkVersion 10
+        targetSdkVersion 10
+        versionCode 246
+        versionName "1.24"
+    }
+
+    buildTypes {
+        release {
+            runProguard true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+        // TODO: add a build debug type
+        // debug {}
+    }
+
+//    sourceSets {
+//        androidTest {
+//            java.srcDirs = ['src/main/java/com/dhgg/appusagemonitor_tests']
+//        }
+//    }
+}
+
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.+'
+        classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 
@@ -15,29 +45,11 @@ repositories {
     mavenLocal()
 }
 
-apply plugin: 'android'
-
-android {
-    compileSdkVersion 19
-    buildToolsVersion "19.0.3"
-
-    defaultConfig {
-        minSdkVersion 10
-        targetSdkVersion 10
-    }
-
-    buildTypes {
-        release {
-            runProguard false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
-    }
-}
-
 dependencies {
 
     compile 'com.android.support:support-v4:18.0.+'
-    compile 'com.android.support:appcompat-v7:+'
+    //compile 'com.android.support:appcompat-v7:+' // got merger failed error
+    compile 'com.android.support:appcompat-v7:20.+'
     compile(group: 'com.google.android.gms', name: 'play-services', version: '4.0.30')
 
     // Add the Google API client library.
@@ -69,4 +81,12 @@ dependencies {
 
     // Charting library
     compile files('libs/achartengine-1.0.0.jar')
+
+    // Testing library
+    // TODO: need to change so we only compile for tests.
+    // androidTestCompile 'org.mockito:mockito-all:1.9.5'  // did not work.
+    // testCompile 'org.mockito:mockito-all:1.9.5'         // did not work.
+    compile 'org.mockito:mockito-all:1.9.5'             // works (but we only want this in tests
+    // instrumentTestCompile 'org.mockito:mockito-all:1.9.5'
+    // androidTestCompile 'junit:unit:4.+'                 // did not work
 }

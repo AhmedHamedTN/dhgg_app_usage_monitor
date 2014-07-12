@@ -10,8 +10,8 @@ import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessa
 import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageResponseMessage;
 import com.dhgg.appusagemonitor.CloudBackend;
 import com.dhgg.appusagemonitor.Consts;
-import com.dhgg.appusagemonitor.Db_handler;
-import com.dhgg.appusagemonitor.Time_log;
+import com.dhgg.appusagemonitor.DbHandler;
+import com.dhgg.appusagemonitor.TimeLog;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 import android.accounts.Account;
@@ -97,10 +97,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		Log.w("DHGG","SyncAdapter::makeRequest - saved last_app date:"+last_app_date+" name:"+last_app_name);
 
 		// Use latest data.
-		Db_handler dbHandler = new Db_handler(mContext);
+		DbHandler dbHandler = new DbHandler(mContext);
 
-		ArrayList<Time_log> data = dbHandler.getTimeLogFromTime(last_app_date, last_app_name);
-		Time_log[] data_arr = data.toArray(new Time_log[data.size()]);
+		ArrayList<TimeLog> data = dbHandler.getTimeLogFromTime(last_app_date, last_app_name);
+		TimeLog[] data_arr = data.toArray(new TimeLog[data.size()]);
 		
 		// Set up items to send to cloud backend.
 	    List<AppusagemonitorApiMessagesAppUsageRecord> items = 

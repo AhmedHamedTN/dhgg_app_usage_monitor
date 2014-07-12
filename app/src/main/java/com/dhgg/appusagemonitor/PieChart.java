@@ -34,7 +34,7 @@ public class PieChart extends View
 	        Color.WHITE };
 	int m_num_colors = 11;
 	
-    Data_value[] m_data_arr ;
+    DataValue[] m_data_arr ;
     float m_max;
     int m_num_slices;
     int m_max_arcs = 11;
@@ -66,7 +66,7 @@ public class PieChart extends View
        mShadowBounds = new RectF( );
    	}
 
-    public void set_data( Data_value[] data_arr )
+    public void set_data( DataValue[] data_arr )
     {
 		// Get data for slices
 		m_data_arr = data_arr;		
