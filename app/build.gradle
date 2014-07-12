@@ -15,7 +15,7 @@ android {
     buildTypes {
         release {
             runProguard true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-project.txt'
         }
         // TODO: add a build debug type
         // debug {}
@@ -33,7 +33,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.12.+'
     }
 }
 
@@ -82,11 +82,12 @@ dependencies {
     // Charting library
     compile files('libs/achartengine-1.0.0.jar')
 
+
     // Testing library
     // TODO: need to change so we only compile for tests.
     // androidTestCompile 'org.mockito:mockito-all:1.9.5'  // did not work.
     // testCompile 'org.mockito:mockito-all:1.9.5'         // did not work.
-    compile 'org.mockito:mockito-all:1.9.5'             // works (but we only want this in tests
+    // compile 'org.mockito:mockito-all:1.9.5'             // works (but we only want this in tests
     // instrumentTestCompile 'org.mockito:mockito-all:1.9.5'
     // androidTestCompile 'junit:unit:4.+'                 // did not work
 }

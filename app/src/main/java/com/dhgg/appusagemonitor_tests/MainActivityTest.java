@@ -8,9 +8,7 @@ import android.content.Intent;
 import android.test.ActivityUnitTestCase;
 import android.util.Log;
 
-import org.mockito.Mock;
 
-import com.dhgg.appusagemonitor.DbHandler;
 import com.dhgg.appusagemonitor.MainActivity;
 
 public class MainActivityTest extends ActivityUnitTestCase<MainActivity> {
@@ -19,8 +17,6 @@ public class MainActivityTest extends ActivityUnitTestCase<MainActivity> {
     private MainActivity m_activity;
     private String m_logTag = "DHGG::MainActivityTest";
 
-    @Mock
-    DbHandler db_handler;
 
     public MainActivityTest() {
         super(MainActivity.class);
