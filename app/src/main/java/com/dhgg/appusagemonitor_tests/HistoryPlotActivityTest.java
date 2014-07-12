@@ -5,12 +5,21 @@
 package com.dhgg.appusagemonitor_tests;
 
 import android.content.Intent;
-import android.content.Context;
 import android.util.Log;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.dhgg.appusagemonitor.DbHandler;
 import com.dhgg.appusagemonitor.HistoryPlotActivity;
+
+/**
+ * This tests HistoryPlotActivity.
+ * In the intent, we send an extra "isTest" boolean.
+ * This tells the class to use MockClasses like:
+ *   MockCloudBackendAsync and MockDbHandler.
+ */
+// TODO: Test how to handle no data.
+// TODO: Test how to handle a lot of data.
+// TODO: Test no network
 
 public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<HistoryPlotActivity> {
 
@@ -20,8 +29,6 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
     public HistoryPlotActivityTest() {
         super(HistoryPlotActivity.class);
     }
-
-    DbHandler mock_db_handler;
 
     @Override
     protected void setUp() throws Exception {
@@ -36,7 +43,7 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
         intent.setClassName("com.dhgg.appusagemonitor","com.dhgg.appusagemonitor.HistoryPlotActivity");
         intent.putExtra("app_name","App Usage Monitor");
         intent.putExtra("package_name", "com.dhgg.appusagemonitor");
-        intent.putExtra("refresh_data", true);
+        intent.putExtra("isTest", true);
         setActivityIntent(intent);
 
         // when(mock_db_handler.)
@@ -68,7 +75,6 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
     */
 
 
-    // TODO: Test how to handle no data.
-    // TODO: Test how to handle a lot of data.
-    // TODO: Test no network
 }
+
+

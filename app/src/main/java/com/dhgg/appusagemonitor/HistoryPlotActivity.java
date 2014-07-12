@@ -36,93 +36,26 @@ public class HistoryPlotActivity extends Activity {
     private Point[] m_cloud_points = null;
     private boolean m_tried_to_fetch = false;
 
-    private Point[] getMergedData() {
+    // Classes that this depends on.
+    // Ideally, we'd use dependency injection to inject the object we want in.
+    // DatePoints DatePoints = null;
+    CloudBackendAsync m_cloudBackendAsync = null;
+    DbHandler m_dbHandler = null;
 
-        ArrayList <Point> data = new ArrayList<Point>();
-
-        int l = 0;
-        int c = 0;
-        while (l < m_local_points.length && m_cloud_points != null && c < m_cloud_points.length)
-        {
-            Point lPoint = m_local_points[l];
-            Point cPoint = m_cloud_points[c];
-
-            if (lPoint.x < cPoint.x)
-            {
-                //Log.w("DHGG","AppListFragment::openChart adding from localData "+lPoint.x);
-                data.add( lPoint );
-                l++;
-            }
-            else if (lPoint.x > cPoint.x )
-            {
-                //Log.w("DHGG","AppListFragment::openChart adding from cloudData "+cPoint.x);
-                data.add( cPoint );
-                c++;
-            }
-            else
-            {
-                // Data found in the cloud and on the local machine.
-                // Default to using the local data.
-                // May want to change to using cloud or summed data later.
-                //Log.w("DHGG","AppListFragment::openChart default from localData "+lPoint.x);
-                data.add(lPoint);
-
-                // Move to next item.
-                l++;
-                c++;
-            }
-        }
-
-        while (l < m_local_points.length)
-        {
-            Point lPoint = m_local_points[l];
-            //Log.w("DHGG","AppListFragment::openChart finishing up localData "+lPoint.x);
-            data.add( lPoint );
-            l++;
-        }
-
-        while (m_cloud_points != null && c < m_cloud_points.length)
-        {
-            Point cPoint = m_cloud_points[c];
-            //Log.w("DHGG","AppListFragment::openChart finishing up cloudData "+cPoint.x);
-            data.add( cPoint );
-            c++;
-        }
-
-        Point[] points = data.toArray(new Point[data.size()]);
-
-        return points;
-    }
 
     private void refreshData() {
 
         TimeSeries time_series = (TimeSeries) m_dataset.getSeriesAt(0);
 
-        Point[] points = getMergedData();
-
-        String units = "seconds";
-        double factor = 1;
-        for ( int i = 0; i < points.length; i++ )
-        {
-            if ( points[ i ].y > 60 )
-            {
-                units = "minutes";
-                factor = 60;
-            }
+        DatePoints datePoints = new DatePoints(m_local_points, m_cloud_points);
+        DatePoint[] points = datePoints.getDatePoints();
+        for ( int i = 0; i < points.length; i++ ) {
+            time_series.add( points[i].x, points[i].y);
         }
+
+        String units = datePoints.getUnits();
         String activityTitle = m_app_name+" usage in "+units;
         this.setTitle(activityTitle);
-
-
-        for ( int i = 0; i < points.length; i++ )
-        {
-            double y_value = points[ i ].y / factor;
-            int x_value = points[i].x;
-            time_series.add( new Date( (x_value / 10000) - 1900,
-                    ((x_value / 100 ) % 100 )-  1,
-                    x_value % 100 ),
-                    y_value );
-        }
 
         m_graphicalView.repaint();
 
@@ -135,12 +68,23 @@ public class HistoryPlotActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        String logCategory = "HistoryPlotActivity::onCreate: ";
 
         // Get inputs
         Intent intent = getIntent();
         m_app_name = intent.getStringExtra("app_name");
         m_package_name = intent.getStringExtra("package_name");
-        //Log.i("DHGG","HistoryPlotActivity::onCreate a:"+m_app_name+" p:"+m_package_name);
+        //Log.i("DHGG", logCategory + "a:"+m_app_name+" p:"+m_package_name);
+
+        // Use mocked classes for testing.
+        boolean isTest = intent.getBooleanExtra("isTest", false);
+        if (isTest) {
+            m_cloudBackendAsync = new CloudBackendAsync();
+            m_dbHandler = new DbHandler(this);
+        } else {
+            m_cloudBackendAsync = new CloudBackendAsync();
+            m_dbHandler = new DbHandler(this);
+        }
 
         m_dataset = new XYMultipleSeriesDataset();
         m_dataset.addSeries(makeTimeSeries());
@@ -150,12 +94,11 @@ public class HistoryPlotActivity extends Activity {
                 makeRenderer(),
                 "MMM dd");
 
-        //setContentView(m_graphicalView);
+
         setContentView(R.layout.activity_history_plot);
 
         // Get local data.
-        DbHandler db_handler = new DbHandler( this );
-        m_local_points = db_handler.getHistoricalData( m_app_name );
+        m_local_points = m_dbHandler.getHistoricalData( m_app_name );
         refreshData();
     }
 
@@ -200,6 +143,7 @@ public class HistoryPlotActivity extends Activity {
     }
 
     private void fetchCloudData() {
+        String logCategory = "HistoryPlotActivity::fetchCloudData: ";
 
         m_tried_to_fetch = true;
 
@@ -209,7 +153,7 @@ public class HistoryPlotActivity extends Activity {
         String accountName = settings.getString(MainActivity.PREF_KEY_ACCOUNT_NAME, null);
 
         if (accountName == null) {
-            //Log.d("DHGG","HistoryPlotActivity::fetchCloudData - no account, not using cloud data");
+            //Log.d("DHGG", logCategory + "No account, not using cloud data");
             setContentView(m_graphicalView);
             return;
         }
@@ -217,7 +161,7 @@ public class HistoryPlotActivity extends Activity {
         // Get cloud data
         // If  we have credentials and we have internet connection
         credential.setSelectedAccountName(accountName);
-        //Log.w("DHGG", "HistoryPlotActivity::fetchCloudData getting cloud info");
+        // Log.d("DHGG", logCategory + "Getting cloud info ...");
 
         // Create the request
         AppusagemonitorApiMessagesAppUsageListByNameRequest request =
@@ -231,7 +175,7 @@ public class HistoryPlotActivity extends Activity {
                     @Override
                     public void onComplete(final AppusagemonitorApiMessagesAppUsageListByNameResponse result) {
 
-                        //Log.d("DHGG","HistoryPlotActivity::fetchCloudData AppUsageListByNameResponse onComplete");
+                        // Log.d("DHGG", logCategory + "AppUsageListByNameResponse onComplete");
 
                         ArrayList <Point> data = new ArrayList<Point>();
                         if (!result.isEmpty() && result.getItems() != null )
@@ -244,7 +188,7 @@ public class HistoryPlotActivity extends Activity {
                                 long totalForDay = h.getDuration() / 1000;
                                 data.add( new Point( (int) yyyymmdd, (int) totalForDay ));
 
-                                //Log.w("DHGG","HistoryPlotActivity::fetchCloudData AppUsageListByNameResponse "+ i+" "+yyyymmdd+" "+totalForDay);
+                                // Log.d("DHGG", logCategory + "AppUsageListByNameResponse "+ i+" "+yyyymmdd+" "+totalForDay);
                             }
                         }
 
@@ -258,14 +202,16 @@ public class HistoryPlotActivity extends Activity {
                     }
                     @Override
                     public void onError(final IOException exception) {
-                        //Log.w("DHGG","HistoryPlotActivity::fetchCloudData AppUsageListByNameResponse onError:"+exception.toString());
+                        // Log.d("DHGG", logCategory + "AppUsageListByNameResponse onError:"+exception.toString());
                         setContentView(m_graphicalView);
                     }
                 };
 
-        // execute the lookup with the handler, on callback, we'll open the new page
-        CloudBackendAsync cloudBackend = new CloudBackendAsync();
-        cloudBackend.setCredential(credential);
-        cloudBackend.listByName(request, handler);
+        // An async backend class is used here.
+        CloudBackendAsync m_cloudBackendAsync = new CloudBackendAsync();
+
+        // Execute the lookup with the handler, on callback, we'll open the new page
+        m_cloudBackendAsync.setCredential(credential);
+        m_cloudBackendAsync.listByName(request, handler);
     }
 }
