@@ -1,5 +1,6 @@
 package com.dhgg.appusagemonitor_tests;
 
+import com.dhgg.appusagemonitor.DatePoint;
 import com.dhgg.appusagemonitor.DatePoints;
 import com.dhgg.appusagemonitor.Point;
 
@@ -34,9 +35,15 @@ public class DatePointsTest extends TestCase {
 
         // Run
         String units = datePoints.getUnits() ;
+        DatePoint[] dp = datePoints.getDatePoints();
 
         // Verify
+        assertEquals(0, dp.length);
         assertEquals("seconds", units);
     }
 
+    // TODO: test case where local and cloud data overlap.
+    // TODO: test case where we have non-overlapping local and cloud data .
+    // TODO: test case where we only have local data.
+    // TODO: test case where we only have cloud data.
 }

@@ -8,14 +8,12 @@ import android.content.Intent;
 import android.util.Log;
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.dhgg.appusagemonitor.DbHandler;
 import com.dhgg.appusagemonitor.HistoryPlotActivity;
 
 /**
  * This tests HistoryPlotActivity.
- * In the intent, we send an extra "isTest" boolean.
- * This tells the class to use MockClasses like:
- *   MockCloudBackendAsync and MockDbHandler.
+ * We can pass in a custom intent, and send in extra flags like an "isTest" boolean.
+ * I still haven't figured out what to do test and how to verify.
  */
 // TODO: Test how to handle no data.
 // TODO: Test how to handle a lot of data.
@@ -35,9 +33,6 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
         // Will be called before each test.
         Log.w(m_logTag, "setUp");
 
-        // MockitoAnnotations.initMocks(this);
-        // mock_db_handler = mock(DbHandler.class);
-
         // Passing a custom intent
         Intent intent = new Intent();
         intent.setClassName("com.dhgg.appusagemonitor","com.dhgg.appusagemonitor.HistoryPlotActivity");
@@ -45,8 +40,6 @@ public class HistoryPlotActivityTest extends ActivityInstrumentationTestCase2<Hi
         intent.putExtra("package_name", "com.dhgg.appusagemonitor");
         intent.putExtra("isTest", true);
         setActivityIntent(intent);
-
-        // when(mock_db_handler.)
 
         setActivityInitialTouchMode(false);
         m_activity = getActivity();
