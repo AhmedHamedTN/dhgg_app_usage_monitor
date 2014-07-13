@@ -8,7 +8,7 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 10
-        versionCode 246
+        versionCode 247
         versionName "1.24"
     }
 
