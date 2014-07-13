@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,8 +30,9 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 
 public class MainActivity extends FragmentActivity 
 {
-	public DbHandler m_db_handler;
+	public static DbHandler m_db_handler;
     private AdView m_adView = null;
+    private String LOGTAG = "DHGG";
 
 	// User interface preferences
 	public static String UI_PREFS = "ui_prefs";
@@ -211,7 +213,8 @@ public class MainActivity extends FragmentActivity
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-        //Log.w("DHGG", "MainActivity::onCreate start");
+        String logCategory = "MainActivity::onCreate: ";
+        //Log.w(LOGTAG, logCategory + "start");
         long start = new Date().getTime();
 		super.onCreate(savedInstanceState);
 
@@ -392,10 +395,13 @@ public class MainActivity extends FragmentActivity
 	
 	@Override
 	public void onResume() {
-        //Log.w("DHGG", "MainActivity::onResume start");
+        String logCategory = "MainActivity::onResume: ";
+        //Log.w(LOGTAG, logCategory + "start");
         long start = new Date().getTime();
 
         // Need to start the broacasts
+        m_db_handler.update_or_add("screen_on", "screen_on");
+        m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
         send_start_broadcast();
 
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);

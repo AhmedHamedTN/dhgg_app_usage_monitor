@@ -54,7 +54,8 @@
                 <!-- category android:name="com.google.cloud.backend.android" /> -->
             </intent-filter>
         </receiver>
-        <receiver android:name="com.dhgg.appusagemonitor.Broadcast_receiver_handler" >
+
+        <receiver android:name="com.dhgg.appusagemonitor.BroadcastReceiverHandler" >
             <intent-filter>
                 <action android:name="dhgg.app.usage.monitor.start" />
                 <action android:name="dhgg.app.usage.monitor.stop" />

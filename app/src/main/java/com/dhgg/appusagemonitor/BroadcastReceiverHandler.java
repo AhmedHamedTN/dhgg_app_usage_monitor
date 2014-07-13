@@ -14,18 +14,21 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 public class BroadcastReceiverHandler extends BroadcastReceiver
 {
 	private DbHandler m_db_handler;
+    private String LOGTAG = "DHGG";
 	
 	@Override
 	public void onReceive(Context context, Intent intent) 
 	{
+        String logCategory = "BroadcastReceiverHandler::onReceive: ";
 		m_db_handler = new DbHandler(context);
 		
 		String action = intent.getAction();
-		//Log.w("DHGG:","--- action --- "+action);
+		//Log.w(LOGTAG, logCategory + "--- action --- " + action);
 		if ( action.equals("android.intent.action.BOOT_COMPLETED") ||
 		     action.equals("android.intent.action.ACTION_SHUTDOWN"))
 		{
@@ -64,11 +67,13 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 		}
 	}
 
-	public void SetAlarm(Context context, int seconds) 
+	private void SetAlarm(Context context, int seconds)
 	{
+        String logCategory = "BroadcastReceiverHandler::SetAlarm: ";
+
 		//CancelAlarm(context);
-		//Log.d("DHGG","BroadcastReceiverHandler::SetAlarm");
-		
+        //Log.w(LOGTAG, logCategory + "s:"+seconds);
+
 		Intent intent=new Intent( context, BroadcastReceiverHandler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
 		
@@ -77,8 +82,10 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 		am.set(AlarmManager.RTC, System.currentTimeMillis() + (1000*seconds), pi);
 	}
 	
-	public void CancelAlarm(Context context) 
+	private void CancelAlarm(Context context)
 	{
+        String logCategory = "BroadcastReceiverHandler::CancelAlarm: ";
+
 		Intent intent=new Intent( context, BroadcastReceiverHandler.class);
 		intent.setAction("dhgg.app.usage.monitor.start");
 		
@@ -87,9 +94,11 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 		am.cancel(sender);
 	}
 
-	public void save_to_db(Context context, String name, String process_name) 
-	{	
-		//Log.w("DHGG","BRH::save_to_db n:"+name+" p:"+process_name);
+	private void save_to_db(Context context, String name, String process_name)
+	{
+        String logCategory = "BroadcastReceiverHandler::save_to_db: ";
+
+		//Log.w(LOGTAG,logCategory + "n:"+name+" p:"+process_name);
 		if (name.isEmpty() || context == null || name.equals("App Usage Tracker"))
 		{
 			return;
@@ -98,8 +107,10 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 		m_db_handler.update_or_add( name, process_name );
 	}
 
-	public void logAppInfo(Context context) 
+	private void logAppInfo(Context context)
 	{
+        String logCategory = "BroadcastReceiverHandler::logAppInfo: ";
+
 		// Get info about running task
 		ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		int num_tasks = 1;
@@ -130,7 +141,7 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 			int num_processes = list2.size(); 
 			for (int i = 0; i < num_processes; i++) 
 			{
-				//Log.w("DHGG",":"+i);
+				//Log.w(LOGTAG,logCategory + " +i);
 				ActivityManager.RunningAppProcessInfo info = (ActivityManager.RunningAppProcessInfo)(list2.get(i));
 	
 				String process_name = info.processName;
@@ -147,7 +158,7 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 					} catch(Exception e) { }
 					
 	
-					//Log.w("DHGG","Used ActivityManager to find n:"+name+" => p:"+process_name);
+					//Log.w(LOGTAG,logCategory + "Used ActivityManager to find n:"+name+" => p:"+process_name);
 					save_to_db( context, name, info.processName );
 					break;
 				}
@@ -158,7 +169,7 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 			Iterator<Entry<String, String>> it = app_to_process.entrySet().iterator();
 		    while (it.hasNext()) {
 		        Entry<String, String> pairs = (Entry<String, String>)it.next();
-		        //Log.w("DHGG","Used cache to get n:"+pairs.getKey() + " => " + pairs.getValue());
+		        //Log.w(LOGTAG,logCategory + "Used cache to get n:"+pairs.getKey() + " => " + pairs.getValue());
 
 		        save_to_db(context, pairs.getKey(), pairs.getValue());
 		        break;
@@ -166,7 +177,7 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 		}
 	}
 	
-	public boolean on_phone( Context context)
+	private boolean on_phone( Context context)
 	{
 		TelephonyManager tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
 		int call_state = tm.getCallState();
