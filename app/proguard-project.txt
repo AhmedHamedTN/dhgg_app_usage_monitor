@@ -1,2 +1,43 @@
--dontwarn com.google.common.**
+
+
+### from developer.android.com/google/play-services/setup.html#Proguard
+-keep class * extends java.util.ListResourceBundle {
+    protected Object[][] getContents();
+}
+
+-keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
+    public static final *** NULL;
+}
+
+-keepnames @com.google.android.gms.common.annotation.KeepName class *
+-keepclassmembernames class * {
+    @com.google.android.gms.common.annotation.KeepName *;
+}
+
+-keepnames class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
+
+### Additional dont warns needed, because the build complained. 
 -dontwarn org.apache.**
+-dontwarn com.google.common.**
+
+
+### Classes from this project that we should make sure are kept.
+-keep public class com.dhgg.appusagemonitor.MainActivity
+-keep public class com.dhgg.appusagemonitor.BroadcastReceiverHandler
+-keep public class com.dhgg.cloudbackend.**
+
+
+### Had crashing in sync adapter thread and added these items to fix it.
+### Stack over flow suggested keeps - to help prevent crashes
+-keep class android.support.v4.** { *; }
+-keep class android.support.v7.** { *; }
+
+-keep class com.google.** { *;}
+-keep interface com.google.** { *;}
+
+-keepattributes *Annotation*,Signature
+-keep class * extends com.google.api.client.json.GenericJson {*;}
+
