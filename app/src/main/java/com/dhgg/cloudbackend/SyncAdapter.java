@@ -31,7 +31,6 @@ import android.util.Log;
  */
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	// Tag for logging
-	final static String TAG = "DHGG";
 
     // Define variables to contain a content resolver instance
     ContentResolver mContentResolver;
@@ -77,10 +76,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(Account arg0, Bundle arg1, String arg2,
 			ContentProviderClient arg3, SyncResult arg4) 
 	{
-		//Log.w("DHGG","onPerformSync name:"+arg0.name+" type:"+arg0.type);
+		//Log.w(Consts.LOGTAG,"onPerformSync name:"+arg0.name+" type:"+arg0.type);
 		if (!authenticate(arg0.name))
 		{
-			//Log.w("DHGG","SyncAdapter::onPerformSync authenticate failed");
+			//Log.w(Consts.LOGTAG,"SyncAdapter::onPerformSync authenticate failed");
 			return;
 		}
 
@@ -94,7 +93,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		SharedPreferences settings = mContext.getSharedPreferences("CLOUD_INFO",0);
 		long last_app_date = settings.getLong("LAST_APP_DATE", 0);
 		String last_app_name = settings.getString("LAST_APP_NAME", "");
-		Log.w("DHGG","SyncAdapter::makeRequest - saved last_app date:"+last_app_date+" name:"+last_app_name);
+		Log.w(Consts.LOGTAG,"SyncAdapter::makeRequest - saved last_app date:"+last_app_date+" name:"+last_app_name);
 
 		// Use latest data.
 		DbHandler dbHandler = new DbHandler(mContext);
@@ -111,7 +110,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		for ( int i = 0; i < numLogs; i++ )
 		{
 			AppusagemonitorApiMessagesAppUsageRecord record = new AppusagemonitorApiMessagesAppUsageRecord();
-     	    //Log.d(TAG, "next item :" + data_arr[i].description + " " + data_arr[i].start_time +" "+data_arr[i].end_time);
+     	    //Log.d(Consts.LOGTAG, "next item :" + data_arr[i].description + " " + data_arr[i].start_time +" "+data_arr[i].end_time);
 
 			record.setAppName(data_arr[i].description);
 			record.setAppDate(data_arr[i].start_time);     // date
@@ -126,7 +125,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         AppusagemonitorApiMessagesAppUsageInsertRequest request = 
             new AppusagemonitorApiMessagesAppUsageInsertRequest();
         request.setItems(items);
-        //Log.i(TAG,"sending "+items.size()+" items");
+        //Log.i(Consts.LOGTAG,"sending "+items.size()+" items");
         
         return request;
 	}
@@ -142,7 +141,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			// Save this to shared pref
 			long appDate = result.getAppDate();
 			String appName = result.getAppName();
-			//Log.w("DHGG", "Last app date:"+appDate+" name:"+appName);
+			//Log.w(Consts.LOGTAG, "Last app date:"+appDate+" name:"+appName);
 			
 			if (appDate > 0)
 			{
@@ -154,7 +153,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			}
         } catch (IOException e) {
             // 
-			//Log.w("DHGG","syncData onError:"+e.toString());
+			//Log.w(Consts.LOGTAG,"syncData onError:"+e.toString());
         }
 	}
 
@@ -169,7 +168,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		mCloudBackend = new CloudBackend();
 	    mCloudBackend.setCredential(credential);
 	
-		//Log.i("DHGG","SyncAdapter::authenticate "+accountName);
+		//Log.i(Consts.LOGTAG,"SyncAdapter::authenticate "+accountName);
 		credential.setSelectedAccountName(accountName);
 	    return true; 
 	}

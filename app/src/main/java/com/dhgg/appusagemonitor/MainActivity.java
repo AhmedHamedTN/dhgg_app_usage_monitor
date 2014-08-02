@@ -32,7 +32,6 @@ public class MainActivity extends FragmentActivity
 {
 	public static DbHandler m_db_handler;
     private AdView m_adView = null;
-    private String LOGTAG = "DHGG";
 
 	// User interface preferences
 	public static String UI_PREFS = "ui_prefs";
@@ -81,7 +80,8 @@ public class MainActivity extends FragmentActivity
 	}
 	
 	public boolean authenticate() {
-        //Log.d("DHGG","MainActivity::authenticate");
+        //Log.d(Consts.LOGTAG,"MainActivity::authenticate");
+        //Log.d(Consts.LOGTAG, "MainActivity::authenticate using auth="+ Consts.AUTH_AUDIENCE);
 
 	    // get account name from the shared pref
 		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
@@ -93,7 +93,7 @@ public class MainActivity extends FragmentActivity
             SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
             boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);
 
-            //Log.d("DHGG","MainActivity::authenticate should we pick an account?" + triedSync);
+            //Log.d(Consts.LOGTAG,"MainActivity::authenticate should we pick an account?" + triedSync);
 			if ( !triedSync )
 			{
 				// check if google services is up to date
@@ -101,14 +101,14 @@ public class MainActivity extends FragmentActivity
 				if (isGoogleAvailable == ConnectionResult.SUCCESS)
 				{
 					// let user pick an account
-					//Log.d("DHGG","MainActivity::authenticate pick account");
+					//Log.d(Consts.LOGTAG,"MainActivity::authenticate pick account");
 					super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 				}
-				//Log.d("DHGG", "MainActivity::Google service status = "+isGoogleAvailable);
+				//Log.d(Consts.LOGTAG, "MainActivity::Google service status = "+isGoogleAvailable);
 			}
 		} 
 		else {
-			//Log.d("DHGG","MainActivity::authenticate using known account");
+			//Log.d(Consts.LOGTAG,"MainActivity::authenticate using known account");
 		    SyncUtils.CreateSyncAccount(this);
 	    }
 		SharedPreferences.Editor prefEditor = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE).edit();
@@ -182,7 +182,7 @@ public class MainActivity extends FragmentActivity
     }
 
 	protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
-	    //Log.w("DHGG","MainActivity::onActivityResult");
+	    //Log.w(Consts.LOGTAG,"MainActivity::onActivityResult");
   
 		super.onActivityResult(requestCode, resultCode, data);
 
@@ -202,7 +202,7 @@ public class MainActivity extends FragmentActivity
 		        e.commit();
 
 		        // Set up sync account
-				//Log.w("DHGG","MainActivity::onActivityResult "+requestCode+" accountName: "+accountName);
+				//Log.w(Consts.LOGTAG,"MainActivity::onActivityResult "+requestCode+" accountName: "+accountName);
 		        SyncUtils.CreateSyncAccount(this);
 		    }
 			break;
@@ -214,7 +214,7 @@ public class MainActivity extends FragmentActivity
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         String logCategory = "MainActivity::onCreate: ";
-        //Log.w(LOGTAG, logCategory + "start");
+        //Log.w(Consts.LOGTAG, logCategory + "start");
         long start = new Date().getTime();
 		super.onCreate(savedInstanceState);
 
@@ -236,8 +236,8 @@ public class MainActivity extends FragmentActivity
         }
 
         long end = new Date().getTime();
-        //Log.w("DHGG", "Elapsed Time In onCreate:" + (end-start));
-        //Log.w("DHGG", "MainActivity::onCreate done");
+        //Log.w(Consts.LOGTAG, "Elapsed Time In onCreate:" + (end-start));
+        //Log.w(Consts.LOGTAG, "MainActivity::onCreate done");
 	}
 
 	@Override
@@ -247,7 +247,7 @@ public class MainActivity extends FragmentActivity
 		inflater.inflate(R.layout.main_menu, menu);
 		
 		
-		//Log.w("DHGG", "MainActivity::onCreateOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
+		//Log.w(Consts.LOGTAG, "MainActivity::onCreateOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
 		if ( !m_show_chart ) {
 			menu.findItem(R.id.item_show_chart).setTitle("Chart");
 			if ( !m_show_log ) {
@@ -274,7 +274,7 @@ public class MainActivity extends FragmentActivity
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		//Log.d("DHGG","MainActivity::onOptionsItemSelected "+item.getItemId());
+		//Log.d(Consts.LOGTAG,"MainActivity::onOptionsItemSelected "+item.getItemId());
 		SharedPreferences settings = getSharedPreferences(UI_PREFS, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		
@@ -364,7 +364,7 @@ public class MainActivity extends FragmentActivity
 		menu.clear();
 	    getMenuInflater().inflate(R.layout.main_menu, menu);
 	    	 	
-		//Log.w("DHGG","MainActivity::onPrepareOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
+		//Log.w(Consts.LOGTAG,"MainActivity::onPrepareOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
 		if ( m_show_chart ) {
 			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
 			menu.findItem(R.id.item_show_log).setTitle("Show Itemized");
@@ -382,7 +382,7 @@ public class MainActivity extends FragmentActivity
 	    // get account name from the shared pref
 		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
 		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
-		//Log.i("DHGG","MainActivity::onCreateOptions toggling update sync visibility for: "+accountName);
+		//Log.i(Consts.LOGTAG,"MainActivity::onCreateOptions toggling update sync visibility for: "+accountName);
 		if (accountName == null) {
 			menu.findItem(R.id.item_add_sync_account).setEnabled(true);
 		}
@@ -396,7 +396,7 @@ public class MainActivity extends FragmentActivity
 	@Override
 	public void onResume() {
         String logCategory = "MainActivity::onResume: ";
-        //Log.w(LOGTAG, logCategory + "start");
+        //Log.w(Consts.LOGTAG, logCategory + "start");
         long start = new Date().getTime();
 
         // Need to start the broacasts
@@ -414,15 +414,15 @@ public class MainActivity extends FragmentActivity
         if (m_adView != null)
             m_adView.resume();
         long end = new Date().getTime();
-        //Log.w("DHGG", "Elapsed Time in onResume:" + (end-start));
-        //Log.w("DHGG", "MainActivity::onResume done");
+        //Log.w(Consts.LOGTAG, "Elapsed Time in onResume:" + (end-start));
+        //Log.w(Consts.LOGTAG, "MainActivity::onResume done");
 	}
 	
 	private void refresh_amount_screen() {
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
 		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
 		String hist_pref = ui_prefs.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
-		//Log.i("DHGG","MainActivity::refresh_amount_screen hist_pref:"+hist_pref);
+		//Log.i(Consts.LOGTAG,"MainActivity::refresh_amount_screen hist_pref:"+hist_pref);
 		
 		// Get data to display
 		ArrayList<DataValue> data = m_db_handler.getData( hist_pref, "" );
@@ -482,7 +482,7 @@ public class MainActivity extends FragmentActivity
     }
 
     private void refresh_screen() {
-		//Log.w("DHGG","MainActivity::refresh_screen start l:"+m_show_log);
+		//Log.w(Consts.LOGTAG,"MainActivity::refresh_screen start l:"+m_show_log);
         long start = new Date().getTime();
 
 		if (m_show_log) {
@@ -492,8 +492,8 @@ public class MainActivity extends FragmentActivity
 		}
 
         long end = new Date().getTime();
-        //Log.w("DHGG", "Elapsed Time in refresh_screen:" + (end-start));
-        //Log.w("DHGG", "MainActivity::refresh_screen done");
+        //Log.w(Consts.LOGTAG, "Elapsed Time in refresh_screen:" + (end-start));
+        //Log.w(Consts.LOGTAG, "MainActivity::refresh_screen done");
     }
 
 	private void send_start_broadcast() {
@@ -505,7 +505,7 @@ public class MainActivity extends FragmentActivity
 		sendBroadcast(intent);
 
         long end = new Date().getTime();
-        //Log.w("DHGG", "Elapsed Time in send_start_broadcast:" + (end-start));
+        //Log.w(Consts.LOGTAG, "Elapsed Time in send_start_broadcast:" + (end-start));
 	}
 
 	public void sendData() {
@@ -538,7 +538,7 @@ public class MainActivity extends FragmentActivity
 
         SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
         int numTimesRun = ui_prefs.getInt(RUN_MODULUS, 0);
-        //Log.w("DHGG","MainActivity::setup_admob_view numTimesRun="+numTimesRun);
+        //Log.w(Consts.LOGTAG,"MainActivity::setup_admob_view numTimesRun="+numTimesRun);
         if (numTimesRun < SHOW_AD_INTERVAL)
         {
             // Not showing the ad. Increment counter and exit.
@@ -559,7 +559,7 @@ public class MainActivity extends FragmentActivity
             uiPrefsEditor.commit();
         }
 
-        //Log.w("DHGG", "MainActivity::setup_admob_view start");
+        //Log.w(Consts.LOGTAG, "MainActivity::setup_admob_view start");
         long start = new Date().getTime();
 
         m_adView = new AdView(this);
@@ -574,8 +574,8 @@ public class MainActivity extends FragmentActivity
 		}
 
         long end = new Date().getTime();
-        //Log.w("DHGG", "Elapsed Time in setup_admob_view:" + (end - start));
-        //Log.w("DHGG", "MainActivity::setup_admob_view done");
+        //Log.w(Consts.LOGTAG, "Elapsed Time in setup_admob_view:" + (end - start));
+        //Log.w(Consts.LOGTAG, "MainActivity::setup_admob_view done");
 	}
 
 	private void setup_fragments( Bundle savedInstanceState ) {

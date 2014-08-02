@@ -29,7 +29,6 @@ import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessa
 import com.appspot.appusagemonitor.appusagemonitor.model.AppusagemonitorApiMessagesAppUsageListByNameResponse;
 
 public class HistoryPlotActivity extends Activity {
-    private String LOGTAG = "DHGG";
 
     private XYMultipleSeriesDataset m_dataset;
     private GraphicalView m_graphicalView;
@@ -48,7 +47,7 @@ public class HistoryPlotActivity extends Activity {
 
     private void refreshData() {
         String logCategory = "HistoryPlotActivity::refreshData: ";
-        //Log.i(LOGTAG, logCategory + "a:" + m_app_name + " p:" + m_package_name);
+        //Log.i(Consts.LOGTAG, logCategory + "a:" + m_app_name + " p:" + m_package_name);
         TimeSeries time_series = (TimeSeries) m_dataset.getSeriesAt(0);
 
         DatePoints datePoints = new DatePoints(m_local_points, m_cloud_points);
@@ -78,7 +77,7 @@ public class HistoryPlotActivity extends Activity {
         Intent intent = getIntent();
         m_app_name = intent.getStringExtra("app_name");
         m_package_name = intent.getStringExtra("package_name");
-        //Log.i(LOGTAG, logCategory + "a:" + m_app_name + " p:" + m_package_name);
+        //Log.i(Consts.LOGTAG, logCategory + "a:" + m_app_name + " p:" + m_package_name);
 
         // Use mocked classes for testing.
         /*
@@ -151,15 +150,16 @@ public class HistoryPlotActivity extends Activity {
 
     private void fetchCloudData() {
         String logCategory = "HistoryPlotActivity::fetchCloudData: ";
-        //Log.d(LOGTAG, logCategory + " start");
+        //Log.d(Consts.LOGTAG, logCategory + " start");
         m_tried_to_fetch = true;
 
+        //Log.d(Consts.LOGTAG, logCategory + " using auth="+ Consts.AUTH_AUDIENCE);
         GoogleAccountCredential credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
         SharedPreferences settings = getSharedPreferences(MainActivity.PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
         String accountName = settings.getString(MainActivity.PREF_KEY_ACCOUNT_NAME, null);
 
         if (accountName == null) {
-            //Log.d(LOGTAG, logCategory + "No account, not using cloud data");
+            //Log.d(Consts.LOGTAG, logCategory + "No account, not using cloud data");
             setContentView(m_graphicalView);
             return;
         }
@@ -167,7 +167,7 @@ public class HistoryPlotActivity extends Activity {
         // Get cloud data
         // If  we have credentials and we have internet connection
         credential.setSelectedAccountName(accountName);
-        // Log.d(LOGTAG, logCategory + "Getting cloud info ...");
+        // Log.d(Consts.LOGTAG, logCategory + "Getting cloud info ...");
 
         // Create the request
         AppusagemonitorApiMessagesAppUsageListByNameRequest request =
@@ -181,7 +181,7 @@ public class HistoryPlotActivity extends Activity {
                     @Override
                     public void onComplete(final AppusagemonitorApiMessagesAppUsageListByNameResponse result) {
 
-                        // Log.d(LOGTAG, logCategory + "AppUsageListByNameResponse onComplete");
+                        // Log.d(Consts.LOGTAG, logCategory + "AppUsageListByNameResponse onComplete");
 
                         ArrayList <Point> data = new ArrayList<Point>();
                         if (!result.isEmpty() && result.getItems() != null )
@@ -194,7 +194,7 @@ public class HistoryPlotActivity extends Activity {
                                 long totalForDay = h.getDuration() / 1000;
                                 data.add( new Point( (int) yyyymmdd, (int) totalForDay ));
 
-                                // Log.d(LOGTAG, logCategory + "AppUsageListByNameResponse "+ i+" "+yyyymmdd+" "+totalForDay);
+                                // Log.d(Consts.LOGTAG, logCategory + "AppUsageListByNameResponse "+ i+" "+yyyymmdd+" "+totalForDay);
                             }
                         }
 
@@ -208,7 +208,7 @@ public class HistoryPlotActivity extends Activity {
                     }
                     @Override
                     public void onError(final IOException exception) {
-                        // Log.d(LOGTAG, logCategory + "AppUsageListByNameResponse onError:"+exception.toString());
+                        // Log.d(Consts.LOGTAG, logCategory + "AppUsageListByNameResponse onError:"+exception.toString());
                         setContentView(m_graphicalView);
                     }
                 };

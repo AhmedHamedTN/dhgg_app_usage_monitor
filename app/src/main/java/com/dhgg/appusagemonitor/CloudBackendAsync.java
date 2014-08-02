@@ -476,7 +476,7 @@ public class CloudBackendAsync extends CloudBackend {
       try {
         r = callBackend(param);
       } catch (IOException e) {
-        Log.i(Consts.TAG, "error: ", e);
+        Log.i(Consts.LOGTAG, "error: ", e);
         ie = e;
       }
       final RESULT results = r;

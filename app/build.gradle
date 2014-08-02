@@ -20,12 +20,16 @@ android {
         }
     }
     buildTypes {
+        def webClientId = System.getenv("APPUSAGEMONITOR_WEBCLIENT_ID")
         debug {
             runProguard false
+            buildConfigField "String", "APPUSAGEMONITOR_WEBCLIENT_ID", "\"${webClientId}\""
+
         }
         release {
             runProguard true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-project.txt'
+            buildConfigField "String", "APPUSAGEMONITOR_WEBCLIENT_ID", "\"${webClientId}\""
         }
     }
 }
