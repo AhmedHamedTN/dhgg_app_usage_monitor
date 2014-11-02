@@ -36,7 +36,6 @@ public class HistoryPlotActivity extends Activity {
     private String m_package_name;
     private Point[] m_local_points = null;
     private Point[] m_cloud_points = null;
-    private boolean m_tried_to_fetch = false;
 
     // Classes that this depends on.
     // Ideally, we'd use dependency injection to inject the object we want in.
@@ -44,34 +43,36 @@ public class HistoryPlotActivity extends Activity {
     CloudBackendAsync m_cloudBackendAsync = null;
     DbHandler m_dbHandler = null;
 
-
     private void refreshData() {
         String logCategory = "HistoryPlotActivity::refreshData: ";
         //Log.i(Consts.LOGTAG, logCategory + "a:" + m_app_name + " p:" + m_package_name);
-        TimeSeries time_series = (TimeSeries) m_dataset.getSeriesAt(0);
 
+        // Get the merged data.
         DatePoints datePoints = new DatePoints(m_local_points, m_cloud_points);
+
+        // Put data into the first series
+        TimeSeries time_series = (TimeSeries) m_dataset.getSeriesAt(0);
         DatePoint[] points = datePoints.getDatePoints();
         for ( int i = 0; i < points.length; i++ ) {
             time_series.add( points[i].x, points[i].y);
         }
 
+        // Update the chart title
         String units = datePoints.getUnits();
         String activityTitle = m_app_name+" usage in "+units;
         this.setTitle(activityTitle);
 
-        m_graphicalView.repaint();
-
-        // If we haven't tried yet, get the cloud data.
-        if (m_tried_to_fetch == false) {
-          fetchCloudData();
-        }
+        // Replace loading spinning icon with the loaded chart
+        setContentView(m_graphicalView);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         String logCategory = "HistoryPlotActivity::onCreate: ";
+
+        // Put up the loading spinning icon
+        setContentView(R.layout.activity_history_plot);
 
         // Get inputs
         Intent intent = getIntent();
@@ -92,25 +93,19 @@ public class HistoryPlotActivity extends Activity {
         */
 
         m_dataset = new XYMultipleSeriesDataset();
-        m_dataset.addSeries(makeTimeSeries());
+        m_dataset.addSeries(new TimeSeries(""));
         m_graphicalView = ChartFactory.getTimeChartView(
                 getApplicationContext(),
                 m_dataset,
                 makeRenderer(),
                 "MMM dd");
 
-
-        setContentView(R.layout.activity_history_plot);
-
         // Get local data.
         m_dbHandler = new DbHandler(this);
         m_local_points = m_dbHandler.getHistoricalData( m_app_name );
-        refreshData();
-    }
 
-    private TimeSeries makeTimeSeries() {
-        TimeSeries time_series = new TimeSeries("");
-        return time_series;
+        // Get Cloud data.
+        fetchCloudData();
     }
 
     private XYMultipleSeriesRenderer makeRenderer() {
@@ -151,7 +146,6 @@ public class HistoryPlotActivity extends Activity {
     private void fetchCloudData() {
         String logCategory = "HistoryPlotActivity::fetchCloudData: ";
         //Log.d(Consts.LOGTAG, logCategory + " start");
-        m_tried_to_fetch = true;
 
         //Log.d(Consts.LOGTAG, logCategory + " using auth="+ Consts.AUTH_AUDIENCE);
         GoogleAccountCredential credential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
@@ -160,7 +154,7 @@ public class HistoryPlotActivity extends Activity {
 
         if (accountName == null) {
             //Log.d(Consts.LOGTAG, logCategory + "No account, not using cloud data");
-            setContentView(m_graphicalView);
+            refreshData();
             return;
         }
 
@@ -178,6 +172,7 @@ public class HistoryPlotActivity extends Activity {
         // Create a response handler that will receive the result or an error
         CloudCallbackHandler<AppusagemonitorApiMessagesAppUsageListByNameResponse> handler =
                 new CloudCallbackHandler<AppusagemonitorApiMessagesAppUsageListByNameResponse>() {
+
                     @Override
                     public void onComplete(final AppusagemonitorApiMessagesAppUsageListByNameResponse result) {
 
@@ -204,12 +199,11 @@ public class HistoryPlotActivity extends Activity {
                         }
 
                         refreshData();
-                        setContentView(m_graphicalView);
                     }
                     @Override
                     public void onError(final IOException exception) {
                         // Log.d(Consts.LOGTAG, logCategory + "AppUsageListByNameResponse onError:"+exception.toString());
-                        setContentView(m_graphicalView);
+                        refreshData();
                     }
                 };
 
