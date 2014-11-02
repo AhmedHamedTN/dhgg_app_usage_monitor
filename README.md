@@ -40,3 +40,8 @@ Therefore, only the original author can do this.
 I started writing this app as a way for me to learn about programming an Android App. 
 
 
+# TODO
+Move cloud back end to separate package.
+Move broadcastreceiver handler to separate package.
+Move Db handler to a separate data store package. :w
+

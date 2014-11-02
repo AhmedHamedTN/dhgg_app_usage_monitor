@@ -10,6 +10,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import com.dhgg.appusagemonitor.Consts;
 
 import com.dhgg.cloudbackend.AuthenticatorService;
 
@@ -17,9 +18,6 @@ import com.dhgg.cloudbackend.AuthenticatorService;
  * Static helper methods for working with the sync framework.
  */
 public class SyncUtils {
-	// Tag for logging
-	final static String TAG = "DHGG";
-
     private static final long SYNC_FREQUENCY = 60 * 120;  // 120 minutes (in seconds)
     private static final String CONTENT_AUTHORITY = SyncProvider.CONTENT_AUTHORITY;
 
@@ -29,6 +27,7 @@ public class SyncUtils {
      * @param context Context
      */
     public static void CreateSyncAccount(Context context) {
+        //Log.w(Consts.LOGTAG,"CreateSyncAccount::CreateSyncAccount - start");
 
         // Check if we've already set up an account
         // boolean setupComplete = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PREF_SETUP_COMPLETE, false);
