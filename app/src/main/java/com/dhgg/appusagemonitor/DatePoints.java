@@ -2,6 +2,7 @@ package com.dhgg.appusagemonitor;
 
 import java.util.ArrayList;
 import java.util.Date;
+import android.util.Log;
 
 /**
  * Helper class that
@@ -63,29 +64,23 @@ public class DatePoints {
 
         int l = 0;
         int c = 0;
-        while (l < first.length && second != null && c < second.length)
-        {
+        while (l < first.length && second != null && c < second.length) {
             Point lPoint = first[l];
             Point cPoint = second[c];
 
-            if (lPoint.x < cPoint.x)
-            {
-                //Log.w("DHGG","AppListFragment::openChart adding from localData "+lPoint.x);
-                data.add( lPoint );
+            if (lPoint.x < cPoint.x) {
+                //Log.w(Consts.LOGTAG, "AppListFragment::openChart adding from localData " + lPoint.x);
+                data.add(lPoint);
                 l++;
-            }
-            else if (lPoint.x > cPoint.x )
-            {
-                //Log.w("DHGG","AppListFragment::openChart adding from cloudData "+cPoint.x);
+            } else if (lPoint.x > cPoint.x ) {
+                //Log.w(Consts.LOGTAG,"AppListFragment::openChart adding from cloudData "+cPoint.x);
                 data.add( cPoint );
                 c++;
-            }
-            else
-            {
+            } else  {
                 // Data found in the cloud and on the local machine.
                 // Default to using the local data.
                 // May want to change to using cloud or summed data later.
-                //Log.w("DHGG","AppListFragment::openChart default from localData "+lPoint.x);
+                //Log.w(Consts.LOGTAG,"AppListFragment::openChart default from localData "+lPoint.x);
                 data.add(lPoint);
 
                 // Move to next item.
@@ -94,18 +89,16 @@ public class DatePoints {
             }
         }
 
-        while (l < first.length)
-        {
+        while (l < first.length) {
             Point lPoint = first[l];
-            //Log.w("DHGG","AppListFragment::openChart finishing up localData "+lPoint.x);
+            //Log.w(Consts.LOGTAG,"AppListFragment::openChart finishing up localData "+lPoint.x);
             data.add( lPoint );
             l++;
         }
 
-        while (second != null && c < second.length)
-        {
+        while (second != null && c < second.length) {
             Point cPoint = second[c];
-            //Log.w("DHGG","AppListFragment::openChart finishing up cloudData "+cPoint.x);
+            //Log.w(Consts.LOGTAG,"AppListFragment::openChart finishing up cloudData "+cPoint.x);
             data.add( cPoint );
             c++;
         }

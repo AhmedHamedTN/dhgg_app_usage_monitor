@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -70,6 +69,7 @@ public class HistoryPlotActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         String logCategory = "HistoryPlotActivity::onCreate: ";
+        //Log.i(Consts.LOGTAG, logCategory + " onCreate");
 
         // Put up the loading spinning icon
         setContentView(R.layout.activity_history_plot);

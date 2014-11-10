@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.util.Log;
 
 public class AppListFragment extends Fragment 
 {	
@@ -69,7 +70,7 @@ public class AppListFragment extends Fragment
 			    final String app_name = m_data_arr[ position ].description;
 			    final String packageName = m_data_arr[ position ].process_name;
 
-                //Log.d("DHGG", "AppListFragment::onItemClick "+app_name+" "+packageName);
+                //Log.d(Consts.LOGTAG, "AppListFragment::onItemClick "+app_name+" "+packageName);
 
                 Intent intent = new Intent(fActivity, HistoryPlotActivity.class);
                 intent.putExtra("app_name",app_name);

@@ -668,10 +668,12 @@ public class DbHandler extends SQLiteOpenHelper {
 		                 gcalendar.get( Calendar.DATE ) ;
 
 	    ArrayList<DataValue> yest_data = getData( "s_h_p_yest", app_name );
-	    if ( yest_data.size() > 0 )
-	    {
+	    if ( yest_data.size() > 0 ) {
 	    	data.add( new Point( yest_date, yest_data.get(0).value ) );
-	    }		
+	    }
+        else {
+            data.add( new Point( yest_date, 0) );
+        }
 		
 	    ArrayList<DataValue> today_data = getData( "s_h_p_today", app_name );
 	    if ( today_data.size() > 0 )
