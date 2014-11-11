@@ -107,16 +107,15 @@ public class BroadcastReceiverHandler extends BroadcastReceiver
 		m_db_handler.update_or_add( name, process_name );
 	}
 
-	private void logAppInfo(Context context)
-	{
+	private void logAppInfo(Context context) {
         String logCategory = "BroadcastReceiverHandler::logAppInfo: ";
 
-		// Get info about running task
+
 		ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		int num_tasks = 1;
 		List<ActivityManager.RecentTaskInfo> taskList = am.getRecentTasks(num_tasks, ActivityManager.RECENT_IGNORE_UNAVAILABLE);
-		if (taskList.size() < 1)
-		{
+		if (taskList.size() < 1) {
+            Log.w(Consts.LOGTAG,logCategory + "no recent tasks. cannot log App Info");
 			return;
 		}
 		

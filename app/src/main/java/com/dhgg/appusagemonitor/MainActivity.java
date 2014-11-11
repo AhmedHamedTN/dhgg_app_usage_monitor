@@ -3,11 +3,15 @@ package com.dhgg.appusagemonitor;
 import java.util.ArrayList;
 
 import android.accounts.AccountManager;
+import android.app.AlertDialog;
+import android.app.usage.UsageStats;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -17,6 +21,9 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import java.util.List;
+import android.app.usage.UsageStatsManager;
 
 import java.util.Date;
 
@@ -28,8 +35,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
-public class MainActivity extends FragmentActivity 
-{
+public class MainActivity extends FragmentActivity {
 	public static DbHandler m_db_handler;
     private AdView m_adView = null;
 
@@ -38,6 +44,7 @@ public class MainActivity extends FragmentActivity
 
 	public static String SHOW_CHART = "show_chart";
 	public static String SHOW_LOG = "show_log";
+    public static String ASK_FOR_USAGE_PERMISSION = "ask_for_usage_permission";
 
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
@@ -49,13 +56,14 @@ public class MainActivity extends FragmentActivity
 
 	boolean m_show_chart = false;
 	boolean m_show_log = false;
-	
 	final int m_max_data_size = 22;
 
 	private static final int REQUEST_ACCOUNT_PICKER = 2;
     public static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
 	private GoogleAccountCredential mCredential;
-	
+
+    UsageStatsHandler m_usage_handler;
+
 	// Content provider authority
     // Sync interval constants
 
@@ -214,9 +222,7 @@ public class MainActivity extends FragmentActivity
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         String logCategory = "MainActivity::onCreate: ";
-        //Log.w(Consts.LOGTAG, logCategory + "start");
-        long start = new Date().getTime();
-		super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);
 
         // Get account for sync-ing data, if needed
 		authenticate();
@@ -235,9 +241,13 @@ public class MainActivity extends FragmentActivity
             setup_admob_view();
         }
 
+        // Initialize UsageStatsHandler
+        m_usage_handler = new UsageStatsHandler(this, m_db_handler);
+
         long end = new Date().getTime();
         //Log.w(Consts.LOGTAG, "Elapsed Time In onCreate:" + (end-start));
         //Log.w(Consts.LOGTAG, "MainActivity::onCreate done");
+
 	}
 
 	@Override
@@ -258,7 +268,10 @@ public class MainActivity extends FragmentActivity
 		} else {
 			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
 		}
-		
+
+        if (m_usage_handler.getIsActive()) {
+            menu.findItem(R.id.item_show_log).setVisible(false);
+        }
 
 		return true;
 	}
@@ -349,14 +362,11 @@ public class MainActivity extends FragmentActivity
 	}
 	
 	public void onPause() {
-		// Check to see if we should send an initial message
-        m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
-        m_db_handler.update_or_add("screen_off", "screen_off");
 		super.onPause();
 
-        if (m_adView != null) {
-            m_adView.pause();
-        }
+        m_usage_handler.onPause();
+
+        if (m_adView != null) { m_adView.pause(); }
 	}
 
 	@Override
@@ -389,45 +399,77 @@ public class MainActivity extends FragmentActivity
 		else {
 			menu.findItem(R.id.item_add_sync_account).setEnabled(false);
 		}
-		
+
+        if (m_usage_handler.getIsActive()) {
+            menu.findItem(R.id.item_show_log).setVisible(false);
+        }
+
 		return super.onPrepareOptionsMenu(menu);
 	}
 	
 	@Override
 	public void onResume() {
         String logCategory = "MainActivity::onResume: ";
-        //Log.w(Consts.LOGTAG, logCategory + "start");
-        long start = new Date().getTime();
+        Log.w(Consts.LOGTAG, logCategory + "start");
 
-        // Need to start the broacasts
-        m_db_handler.update_or_add("screen_on", "screen_on");
-        m_db_handler.update_or_add("App Usage Monitor", "com.dhgg.appusagemonitor");
-        send_start_broadcast();
+        m_usage_handler.setPermission();
+        m_usage_handler.onResume();
 
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
 		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
 		m_show_log = ui_prefs.getBoolean(SHOW_LOG, false);
 		
 		refresh_screen();
-		super.onResume();
 
-        if (m_adView != null)
+        if (m_adView != null) {
             m_adView.resume();
-        long end = new Date().getTime();
-        //Log.w(Consts.LOGTAG, "Elapsed Time in onResume:" + (end-start));
-        //Log.w(Consts.LOGTAG, "MainActivity::onResume done");
+        }
+
+        super.onResume();
 	}
-	
+
+    private void showPermissionDialog() {
+        // 1. Instantiate an AlertDialog.Builder with its constructor
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // 2. Chain together various setter methods to set the dialog characteristics
+        builder.setMessage("Open Popup to Get Usage Permission")
+                .setTitle("Get permissions");
+
+        // Add the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+                m_usage_handler.getPermission();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+            }
+        });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
 	private void refresh_amount_screen() {
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
 		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
 		String hist_pref = ui_prefs.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
 		//Log.i(Consts.LOGTAG,"MainActivity::refresh_amount_screen hist_pref:"+hist_pref);
-		
-		// Get data to display
-		ArrayList<DataValue> data = m_db_handler.getData( hist_pref, "" );
-		DataValue[] data_arr = data.toArray(new DataValue[data.size()]);
-		
+
+        boolean askForPermission = ui_prefs.getBoolean( ASK_FOR_USAGE_PERMISSION, false );
+        if (askForPermission) {
+            showPermissionDialog();
+            return;
+        }
+
+        // Get data to display, possibly, from different sources
+        ArrayList<DataValue> data = m_usage_handler.getAccumulatedUsage(hist_pref);
+
+        DataValue[] data_arr = data.toArray(new DataValue[data.size()]);
     	DataValue[] normal_data_arr;
     	if ( m_show_chart ) {	
     		normal_data_arr = get_data_slices(data_arr);
@@ -463,6 +505,7 @@ public class MainActivity extends FragmentActivity
     }
 	
 	private void refresh_audit_screen() {
+
     	// allow only one type of lookup for now
 		String hist_pref = SHOW_HIST_PREF_24_H;
 
@@ -482,36 +525,18 @@ public class MainActivity extends FragmentActivity
     }
 
     private void refresh_screen() {
-		//Log.w(Consts.LOGTAG,"MainActivity::refresh_screen start l:"+m_show_log);
-        long start = new Date().getTime();
-
-		if (m_show_log) {
+		if (m_show_log && !m_usage_handler.getIsActive()) {
 			refresh_audit_screen();
 		} else {
 			refresh_amount_screen();
 		}
-
-        long end = new Date().getTime();
-        //Log.w(Consts.LOGTAG, "Elapsed Time in refresh_screen:" + (end-start));
-        //Log.w(Consts.LOGTAG, "MainActivity::refresh_screen done");
     }
 
-	private void send_start_broadcast() {
-        long start = new Date().getTime();
-
-	    // Send start message
-		Intent intent=new Intent( this, BroadcastReceiverHandler.class);
-		intent.setAction("dhgg.app.usage.monitor.start");
-		sendBroadcast(intent);
-
-        long end = new Date().getTime();
-        //Log.w(Consts.LOGTAG, "Elapsed Time in send_start_broadcast:" + (end-start));
-	}
-
 	public void sendData() {
-		// Get data to send
-		ArrayList<DataValue> data = m_db_handler.getData( SHOW_HIST_PREF_ALL, "" );
-		
+
+        // Get data to display, possibly, from different sources
+        ArrayList<DataValue> data = m_usage_handler.getAccumulatedUsage(SHOW_HIST_PREF_ALL);
+
 		String data_to_send = "";
 		data_to_send += "App Name   \tTime Spent Using\n";
 		for (DataValue dv : data)
