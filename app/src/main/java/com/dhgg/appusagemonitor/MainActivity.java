@@ -63,6 +63,7 @@ public class MainActivity extends FragmentActivity {
 	private GoogleAccountCredential mCredential;
 
     UsageStatsHandler m_usage_handler;
+    private boolean m_is_permission_dialog_open = false;
 
 	// Content provider authority
     // Sync interval constants
@@ -409,10 +410,16 @@ public class MainActivity extends FragmentActivity {
 	
 	@Override
 	public void onResume() {
+        super.onResume();
+
         String logCategory = "MainActivity::onResume: ";
-        Log.w(Consts.LOGTAG, logCategory + "start");
+        //Log.w(Consts.LOGTAG, logCategory + "start");
 
         m_usage_handler.setPermission();
+        if (m_usage_handler.needsPermission()) {
+            showPermissionDialog();
+            return;
+        }
         m_usage_handler.onResume();
 
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
@@ -424,32 +431,45 @@ public class MainActivity extends FragmentActivity {
         if (m_adView != null) {
             m_adView.resume();
         }
-
-        super.onResume();
 	}
 
     private void showPermissionDialog() {
-        // 1. Instantiate an AlertDialog.Builder with its constructor
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        // 2. Chain together various setter methods to set the dialog characteristics
-        builder.setMessage("Open Popup to Get Usage Permission")
+        // Prevent this dialog from being created multiple times
+        if (m_is_permission_dialog_open) {
+            return;
+        }
+
+        // Instantiate an AlertDialog.Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("This app requires permission to view \"Usage Access\".\n\nClick OK to open Settings.")
                 .setTitle("Get permissions");
 
-        // Add the buttons
+        // Add buttons (with callbacks)
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked OK button
-                m_usage_handler.getPermission();
+                m_is_permission_dialog_open = false;
+                m_usage_handler.openPermissionsPage();
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User cancelled the dialog
+                m_is_permission_dialog_open = false;
             }
         });
 
+        // Add dismiss listener to update flags on closing
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+             @Override
+             public void onDismiss(DialogInterface dialog) {
+                 m_is_permission_dialog_open = false;
+             }
+         });
+
         // Create the AlertDialog
+        m_is_permission_dialog_open = true;
         AlertDialog dialog = builder.create();
         dialog.show();
     }

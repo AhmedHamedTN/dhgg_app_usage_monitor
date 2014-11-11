@@ -49,7 +49,7 @@ public class UsageStatsHandler {
     }
 
     public ArrayList<DataValue> getAccumulatedUsage(String dateRange) {
-        String logCat = "UsageStatsHandler::getStats: ";
+        String logCat = "UsageStatsHandler::getAccumulatedUsage: ";
         if (!m_isAbleToRun) {
             return m_dbHandler.getData(dateRange, "");
         }
@@ -69,7 +69,7 @@ public class UsageStatsHandler {
             start = c.getTimeInMillis();
         }
 
-        Log.i(Consts.LOGTAG, logCat + " start:" + start + " end:" + end);
+        //Log.i(Consts.LOGTAG, logCat + " start:" + start + " end:" + end);
 
         List<UsageStats> myStats = m_usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, start, end);
         if (myStats.size() == 0) {
@@ -162,14 +162,16 @@ public class UsageStatsHandler {
         return m_isAbleToRun;
     }
 
-    public void getPermission() {
-        String logCat = "UsageStatsHandler::getPermission: ";
+    public boolean needsPermission() {
+        return (m_isAbleToRun && !m_hasPermission);
+    }
+
+    public void openPermissionsPage() {
+        String logCat = "UsageStatsHandler::openPermissionsPage: ";
         Log.w(Consts.LOGTAG, logCat + "start");
 
         Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
         m_context.startActivity(intent);
-
-        // TODO: set up handler for when this returns, so that we
     }
 
     public void setPermission() {
@@ -182,7 +184,7 @@ public class UsageStatsHandler {
         long start = end - 24 * 60 * 60 * 3600;
 
         m_usageStatsManager = (UsageStatsManager) m_context.getSystemService("usagestats");
-        Log.i(Consts.LOGTAG, logCat + " start:" + start + " end:" + end);
+        //Log.i(Consts.LOGTAG, logCat + " start:" + start + " end:" + end);
 
         SharedPreferences settings = m_context.getSharedPreferences(MainActivity.UI_PREFS, 0);
         SharedPreferences.Editor editor = settings.edit();
@@ -196,6 +198,7 @@ public class UsageStatsHandler {
         }
         editor.commit();
     }
+
 
     ///////////////////////////////////////////////////////
     // Functions to calculate app usage statistics
@@ -288,14 +291,14 @@ public class UsageStatsHandler {
         }
     }
 
-    int getTodayAsYYYYMMDD() {
+    private int getTodayAsYYYYMMDD() {
         GregorianCalendar gcalendar = new GregorianCalendar();
         return gcalendar.get(Calendar.YEAR) * 10000 +
                 (gcalendar.get(Calendar.MONTH) + 1) * 100 +
                 gcalendar.get(Calendar.DATE);
     }
 
-    int getYestAsYYYYMMDD() {
+    private int getYestAsYYYYMMDD() {
         GregorianCalendar gcalendar = new GregorianCalendar();
         gcalendar.add(Calendar.DATE, -1);
         return gcalendar.get(Calendar.YEAR) * 10000 +
@@ -303,13 +306,14 @@ public class UsageStatsHandler {
                 gcalendar.get(Calendar.DATE);
     }
 
-    int getTomorrowAsYYYYMMDD() {
+    private int getTomorrowAsYYYYMMDD() {
         GregorianCalendar gcalendar = new GregorianCalendar();
         gcalendar.add(Calendar.DATE, +1);
         return gcalendar.get(Calendar.YEAR) * 10000 +
                 (gcalendar.get(Calendar.MONTH) + 1) * 100 +
                 gcalendar.get(Calendar.DATE);
     }
+
 
     ///////////////////////////////////////////////////////
     // End
