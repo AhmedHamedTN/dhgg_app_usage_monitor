@@ -16,7 +16,7 @@ import android.util.Log;
 
 public class DbHandler extends SQLiteOpenHelper {
 	// Version number
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 	
     // Database name 
     private static final String DATABASE_NAME = "test_database";
@@ -191,8 +191,7 @@ public class DbHandler extends SQLiteOpenHelper {
 	    
     }
 	
-	private void create_history_table(SQLiteDatabase db)
-	{
+	private void create_history_table(SQLiteDatabase db) {
 		String DROP_INDEX = "DROP INDEX IF EXISTS history_name_idx";
 		String DROP_TABLE = "DROP TABLE IF EXISTS " + APP_HISTORY_TABLE;
 		
@@ -202,9 +201,9 @@ public class DbHandler extends SQLiteOpenHelper {
 	    		               DATE_COLUMN + " INTEGER," +
 	                           VALUE_COLUMN + " INTEGER )";
 	    String CREATE_INDEX = "CREATE INDEX IF NOT EXISTS history_name_idx on "+
-	                           APP_HISTORY_TABLE+" ("+NAME_COLUMN+")";  
-	    
-		try 
+	                           APP_HISTORY_TABLE+" ("+NAME_COLUMN+")";
+
+        try
 		{
 			db.beginTransaction();
 
@@ -213,14 +212,29 @@ public class DbHandler extends SQLiteOpenHelper {
 			
 		    db.execSQL( CREATE_TABLE );
 		    db.execSQL( CREATE_INDEX );
-		    
+
 		    db.setTransactionSuccessful();
 		}
 		finally
 		{
 			db.endTransaction();
-	    }	
+	    }
+
+        add_index_to_history_table(db);
 	}
+
+    private void add_index_to_history_table(SQLiteDatabase db) {
+        String CREATE_DATE_INDEX = "CREATE INDEX IF NOT EXISTS history_date_idx on "+
+                APP_HISTORY_TABLE+" ("+DATE_COLUMN+")";
+
+        try {
+            db.beginTransaction();
+            db.execSQL(CREATE_DATE_INDEX);
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
 
 	private void create_main_table(SQLiteDatabase db)
 	{
@@ -608,7 +622,7 @@ public class DbHandler extends SQLiteOpenHelper {
         {
         	data.add(0,entry.getValue());
         }
-        
+
         Collections.sort( data, new DataValueComparator());
         return data;
     }
@@ -984,6 +998,47 @@ public class DbHandler extends SQLiteOpenHelper {
         }
     }
 
+    public long getLastTimeStamp() {
+        Log.w(Consts.LOGTAG,"getLastTimeStamp");
+        String select_query
+                = "SELECT MAX(" + DATE_COLUMN + ")" +
+                "  FROM   " + APP_HISTORY_TABLE +
+                " ";
+
+        int max = 0;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        try {
+            db = this.getReadableDatabase();
+            cursor = db.rawQuery(select_query, null);
+
+            if (cursor.moveToFirst()) {
+                do {
+                    max = cursor.getInt( 0 );
+                } while (cursor.moveToNext());
+            }
+        }
+        finally {
+            if (cursor != null) {
+                //Log.i("DHGG","DbHandler::getHistoricalData closing the cursor");
+                cursor.close();
+            }
+        }
+
+        if (db != null) {
+            db.close();
+        }
+
+        if (max == 0) {
+            Log.w(Consts.LOGTAG, "return max="+ max);
+            return 0;
+        }
+
+        GregorianCalendar gcalendar = new GregorianCalendar(max / 10000, (max % 100)/ 100, max % 100);
+        Log.w(Consts.LOGTAG, "max="+ max + " date:"+ gcalendar.toString());
+        return gcalendar.getTimeInMillis();
+    }
+
     public ArrayList<TimeLog> getTimeLogFromTime(long lastAppDate, String lastAppName)
     {
     	// consolidate old data
@@ -1023,8 +1078,7 @@ public class DbHandler extends SQLiteOpenHelper {
 	}
     
     @Override
-	public void onUpgrade(SQLiteDatabase db, int old_version, int new_version) 
-	{
+	public void onUpgrade(SQLiteDatabase db, int old_version, int new_version)  {
 		// System.out.println("DbHandler::onUpgrade "+" "+old_version+" "+new_version);
 		// create new mapping table		
 		
@@ -1049,9 +1103,9 @@ public class DbHandler extends SQLiteOpenHelper {
 			// drop column from main table
 			drop_column( db );			
 		}
-		else if (old_version == 3 && new_version == 4)
-		{
-		
+        // From version 3 --> 4, added index for history mapping table
+		else if (old_version == 3 && new_version == 4) {
+            add_index_to_history_table(db);
 		}
 		else
 		{
@@ -1190,7 +1244,7 @@ public class DbHandler extends SQLiteOpenHelper {
     	update_or_add_to_mapping_table( name, process_name );
     }
     
-    private void update_or_add_to_mapping_table( String name, String process_name ) 
+    public void update_or_add_to_mapping_table( String name, String process_name )
     {
     	String search_name = name.replaceAll("'", "''");
 

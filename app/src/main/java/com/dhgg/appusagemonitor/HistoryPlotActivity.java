@@ -40,7 +40,7 @@ public class HistoryPlotActivity extends Activity {
     // Ideally, we'd use dependency injection to inject the object we want in.
     // DatePoints DatePoints = null;
     CloudBackendAsync m_cloudBackendAsync = null;
-    DbHandler m_dbHandler = null;
+    UsageStatsHandler m_usage_stats = null;
 
     private void refreshData() {
         String logCategory = "HistoryPlotActivity::refreshData: ";
@@ -101,8 +101,8 @@ public class HistoryPlotActivity extends Activity {
                 "MMM dd");
 
         // Get local data.
-        m_dbHandler = new DbHandler(this);
-        m_local_points = m_dbHandler.getHistoricalData( m_app_name );
+        m_usage_stats = new UsageStatsHandler(this, new DbHandler(this));
+        m_local_points = m_usage_stats.getDataForOneApp( m_app_name );
 
         // Get Cloud data.
         fetchCloudData();
