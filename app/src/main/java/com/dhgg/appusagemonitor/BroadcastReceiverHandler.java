@@ -16,14 +16,11 @@ import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-public class BroadcastReceiverHandler extends BroadcastReceiver
-{
+public class BroadcastReceiverHandler extends BroadcastReceiver {
 	private DbHandler m_db_handler;
-    private String LOGTAG = "DHGG";
-	
+
 	@Override
-	public void onReceive(Context context, Intent intent) 
-	{
+	public void onReceive(Context context, Intent intent) {
         String logCategory = "BroadcastReceiverHandler::onReceive: ";
 		m_db_handler = new DbHandler(context);
 		

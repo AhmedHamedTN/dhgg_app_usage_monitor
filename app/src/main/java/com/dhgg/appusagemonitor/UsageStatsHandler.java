@@ -25,6 +25,7 @@ import java.util.Map;
  * Class that handles the UsageStatsMonitor.
  */
 public class UsageStatsHandler {
+    private String DEFAULT_CAT = "UsageStatsHandler: ";
     private Context m_context;
     private DbHandler m_dbHandler;
     private boolean m_isAbleToRun = false;
