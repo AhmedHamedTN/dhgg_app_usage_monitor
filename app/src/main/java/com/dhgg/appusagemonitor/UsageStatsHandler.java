@@ -221,6 +221,7 @@ public class UsageStatsHandler {
             // Send start message
             Intent intent = new Intent(m_context, BroadcastReceiverHandler.class);
             intent.setAction("dhgg.app.usage.monitor.start");
+            m_context.sendBroadcast(intent);
         }
     }
 

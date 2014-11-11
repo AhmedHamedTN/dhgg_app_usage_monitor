@@ -91,11 +91,9 @@ public class BroadcastReceiverHandler extends BroadcastReceiver {
 		am.cancel(sender);
 	}
 
-	private void save_to_db(Context context, String name, String process_name)
-	{
+	private void save_to_db(Context context, String name, String process_name) {
         String logCategory = "BroadcastReceiverHandler::save_to_db: ";
-
-		//Log.w(LOGTAG,logCategory + "n:"+name+" p:"+process_name);
+		//Log.w(Consts.LOGTAG,logCategory + "n:"+name+" p:"+process_name);
 		if (name.isEmpty() || context == null || name.equals("App Usage Tracker"))
 		{
 			return;
