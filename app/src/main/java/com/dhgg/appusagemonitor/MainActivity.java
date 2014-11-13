@@ -30,6 +30,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 public class MainActivity extends FragmentActivity {
 	public static DbHandler m_db_handler;
     private Admob m_admob = null;
+    private Util m_util = null;
 
 	// User interface preferences
 	public static String UI_PREFS = "ui_prefs";
@@ -43,9 +44,6 @@ public class MainActivity extends FragmentActivity {
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
 	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";
 
-    private static String RUN_MODULUS = "run_modulus";
-    private static int SHOW_AD_INTERVAL = 1;
-
 	boolean m_show_chart = false;
 	boolean m_show_log = false;
 	final int m_max_data_size = 22;
@@ -56,9 +54,6 @@ public class MainActivity extends FragmentActivity {
 
     UsageStatsHandler m_usage_handler;
     private boolean m_is_permission_dialog_open = false;
-
-	// Content provider authority
-    // Sync interval constants
 
 	public boolean add_sync_account() {
 		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
@@ -93,69 +88,6 @@ public class MainActivity extends FragmentActivity {
 	    return true;
 	}
 	
-	public DataValue[] get_data_slices(DataValue[] data_arr) {
-		int num_values = data_arr.length;
-		float total = 0;
-		for ( int i = 0; i < num_values; i++ )
-		{
-			total += data_arr[i].value;
-		}
-		
-		int normal_data_arr_size = num_values;
-		if ( num_values > m_max_data_size )
-		{
-			normal_data_arr_size = m_max_data_size ;
-		}
-
-		DataValue[] normal_data_arr = new DataValue[ normal_data_arr_size ];
-		System.arraycopy( data_arr, 0, normal_data_arr, 0, normal_data_arr_size );
-		
-		int subtotal = 0;
-		for ( int i = 0; i < normal_data_arr_size; i++)
-		{
-			subtotal += normal_data_arr[ i ].value;
-			
-			float fraction = (float)normal_data_arr[ i ].value / total;
-			int percent = (int)(fraction * 100);
-			normal_data_arr[ i ].value = percent;
-		}
-		
-		if ( normal_data_arr_size == m_max_data_size)
-		{
-			float remaining = total - subtotal;
-			
-			float fraction = remaining / total;
-			
-			int percent = (int) ( fraction * 100);
-			
-			normal_data_arr[ normal_data_arr_size -1 ].value = percent;
-			normal_data_arr[ normal_data_arr_size -1 ].description = "Other ...";
-		}
-		
-		return normal_data_arr;
-	}
-
-	public String get_time_str( int time_in_seconds) {
-    	int total_secs = time_in_seconds;
-    	
-        int hours = total_secs / 3600;
-        int mins = (total_secs - (hours * 3600))/ 60;
-        int secs = total_secs - (hours * 3600) - (mins * 60);
-        
-        String time_str = "";
-        if (hours > 0)
-        {
-        	time_str += hours + "h ";
-        }
-        if (mins > 0)
-        {
-        	time_str += mins + "m ";
-        }
-        time_str += secs + "s";
-        
-    	return time_str;
-    }
-
 	protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
 	    //Log.w(Consts.LOGTAG,"MainActivity::onActivityResult");
   
@@ -188,8 +120,9 @@ public class MainActivity extends FragmentActivity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-        String logCategory = "MainActivity::onCreate: ";
         super.onCreate(savedInstanceState);
+
+        m_util = new Util();
 
         // Get account for sync-ing data, if needed
 		authenticate();
@@ -318,7 +251,8 @@ public class MainActivity extends FragmentActivity {
 		}
 		return true;
 	}
-	
+
+    @Override
 	public void onPause() {
 		super.onPause();
 
@@ -447,7 +381,7 @@ public class MainActivity extends FragmentActivity {
         DataValue[] data_arr = data.toArray(new DataValue[data.size()]);
     	DataValue[] normal_data_arr;
     	if ( m_show_chart ) {	
-    		normal_data_arr = get_data_slices(data_arr);
+    		normal_data_arr = m_util.get_data_slices(data_arr, m_max_data_size);
     	} else {
     		normal_data_arr = data_arr;
     	}
@@ -514,9 +448,8 @@ public class MainActivity extends FragmentActivity {
 
 		String data_to_send = "";
 		data_to_send += "App Name   \tTime Spent Using\n";
-		for (DataValue dv : data)
-		{
-			data_to_send += dv.description + " \t" + get_time_str(dv.value) + "\n";
+		for (DataValue dv : data) {
+			data_to_send += dv.description + " \t" + m_util.get_time_str(dv.value) + "\n";
 		}
 
 		Intent send_intent = new Intent(android.content.Intent.ACTION_SEND);
