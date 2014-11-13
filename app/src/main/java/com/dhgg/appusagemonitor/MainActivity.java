@@ -22,101 +22,74 @@ import android.widget.Toast;
 
 import java.util.Date;
 
+import com.dhgg.cloudbackend.SyncAccount;
 import com.dhgg.cloudbackend.SyncUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+
 
 public class MainActivity extends FragmentActivity {
-	public static DbHandler m_db_handler;
+
+    // Classes that compose this one.
+	private static DbHandler m_db_handler;
     private Admob m_admob = null;
     private Util m_util = null;
+    private SyncAccount m_syncAccount = null;
+    private UsageStatsHandler m_usage_handler;
 
-	// User interface preferences
+
+	// Tags used to save preferences
 	public static String UI_PREFS = "ui_prefs";
-
 	public static String SHOW_CHART = "show_chart";
 	public static String SHOW_LOG = "show_log";
     public static String ASK_FOR_USAGE_PERMISSION = "ask_for_usage_permission";
-
 	public static String SHOW_HIST_PREFS = "show_hist_prefs";
 	public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
 	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";
+    public static String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
 
-	boolean m_show_chart = false;
-	boolean m_show_log = false;
-	final int m_max_data_size = 22;
 
-	private static final int REQUEST_ACCOUNT_PICKER = 2;
-    public static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
-	private GoogleAccountCredential mCredential;
-
-    UsageStatsHandler m_usage_handler;
+    // Member variables
+	private boolean m_show_chart = false;
+	private boolean m_show_log = false;
     private boolean m_is_permission_dialog_open = false;
+    private final int m_max_data_size = 22;
+	private static final int REQUEST_ACCOUNT_PICKER = 2;
 
-	public boolean add_sync_account() {
-		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
 
-		// check if google services is up to date
-		int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-		if (isGoogleAvailable == ConnectionResult.SUCCESS)
-		{
-			// let user pick an account
-			super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-		}
-		else
-		{
-			String toast_msg = "Google Services is not up to date. Cannot create sync account.";
-    		Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_LONG);
-    		toast.show();
-		}
+    ///////////////////////////////////////////////////////
+    // Override methods
+    ///////////////////////////////////////////////////////
+    @Override
+    protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //Log.w(Consts.LOGTAG,"MainActivity::onActivityResult");
 
-	    return true; 
-	}
-	
-	public boolean authenticate() {
-	    // get account name from the shared pref
-		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
-		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
+        super.onActivityResult(requestCode, resultCode, data);
 
-		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
-		if (accountName != null) {
-		    SyncUtils.CreateSyncAccount(this);
-	    }
+        switch (requestCode) {
+            case REQUEST_ACCOUNT_PICKER:
+                if (data != null && data.getExtras() != null)  {
+                    // set the picked account name to the Credential
+                    String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                    m_syncAccount.getCredential().setSelectedAccountName(accountName);
 
-	    return true;
-	}
-	
-	protected final void onActivityResult(int requestCode, int resultCode, Intent data) {
-	    //Log.w(Consts.LOGTAG,"MainActivity::onActivityResult");
-  
-		super.onActivityResult(requestCode, resultCode, data);
+                    // save account name to shared pref
+                    SharedPreferences.Editor e = getSharedPreferences(
+                            PREF_KEY_ACCOUNT_NAME,
+                            Context.MODE_PRIVATE).edit();
+                    e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
+                    e.commit();
 
-		switch (requestCode) {
-		case REQUEST_ACCOUNT_PICKER:
-			if (data != null && data.getExtras() != null) 
-			{
-			    // set the picked account name to the mCredential
-				String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-			    mCredential.setSelectedAccountName(accountName);
-
-		        // save account name to shared pref
-		        SharedPreferences.Editor e = getSharedPreferences(
-		            PREF_KEY_ACCOUNT_NAME,
-		            Context.MODE_PRIVATE).edit();
-		        e.putString(PREF_KEY_ACCOUNT_NAME, accountName);
-		        e.commit();
-
-		        // Set up sync account
-				//Log.w(Consts.LOGTAG,"MainActivity::onActivityResult "+requestCode+" accountName: "+accountName);
-		        SyncUtils.CreateSyncAccount(this);
-		    }
-			break;
-        default:
-		    break;
-	    }
-	}
+                    // Set up sync account
+                    //Log.w(Consts.LOGTAG,"MainActivity::onActivityResult "+requestCode+" accountName: "+accountName);
+                    SyncUtils.CreateSyncAccount(this);
+                }
+                break;
+            default:
+                break;
+        }
+    }
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -124,8 +97,7 @@ public class MainActivity extends FragmentActivity {
 
         m_util = new Util();
 
-        // Get account for sync-ing data, if needed
-		authenticate();
+        m_syncAccount = new SyncAccount(this);
 
 		m_db_handler = new DbHandler(getApplicationContext());
 
@@ -246,7 +218,7 @@ public class MainActivity extends FragmentActivity {
 			refresh_screen();
 		break;
 		case R.id.item_add_sync_account:
-			add_sync_account();
+			showAccountPicker();
 		break;
 		}
 		return true;
@@ -322,6 +294,25 @@ public class MainActivity extends FragmentActivity {
         m_admob.onResume();
 	}
 
+
+    ///////////////////////////////////////////////////////
+    // Start of private class functions.
+    ///////////////////////////////////////////////////////
+    public void showAccountPicker() {
+        // check if google services is up to date
+        int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (isGoogleAvailable == ConnectionResult.SUCCESS) {
+            // let user pick an account
+            super.startActivityForResult(
+                    m_syncAccount.getCredential().newChooseAccountIntent(),
+                    REQUEST_ACCOUNT_PICKER);
+        } else {
+            String toast_msg = "Google Services is not up to date. Cannot create sync account.";
+            Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_LONG);
+            toast.show();
+        }
+    }
+
     private void showPermissionDialog() {
 
         // Prevent this dialog from being created multiple times
@@ -363,6 +354,46 @@ public class MainActivity extends FragmentActivity {
         dialog.show();
     }
 
+    private void showToast(String hist_pref, int data_returned_size) {
+        // Show a toast to indicate what we are displaying
+        String toast_msg = "Showing usage ...";
+        boolean show_toast = false;
+        if ( hist_pref.equals( SHOW_HIST_PREF_TODAY ) )
+        {
+            show_toast = true;
+            toast_msg = "Showing usage for today.";
+        }
+        else if ( hist_pref.equals( SHOW_HIST_PREF_24_H ) )
+        {
+            show_toast = true;
+            toast_msg = "Showing usage for last 24 hours.";
+        }
+        else if ( hist_pref.equals( SHOW_HIST_PREF_ALL ) )
+        {
+            show_toast = true;
+            toast_msg = "Showing usage for all history.";
+        }
+
+        if ( data_returned_size == 1)
+        {
+            show_toast = true;
+            toast_msg = "Welcome! Return later to see updated stats.";
+        }
+
+        if (m_show_log)
+        {
+            show_toast = true;
+            toast_msg = "Showing time log for last 24 hours.";
+        }
+
+        if ( show_toast )
+        {
+            Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+    }
+
 	private void refresh_amount_screen() {
 		SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
 		m_show_chart = ui_prefs.getBoolean(SHOW_CHART, false);
@@ -391,14 +422,11 @@ public class MainActivity extends FragmentActivity {
 		    // pass account to the activity 
 			SharedPreferences account_settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
 			String accountName = account_settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
-			if (accountName == null) 
-			{
+			if (accountName == null)  {
 	        	list_fragment.refresh_screen( normal_data_arr, m_show_chart, null);
-			}
-			else
-			{
-			    mCredential.setSelectedAccountName(accountName);
-	        	list_fragment.refresh_screen( normal_data_arr, m_show_chart, mCredential);
+			} else {
+			    m_syncAccount.getCredential().setSelectedAccountName(accountName);
+	        	list_fragment.refresh_screen( normal_data_arr, m_show_chart, m_syncAccount.getCredential());
 			}
     	}
 
@@ -410,7 +438,7 @@ public class MainActivity extends FragmentActivity {
     	update_screen_view();
     	
     	int data_returned_size = data_arr.length;
-    	show_toast(hist_pref, data_returned_size);
+    	showToast(hist_pref, data_returned_size);
     }
 	
 	private void refresh_audit_screen() {
@@ -430,7 +458,7 @@ public class MainActivity extends FragmentActivity {
     	update_screen_view();
     	
     	int data_returned_size = data_arr.length;
-    	show_toast(hist_pref, data_returned_size);
+    	showToast(hist_pref, data_returned_size);
     }
 
     private void refresh_screen() {
@@ -441,7 +469,7 @@ public class MainActivity extends FragmentActivity {
 		}
     }
 
-	public void sendData() {
+	private void sendData() {
 
         // Get data to display, possibly, from different sources
         ArrayList<DataValue> data = m_usage_handler.getAccumulatedUsage(SHOW_HIST_PREF_ALL);
@@ -510,46 +538,6 @@ public class MainActivity extends FragmentActivity {
 		FrameLayout layout = (FrameLayout) findViewById( chart_fragment_id );
 		layout.setLayoutParams( new LinearLayout.LayoutParams( LayoutParams.MATCH_PARENT, 0, 0f) );
 	}
-
-    public void show_toast(String hist_pref, int data_returned_size) {
-    	// Show a toast to indicate what we are displaying
-    	String toast_msg = "Showing usage ...";
-    	boolean show_toast = false;
-    	if ( hist_pref.equals( SHOW_HIST_PREF_TODAY ) )
-    	{
-    		show_toast = true;
-    		toast_msg = "Showing usage for today.";
-    	}
-    	else if ( hist_pref.equals( SHOW_HIST_PREF_24_H ) )
-    	{
-    		show_toast = true;
-    		toast_msg = "Showing usage for last 24 hours.";
-    	}
-    	else if ( hist_pref.equals( SHOW_HIST_PREF_ALL ) )
-    	{
-    		show_toast = true;
-    		toast_msg = "Showing usage for all history.";
-	    }
-    			
-    	if ( data_returned_size == 1)
-    	{
-			show_toast = true;
-			toast_msg = "Welcome! Return later to see updated stats.";
-    	}
-    	
-    	if (m_show_log)
-    	{
-    		show_toast = true;
-    		toast_msg = "Showing time log for last 24 hours.";
-    	}
-
-    	if ( show_toast )
-    	{
-    		Toast toast = Toast.makeText(getApplicationContext(), toast_msg, Toast.LENGTH_SHORT);
-    		toast.show();
-    	}
-    	
-    }
 
 	private void update_screen_view() {
 
