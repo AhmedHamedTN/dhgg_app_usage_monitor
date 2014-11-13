@@ -4,14 +4,12 @@ import java.util.ArrayList;
 
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
-import android.app.usage.UsageStats;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -22,22 +20,16 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import java.util.List;
-import android.app.usage.UsageStatsManager;
-
 import java.util.Date;
 
 import com.dhgg.cloudbackend.SyncUtils;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 public class MainActivity extends FragmentActivity {
 	public static DbHandler m_db_handler;
-    private AdView m_adView = null;
+    private Admob m_admob = null;
 
 	// User interface preferences
 	public static String UI_PREFS = "ui_prefs";
@@ -89,40 +81,14 @@ public class MainActivity extends FragmentActivity {
 	}
 	
 	public boolean authenticate() {
-        //Log.d(Consts.LOGTAG,"MainActivity::authenticate");
-        //Log.d(Consts.LOGTAG, "MainActivity::authenticate using auth="+ Consts.AUTH_AUDIENCE);
-
 	    // get account name from the shared pref
 		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
 		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
 
 		mCredential = GoogleAccountCredential.usingAudience(this, Consts.AUTH_AUDIENCE);
-		if (accountName == null) {
-
-            SharedPreferences prefTriedSync = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE);
-            boolean triedSync = prefTriedSync.getBoolean("TRIED_SYNC", false);
-
-            //Log.d(Consts.LOGTAG,"MainActivity::authenticate should we pick an account?" + triedSync);
-			if ( !triedSync )
-			{
-				// check if google services is up to date
-				int isGoogleAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-				if (isGoogleAvailable == ConnectionResult.SUCCESS)
-				{
-					// let user pick an account
-					//Log.d(Consts.LOGTAG,"MainActivity::authenticate pick account");
-					super.startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-				}
-				//Log.d(Consts.LOGTAG, "MainActivity::Google service status = "+isGoogleAvailable);
-			}
-		} 
-		else {
-			//Log.d(Consts.LOGTAG,"MainActivity::authenticate using known account");
+		if (accountName != null) {
 		    SyncUtils.CreateSyncAccount(this);
 	    }
-		SharedPreferences.Editor prefEditor = getSharedPreferences("TRIED_SYNC", Context.MODE_PRIVATE).edit();
-		prefEditor.putBoolean("TRIED_SYNC", true);
-		prefEditor.commit();
 
 	    return true;
 	}
@@ -234,13 +200,7 @@ public class MainActivity extends FragmentActivity {
 
 	    setup_fragments( savedInstanceState );
 
-        // Check intent.
-        // We may turn admob off when we are doing unit tests.
-        Intent intent = getIntent();
-        boolean setupAdmob = intent.getBooleanExtra("startAdmob", true);
-        if (setupAdmob) {
-            setup_admob_view();
-        }
+        setup_admob_view();
 
         // Initialize UsageStatsHandler
         m_usage_handler = new UsageStatsHandler(this, m_db_handler);
@@ -280,10 +240,7 @@ public class MainActivity extends FragmentActivity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-        if (m_adView != null)
-        {
-            m_adView.destroy();
-        }
+        m_admob.onDestroy();
 	}
 
 	@Override
@@ -367,7 +324,7 @@ public class MainActivity extends FragmentActivity {
 
         m_usage_handler.onPause();
 
-        if (m_adView != null) { m_adView.pause(); }
+        m_admob.onPause();
 	}
 
 	@Override
@@ -428,9 +385,7 @@ public class MainActivity extends FragmentActivity {
 		
 		refresh_screen();
 
-        if (m_adView != null) {
-            m_adView.resume();
-        }
+        m_admob.onResume();
 	}
 
     private void showPermissionDialog() {
@@ -580,47 +535,9 @@ public class MainActivity extends FragmentActivity {
 	}
 	
 	private void setup_admob_view() {
-
-        SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
-        int numTimesRun = ui_prefs.getInt(RUN_MODULUS, 0);
-        //Log.w(Consts.LOGTAG,"MainActivity::setup_admob_view numTimesRun="+numTimesRun);
-        if (numTimesRun < SHOW_AD_INTERVAL)
-        {
-            // Not showing the ad. Increment counter and exit.
-            numTimesRun++;
-
-            SharedPreferences.Editor uiPrefsEditor = ui_prefs.edit();
-            uiPrefsEditor.putInt(RUN_MODULUS,numTimesRun);
-            uiPrefsEditor.commit();
-
-            return;
-        }
-        else
-        {
-            // Showing the ad. Reset counter so it doesn't show next time.
-            // Allow function to continue.
-            SharedPreferences.Editor uiPrefsEditor = ui_prefs.edit();
-            uiPrefsEditor.putInt(RUN_MODULUS,0);
-            uiPrefsEditor.commit();
-        }
-
-        //Log.w(Consts.LOGTAG, "MainActivity::setup_admob_view start");
-        long start = new Date().getTime();
-
-        m_adView = new AdView(this);
-        m_adView.setAdSize(AdSize.BANNER);
-        m_adView.setAdUnitId("a150686c4e8460b");
+        Intent intent = getIntent();
         LinearLayout layout = (LinearLayout) findViewById(R.id.linear_layout_for_adview);
-        if (layout != null)
-        {
-            layout.addView(m_adView);
-            AdRequest adRequest = new AdRequest.Builder().build();
-			m_adView.loadAd(adRequest);
-		}
-
-        long end = new Date().getTime();
-        //Log.w(Consts.LOGTAG, "Elapsed Time in setup_admob_view:" + (end - start));
-        //Log.w(Consts.LOGTAG, "MainActivity::setup_admob_view done");
+        m_admob = new Admob(intent, this, layout);
 	}
 
 	private void setup_fragments( Bundle savedInstanceState ) {

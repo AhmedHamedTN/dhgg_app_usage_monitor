@@ -230,11 +230,6 @@ public class UsageStatsHandler {
     // Start of private class functions.
     ///////////////////////////////////////////////////////
     private void init() {
-        String logCat = "UsageStatsHandler::init: ";
-        if (!m_isAbleToRun) {
-            return;
-        }
-
         setPermission();
     }
 
