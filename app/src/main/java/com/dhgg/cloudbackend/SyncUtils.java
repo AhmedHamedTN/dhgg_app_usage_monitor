@@ -36,7 +36,7 @@ public class SyncUtils {
                 .getBoolean(MainActivity.SYNC_ACCOUNT_CREATED, false);
 
         if (syncAccountCreated) {
-            // return;
+            return;
         }
 
         // Create account, if it's missing. (Either first run, or user has deleted account.)
@@ -58,7 +58,7 @@ public class SyncUtils {
 
         // Do a sync now (useful for testing).
         // In general, it is not immediately needed.
-        if (true) {
+        if (false) {
             TriggerRefresh();
         }
 

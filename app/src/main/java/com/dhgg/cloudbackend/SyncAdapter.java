@@ -74,8 +74,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
 	@Override
 	public void onPerformSync(Account arg0, Bundle arg1, String arg2,
-			ContentProviderClient arg3, SyncResult arg4) 
-	{
+			ContentProviderClient arg3, SyncResult arg4) {
 		//Log.w(Consts.LOGTAG,"onPerformSync name:"+arg0.name+" type:"+arg0.type);
 		if (!authenticate(arg0.name))
 		{
@@ -92,7 +91,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		SharedPreferences settings = mContext.getSharedPreferences("CLOUD_INFO",0);
 		long last_app_date = settings.getLong("LAST_APP_DATE", 0);
 		String last_app_name = settings.getString("LAST_APP_NAME", "");
-		Log.w(Consts.LOGTAG,"SyncAdapter::makeRequest - saved last_app date:"+last_app_date+" name:"+last_app_name);
+		// Log.w(Consts.LOGTAG,"SyncAdapter::makeRequest - saved last_app date:"+last_app_date+" name:"+last_app_name);
 
 		// Use latest data.
 		DbHandler dbHandler = new DbHandler(mContext);
@@ -111,10 +110,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		int numLogs = data_arr.length;
 		for ( int i = 0; i < numLogs; i++ ) {
 			AppusagemonitorApiMessagesAppUsageRecord record = new AppusagemonitorApiMessagesAppUsageRecord();
+            /*
      	    Log.w(Consts.LOGTAG, "next item :" + data_arr[i].description +
                   " d:" + deviceName +
                   " s:" + data_arr[i].start_time +
                   " e:"+data_arr[i].end_time);
+            */
 
 			record.setAppName(data_arr[i].description);
 			record.setAppDate(data_arr[i].start_time);     // date
