@@ -9,16 +9,18 @@ import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import com.dhgg.appusagemonitor.Consts;
 
+import com.dhgg.appusagemonitor.MainActivity;
 import com.dhgg.cloudbackend.AuthenticatorService;
 
 /**
  * Static helper methods for working with the sync framework.
  */
 public class SyncUtils {
-    private static final long SYNC_FREQUENCY = 60 * 120;  // 120 minutes (in seconds)
+    private static final long SYNC_FREQUENCY = 60 * 60 * 2;  // 120 minutes (in seconds)
     private static final String CONTENT_AUTHORITY = SyncProvider.CONTENT_AUTHORITY;
 
     /**
@@ -30,35 +32,40 @@ public class SyncUtils {
         //Log.w(Consts.LOGTAG,"CreateSyncAccount::CreateSyncAccount - start");
 
         // Check if we've already set up an account
-        // boolean setupComplete = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PREF_SETUP_COMPLETE, false);
+        boolean syncAccountCreated = PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(MainActivity.SYNC_ACCOUNT_CREATED, false);
+
+        if (syncAccountCreated) {
+            // return;
+        }
 
         // Create account, if it's missing. (Either first run, or user has deleted account.)
-    	AuthenticatorService.SetContext(context);
+        AuthenticatorService.SetContext(context);
         Account account = AuthenticatorService.GetAccount();
         AccountManager accountManager = (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
         boolean newAccountAdded = accountManager.addAccountExplicitly(account, null, null);
-        
-        if (newAccountAdded)
-        {
-        	//Log.i(TAG,"SyncUtils::CreateSyncAccount Updating sync settings");
+
+        if (newAccountAdded) {
+            //Log.i(TAG,"SyncUtils::CreateSyncAccount Updating sync settings");
             // Inform the system that this account supports sync
             ContentResolver.setIsSyncable(account, CONTENT_AUTHORITY, 1);
             // Inform the system that this account is eligible for auto sync when the network is up
             ContentResolver.setSyncAutomatically(account, CONTENT_AUTHORITY, true);
             // Recommend a schedule for automatic synchronization. The system may modify this based
             // on other scheduled syncs and network utilization.
-            ContentResolver.addPeriodicSync(account, CONTENT_AUTHORITY, new Bundle(),SYNC_FREQUENCY);
+            ContentResolver.addPeriodicSync(account, CONTENT_AUTHORITY, new Bundle(), SYNC_FREQUENCY);
         }
 
-        // Schedule an initial sync if we detect problems with either our account or our local
-        // data has been deleted. (Note that it's possible to clear app data WITHOUT affecting
-        // the account list, so wee need to check both.)
-        if ( false ) // newAccountAdded )  // || !setupComplete)
-        {
+        // Do a sync now (useful for testing).
+        // In general, it is not immediately needed.
+        if (true) {
             TriggerRefresh();
-            //PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(PREF_SETUP_COMPLETE, true).commit();
         }
 
+        // Save preference that we do not need to create a new sync account.
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit().putBoolean(MainActivity.SYNC_ACCOUNT_CREATED, true)
+                .commit();
     }
 
     /**

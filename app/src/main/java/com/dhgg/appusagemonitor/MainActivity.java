@@ -48,6 +48,7 @@ public class MainActivity extends FragmentActivity {
 	public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
 	public static String SHOW_HIST_PREF_ALL = "s_h_p_all";
     public static String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
+    public static String SYNC_ACCOUNT_CREATED = "sync_account_created";
 
 
     // Member variables

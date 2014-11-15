@@ -21,6 +21,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -30,7 +31,6 @@ import android.util.Log;
  * app, using the Android sync adapter framework.
  */
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
-	// Tag for logging
 
     // Define variables to contain a content resolver instance
     ContentResolver mContentResolver;
@@ -86,10 +86,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         AppusagemonitorApiMessagesAppUsageInsertRequest request = makeRequest();
         sendRequest(request);
 	}
-	
-	private AppusagemonitorApiMessagesAppUsageInsertRequest makeRequest()
-	{
-		// Check preferences to see last update. 
+
+    private AppusagemonitorApiMessagesAppUsageInsertRequest makeRequest() {
+		// Check preferences to see last update.
 		SharedPreferences settings = mContext.getSharedPreferences("CLOUD_INFO",0);
 		long last_app_date = settings.getLong("LAST_APP_DATE", 0);
 		String last_app_name = settings.getString("LAST_APP_NAME", "");
@@ -105,17 +104,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	    List<AppusagemonitorApiMessagesAppUsageRecord> items = 
 	        new ArrayList<AppusagemonitorApiMessagesAppUsageRecord>();
 
+        // Get device name - send with each update
+        String deviceName = getDeviceName();
+
 	    // Package each item.
 		int numLogs = data_arr.length;
-		for ( int i = 0; i < numLogs; i++ )
-		{
+		for ( int i = 0; i < numLogs; i++ ) {
 			AppusagemonitorApiMessagesAppUsageRecord record = new AppusagemonitorApiMessagesAppUsageRecord();
-     	    //Log.d(Consts.LOGTAG, "next item :" + data_arr[i].description + " " + data_arr[i].start_time +" "+data_arr[i].end_time);
+     	    Log.w(Consts.LOGTAG, "next item :" + data_arr[i].description +
+                  " d:" + deviceName +
+                  " s:" + data_arr[i].start_time +
+                  " e:"+data_arr[i].end_time);
 
 			record.setAppName(data_arr[i].description);
 			record.setAppDate(data_arr[i].start_time);     // date
 			record.setAppDuration(data_arr[i].end_time);   // duration
-			record.setPackageName(data_arr[i].process_name); 
+			record.setPackageName(data_arr[i].process_name);
+            record.setPhoneName(deviceName);
 
 			items.add(record);
 		}
@@ -130,8 +135,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         return request;
 	}
 	
-	private void sendRequest(AppusagemonitorApiMessagesAppUsageInsertRequest request)
-	{
+	private void sendRequest(AppusagemonitorApiMessagesAppUsageInsertRequest request) {
         try {
         	// insert data
 			AppusagemonitorApiMessagesAppUsageResponseMessage result = mCloudBackend.insert(request);
@@ -141,7 +145,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			// Save this to shared pref
 			long appDate = result.getAppDate();
 			String appName = result.getAppName();
-			//Log.w(Consts.LOGTAG, "Last app date:"+appDate+" name:"+appName);
+			Log.w(Consts.LOGTAG, "Returned data:"+
+                    "Last app date:"+appDate+
+                    " name:"+appName+
+                    " phoneName:" + result.getPhoneName()
+            );
 			
 			if (appDate > 0)
 			{
@@ -161,8 +169,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	 *  Helper used to do google account authentication.
 	 *  Should be moved to provider.
 	 */
-	private boolean authenticate(String accountName)
-	{
+	private boolean authenticate(String accountName) {
 	    // create credential
 	    GoogleAccountCredential credential = GoogleAccountCredential.usingAudience(mContext, Consts.AUTH_AUDIENCE);
 		mCloudBackend = new CloudBackend();
@@ -173,4 +180,27 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	    return true; 
 	}
 
+
+    private String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return capitalize(model);
+        } else {
+            return capitalize(manufacturer) + " " + model;
+        }
+    }
+
+
+    private String capitalize(String s) {
+        if (s == null || s.length() == 0) {
+            return "";
+        }
+        char first = s.charAt(0);
+        if (Character.isUpperCase(first)) {
+            return s;
+        } else {
+            return Character.toUpperCase(first) + s.substring(1);
+        }
+    }
 }

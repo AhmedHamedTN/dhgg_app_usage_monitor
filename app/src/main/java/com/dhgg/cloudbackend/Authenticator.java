@@ -11,13 +11,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.dhgg.appusagemonitor.MainActivity;
+
 /*
  * Implement AbstractAccountAuthenticator and stub out all
  * of its methods
  */
 public class Authenticator extends AbstractAccountAuthenticator {
 
-    private static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
 	public static Context mContext;
 
     // Simple constructor
@@ -98,9 +99,10 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
             if (removalAllowed) {
 		        SharedPreferences.Editor e = mContext.getSharedPreferences(
-		            PREF_KEY_ACCOUNT_NAME,
+                        MainActivity.PREF_KEY_ACCOUNT_NAME,
 		            Context.MODE_PRIVATE).edit();
-		        e.putString(PREF_KEY_ACCOUNT_NAME, null);
+		        e.putString(MainActivity.PREF_KEY_ACCOUNT_NAME, null);
+                e.putBoolean(MainActivity.SYNC_ACCOUNT_CREATED, false);
 		        e.commit();
 		        
 		        
