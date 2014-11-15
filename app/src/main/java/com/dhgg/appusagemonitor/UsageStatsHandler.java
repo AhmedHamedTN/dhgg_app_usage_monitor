@@ -32,6 +32,10 @@ public class UsageStatsHandler {
     private boolean m_hasPermission = false;
     private UsageStatsManager m_usageStatsManager;
 
+
+    ///////////////////////////////////////////////////////
+    // Public functions
+    ///////////////////////////////////////////////////////
     public UsageStatsHandler(Context context, DbHandler dbHandler) {
         String logCat = "UsageStatsHandler";
         m_context = context;
@@ -265,29 +269,6 @@ public class UsageStatsHandler {
                gcal.get( Calendar.DATE ) ;
     }
 
-    private void updateAppToProcessCache(){
-        ActivityManager am=(ActivityManager)m_context.getSystemService(Context.ACTIVITY_SERVICE);
-        PackageManager pm=m_context.getPackageManager();
-        List<ActivityManager.RunningAppProcessInfo>list2=am.getRunningAppProcesses();
-        int num_processes=list2.size();
-        for(int i=0;i<num_processes;i++){
-            ActivityManager.RunningAppProcessInfo info=list2.get(i);
-
-            String processName=info.processName;
-            try{
-                CharSequence c = pm.getApplicationLabel(
-                    pm.getApplicationInfo(
-                    processName,
-                    PackageManager.GET_META_DATA));
-
-                    String appName=c.toString();
-
-                // save this to db for future casting
-                m_dbHandler.update_or_add_to_mapping_table(appName, processName);
-            }catch(Exception e){}
-        }
-    }
-
     private int getTodayAsYYYYMMDD() {
         GregorianCalendar gcalendar = new GregorianCalendar();
         return gcalendar.get(Calendar.YEAR) * 10000 +
@@ -309,6 +290,29 @@ public class UsageStatsHandler {
         return gcalendar.get(Calendar.YEAR) * 10000 +
                 (gcalendar.get(Calendar.MONTH) + 1) * 100 +
                 gcalendar.get(Calendar.DATE);
+    }
+
+    private void updateAppToProcessCache(){
+        ActivityManager am=(ActivityManager)m_context.getSystemService(Context.ACTIVITY_SERVICE);
+        PackageManager pm=m_context.getPackageManager();
+        List<ActivityManager.RunningAppProcessInfo>list2=am.getRunningAppProcesses();
+        int num_processes=list2.size();
+        for(int i=0;i<num_processes;i++){
+            ActivityManager.RunningAppProcessInfo info=list2.get(i);
+
+            String processName=info.processName;
+            try{
+                CharSequence c = pm.getApplicationLabel(
+                        pm.getApplicationInfo(
+                                processName,
+                                PackageManager.GET_META_DATA));
+
+                String appName=c.toString();
+
+                // save this to db for future casting
+                m_dbHandler.update_or_add_to_mapping_table(appName, processName);
+            }catch(Exception e){}
+        }
     }
 
 
