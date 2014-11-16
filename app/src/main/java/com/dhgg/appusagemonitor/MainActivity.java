@@ -36,6 +36,7 @@ public class MainActivity extends FragmentActivity {
     private Util m_util = null;
     private SyncAccount m_syncAccount = null;
     private UsageStatsHandler m_usage_handler;
+    private Menu m_optionsMenu;
 
 
 	// Tags used to save preferences
@@ -118,32 +119,6 @@ public class MainActivity extends FragmentActivity {
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// use an inflater to populate the ActionBar with items
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.layout.main_menu, menu);
-		
-		
-		//Log.w(Consts.LOGTAG, "MainActivity::onCreateOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
-		if ( !m_show_chart ) {
-			menu.findItem(R.id.item_show_chart).setTitle("Chart");
-			if ( !m_show_log ) {
-				menu.findItem(R.id.item_show_log).setTitle("Itemized");
-			} else {
-				menu.findItem(R.id.item_show_log).setTitle("Summary");
-			}
-		} else {
-			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
-		}
-
-        if (m_usage_handler.getIsActive()) {
-            menu.findItem(R.id.item_show_log).setVisible(false);
-        }
-
-		return true;
-	}
-	
-	@Override
 	public void onDestroy() {
 		super.onDestroy();
         m_admob.onDestroy();
@@ -222,6 +197,9 @@ public class MainActivity extends FragmentActivity {
 			showAccountPicker();
 		break;
 		}
+
+        updateTimeRangeMenu();
+
 		return true;
 	}
 
@@ -234,12 +212,38 @@ public class MainActivity extends FragmentActivity {
         m_admob.onPause();
 	}
 
-	@Override
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+		//Everything done in onPrepareOptionsMenu
+        m_optionsMenu = menu;
+		return true;
+	}
+
+    private void updateTimeRangeMenu() {
+        SharedPreferences ui_prefs = getSharedPreferences( UI_PREFS, 0);
+        String hist_pref = ui_prefs.getString( SHOW_HIST_PREFS, SHOW_HIST_PREF_ALL );
+        m_optionsMenu.findItem(R.id.show_today).setEnabled(true);
+        m_optionsMenu.findItem(R.id.show_24_hours).setEnabled(true);
+        m_optionsMenu.findItem(R.id.show_all).setEnabled(true);
+        if ( hist_pref.equals( SHOW_HIST_PREF_TODAY ) ) {
+            m_optionsMenu.findItem(R.id.show_today).setEnabled(false);
+        } else if ( hist_pref.equals( SHOW_HIST_PREF_24_H ) ) {
+            m_optionsMenu.findItem(R.id.show_24_hours).setEnabled(false);
+        } else if ( hist_pref.equals( SHOW_HIST_PREF_ALL ) )    {
+            m_optionsMenu.findItem(R.id.show_all).setEnabled(false);
+        }
+    }
+
+    @Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
+        Log.w(Consts.LOGTAG,"MainActivity::onPrepareOptionsMenu");
+        menu.clear();
 	    getMenuInflater().inflate(R.layout.main_menu, menu);
-	    	 	
-		//Log.w(Consts.LOGTAG,"MainActivity::onPrepareOptionsMenu c:"+m_show_chart+" l:"+m_show_log);
+
+        // Handle updating the time range
+        updateTimeRangeMenu();
+
+        // Handle updating the view (chart, audit, summary ?) ...
 		if ( m_show_chart ) {
 			menu.findItem(R.id.item_show_chart).setTitle("Hide Chart");
 			menu.findItem(R.id.item_show_log).setTitle("Show Itemized");
@@ -247,27 +251,30 @@ public class MainActivity extends FragmentActivity {
 		} else {
 			menu.findItem(R.id.item_show_chart).setTitle("Chart");
 		    
-			if ( !m_show_log ) {
-				menu.findItem(R.id.item_show_log).setTitle("Show Itemized");
+			if ( m_show_log ) {
+                menu.findItem(R.id.item_show_log).setTitle("Summary");
 			} else {
-				menu.findItem(R.id.item_show_log).setTitle("Summary");
+                menu.findItem(R.id.item_show_log).setTitle("Show Itemized");
 			}
 		}
-		
-	    // get account name from the shared pref
-		SharedPreferences settings = getSharedPreferences(PREF_KEY_ACCOUNT_NAME,Context.MODE_PRIVATE);
-		String accountName = settings.getString(PREF_KEY_ACCOUNT_NAME, null);	
-		//Log.i(Consts.LOGTAG,"MainActivity::onCreateOptions toggling update sync visibility for: "+accountName);
-		if (accountName == null) {
-			menu.findItem(R.id.item_add_sync_account).setEnabled(true);
-		}
-		else {
-			menu.findItem(R.id.item_add_sync_account).setEnabled(false);
-		}
 
+        // Handle updating sensitivity of sync account.
+        if (m_syncAccount.getHasAccount()) {
+            // If there is an account, disable button to get one.
+            menu.findItem(R.id.item_add_sync_account).setEnabled(false);
+            menu.findItem(R.id.item_add_sync_account).setVisible(false);
+        } else {
+            // If there is no account, enable button to get one.
+            menu.findItem(R.id.item_add_sync_account).setEnabled(true);
+            menu.findItem(R.id.item_add_sync_account).setVisible(true);
+        }
+
+        // If new usage handler is active, do not let users do audit.
         if (m_usage_handler.getIsActive()) {
+            menu.findItem(R.id.item_show_log).setEnabled(false);
             menu.findItem(R.id.item_show_log).setVisible(false);
         }
+
 
 		return super.onPrepareOptionsMenu(menu);
 	}
