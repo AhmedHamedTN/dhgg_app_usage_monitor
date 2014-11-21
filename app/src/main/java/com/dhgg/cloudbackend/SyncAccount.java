@@ -44,7 +44,9 @@ public class SyncAccount {
 	}
 
     private String getAccountName() {
-        SharedPreferences settings = m_context.getSharedPreferences(MainActivity.PREF_KEY_ACCOUNT_NAME, Context.MODE_PRIVATE);
+        SharedPreferences settings = m_context.getSharedPreferences(
+                MainActivity.PREF_KEY_ACCOUNT_NAME, Context.MODE_PRIVATE);
+
         String accountName = settings.getString(MainActivity.PREF_KEY_ACCOUNT_NAME, null);
         return accountName;
     }

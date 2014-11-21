@@ -275,6 +275,11 @@ public class DbHandler extends SQLiteOpenHelper {
         }
     }
 
+
+    ///////////////////////////////////////////////////////
+    // Writing to db
+    ///////////////////////////////////////////////////////
+
     private void add_data(String name, String process_name) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -307,11 +312,6 @@ public class DbHandler extends SQLiteOpenHelper {
             db.close();
         }
     }
-
-
-    ///////////////////////////////////////////////////////
-    // Writing to db
-    ///////////////////////////////////////////////////////
 
     private void consolidate_old_data() {
         GregorianCalendar gcalendar = new GregorianCalendar();

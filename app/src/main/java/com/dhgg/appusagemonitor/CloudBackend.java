@@ -69,10 +69,14 @@ public class CloudBackend {
     };
     */
 
-    return updateBuilder( new Appusagemonitor.Builder(
-		AndroidHttp.newCompatibleTransport(), 
-		new GsonFactory(), 
-		gac), Consts.LOCAL_ANDROID_RUN).build();
+    return updateBuilder(
+        new Appusagemonitor.Builder(
+            AndroidHttp.newCompatibleTransport(),
+            new GsonFactory(),
+            gac),
+        Consts.LOCAL_ANDROID_RUN)
+        .setApplicationName(Consts.PROJECT_ID)
+        .build();
 }
   
 public static <B extends AbstractGoogleClient.Builder> B updateBuilder(B builder, boolean is_local_run) 

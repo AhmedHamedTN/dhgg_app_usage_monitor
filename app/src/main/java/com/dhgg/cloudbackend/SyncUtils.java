@@ -62,7 +62,7 @@ public class SyncUtils {
             TriggerRefresh();
         }
 
-        // Save preference that we do not need to create a new sync account.
+        // Save preference so that we do not need to create a new sync account.
         PreferenceManager.getDefaultSharedPreferences(context)
                 .edit().putBoolean(MainActivity.SYNC_ACCOUNT_CREATED, true)
                 .commit();

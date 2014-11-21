@@ -211,7 +211,7 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        Log.w(Consts.LOGTAG, "MainActivity::onPrepareOptionsMenu");
+        //Log.w(Consts.LOGTAG, "MainActivity::onPrepareOptionsMenu");
         menu.clear();
         getMenuInflater().inflate(R.layout.main_menu, menu);
 
