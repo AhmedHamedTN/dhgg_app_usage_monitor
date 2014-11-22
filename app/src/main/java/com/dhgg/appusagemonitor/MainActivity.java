@@ -81,11 +81,6 @@ public class MainActivity extends FragmentActivity {
 
         // Initialize UsageStatsHandler
         m_usage_handler = new UsageStatsHandler(this, m_db_handler);
-
-        long end = new Date().getTime();
-        //Log.w(Consts.LOGTAG, "Elapsed Time In onCreate:" + (end-start));
-        //Log.w(Consts.LOGTAG, "MainActivity::onCreate done");
-
     }
 
     @Override

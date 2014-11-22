@@ -284,9 +284,8 @@ public class DbHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         GregorianCalendar gcalendar = new GregorianCalendar();
-        int date = gcalendar.get(Calendar.YEAR) * 10000 +
-                (gcalendar.get(Calendar.MONTH) + 1) * 100 +
-                gcalendar.get(Calendar.DATE);
+        DateHandler dateHandler = new DateHandler();
+        int date = dateHandler.getYYYYMMDD(gcalendar);
 
         // Set up the times with a minimum display time of 1 second.
         long time = System.currentTimeMillis();
@@ -769,7 +768,8 @@ public class DbHandler extends SQLiteOpenHelper {
     }
 
     public Point[] getHistoricalData(String app_name) {
-        //Log.w("DHGG","getHistoricalData a:"+app_name);
+        String logCat = "DbHandler::getHistoricalData: ";
+        //Log.w(Consts.LOGTAG,logCat + app_name);
         app_name = app_name.replaceAll("'", "''");
         ArrayList<Point> data = new ArrayList<Point>();
 
@@ -794,11 +794,12 @@ public class DbHandler extends SQLiteOpenHelper {
                     int value = cursor.getInt(1) / 1000;
 
                     data.add(new Point(date, value));
+                    //Log.i(Consts.LOGTAG, logCat + " adding point " + date + " " + value);
                 } while (cursor.moveToNext());
             }
         } finally {
             if (cursor != null) {
-                //Log.i("DHGG","DbHandler::getHistoricalData closing the cursor");
+                Log.i(Consts.LOGTAG, logCat + "closing the cursor");
                 cursor.close();
             }
         }
@@ -808,14 +809,12 @@ public class DbHandler extends SQLiteOpenHelper {
         }
 
         // Add data for today as well.
-        GregorianCalendar gcalendar = new GregorianCalendar();
-        int today_date = gcalendar.get(Calendar.YEAR) * 10000 +
-                (gcalendar.get(Calendar.MONTH) + 1) * 100 +
-                gcalendar.get(Calendar.DATE);
-        gcalendar.add(Calendar.DATE, -1);
-        int yest_date = gcalendar.get(Calendar.YEAR) * 10000 +
-                (gcalendar.get(Calendar.MONTH) + 1) * 100 +
-                gcalendar.get(Calendar.DATE);
+        DateHandler dateHandler = new DateHandler();
+        GregorianCalendar gcal = new GregorianCalendar();
+        int today_date = dateHandler.getYYYYMMDD(gcal);
+
+        gcal.add(Calendar.DATE, -1);
+        int yest_date = dateHandler.getYYYYMMDD(gcal);
 
         ArrayList<DataValue> yest_data = getData("s_h_p_yest", app_name);
         if (yest_data.size() > 0) {
