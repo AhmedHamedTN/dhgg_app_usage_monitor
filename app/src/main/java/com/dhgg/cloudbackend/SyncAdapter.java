@@ -12,6 +12,7 @@ import com.dhgg.appusagemonitor.CloudBackend;
 import com.dhgg.appusagemonitor.Consts;
 import com.dhgg.appusagemonitor.DbHandler;
 import com.dhgg.appusagemonitor.TimeLog;
+import com.dhgg.appusagemonitor.UsageStatsHandler;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 import android.accounts.Account;
@@ -95,8 +96,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
 		// Use latest data.
 		DbHandler dbHandler = new DbHandler(mContext);
+        UsageStatsHandler usageStatsHandler = new UsageStatsHandler(mContext, dbHandler);
 
-		ArrayList<TimeLog> data = dbHandler.getTimeLogFromTime(last_app_date, last_app_name);
+		ArrayList<TimeLog> data = usageStatsHandler.getTimeLogFromTime(last_app_date, last_app_name);
 		TimeLog[] data_arr = data.toArray(new TimeLog[data.size()]);
 		
 		// Set up items to send to cloud backend.
@@ -137,6 +139,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 	
 	private void sendRequest(AppusagemonitorApiMessagesAppUsageInsertRequest request) {
+
+        if (request.getItems().isEmpty()) {
+            //Log.i(Consts.LOGTAG,"sendRequest: No items to send. exiting now.");
+            return;
+        }
+
         try {
         	// insert data
 			AppusagemonitorApiMessagesAppUsageResponseMessage result = mCloudBackend.insert(request);

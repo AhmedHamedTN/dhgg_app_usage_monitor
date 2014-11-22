@@ -25,7 +25,6 @@ import java.util.Map;
  * Class that handles the UsageStatsMonitor.
  */
 public class UsageStatsHandler {
-    private String DEFAULT_CAT = "UsageStatsHandler: ";
     private Context m_context;
     private DbHandler m_dbHandler;
     private boolean m_isAbleToRun = false;
@@ -114,7 +113,7 @@ public class UsageStatsHandler {
         if (!m_isAbleToRun) {
             return m_dbHandler.getHistoricalData(appName);
         }
-        Log.i(Consts.LOGTAG, logCat + "looking for "+appName);
+        //Log.i(Consts.LOGTAG, logCat + "looking for "+appName);
 
         long end = System.currentTimeMillis();
         long start = 0;
@@ -161,6 +160,52 @@ public class UsageStatsHandler {
 
         Point[] point_arr = data.toArray(new Point[data.size()]);
         return point_arr;
+    }
+
+    public ArrayList<TimeLog> getTimeLogFromTime(long lastAppDate, String lastAppName) {
+        String logCat = "UsageStatsHandler::getTimeLogFromTime ";
+        if (!m_isAbleToRun) {
+            Log.w(Consts.LOGTAG, logCat + "getTimeLogFromTime calling old dbHandler");
+            return m_dbHandler.getTimeLogFromTime(lastAppDate, lastAppName);
+        }
+
+        // Need to figure out how this time interval works.
+        // Want to do updates using a sliding range
+        // and only do updates for a day once.
+        GregorianCalendar gcal = new GregorianCalendar();
+        DateHandler dateHandler =  new DateHandler();
+        long end = (dateHandler.getStartOfDayTodayMs() -1); // get data up to end of day yesterday
+        long start = dateHandler.getMillisFromYYYYMMDD(lastAppDate);
+        //Log.w(Consts.LOGTAG, "Getting data from start :" + start + " to end: " + end);
+        List<UsageStats> myStats = m_usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
+
+        ArrayList<TimeLog> returnData = new ArrayList<TimeLog>();
+        Map<String, String> packageToAppMap = new HashMap<String, String>();
+        for (int i = 0; i < myStats.size(); ++i) {
+            String packageName = myStats.get(i).getPackageName();
+            String appName;
+            if (packageToAppMap.containsKey(packageName)) {
+                appName = packageToAppMap.get(packageName);
+            } else {
+                appName = getAppName(packageName);
+                packageToAppMap.put(packageName, appName);
+            }
+
+            /*
+            Log.w(Consts.LOGTAG, "Creating log for "+
+                    getYYYYMMDDFromMs(myStats.get(i).getLastTimeStamp()) + " - " +
+                    myStats.get(i).getTotalTimeInForeground() / 1000  + ", " +
+                    appName);
+            */
+            TimeLog t = new TimeLog(
+                    appName,
+                    packageName,
+                    getYYYYMMDDFromMs(myStats.get(i).getLastTimeStamp()),
+                    myStats.get(i).getTotalTimeInForeground() / 1000);
+            returnData.add(t);
+        }
+
+        return returnData;
     }
 
     public boolean getIsActive() {
@@ -260,17 +305,16 @@ public class UsageStatsHandler {
         return appName;
     }
 
-    private int getYYYYMMDDFromMs(long timeInMillis) {
-        GregorianCalendar gcal = new GregorianCalendar();
-        gcal.setTimeInMillis(timeInMillis);
-
-        return gcal.get( Calendar.YEAR ) * 10000 +
-               (gcal.get( Calendar.MONTH ) + 1 )  * 100 +
-               gcal.get( Calendar.DATE ) ;
-    }
-
     private int getTodayAsYYYYMMDD() {
         GregorianCalendar gcalendar = new GregorianCalendar();
+        return gcalendar.get(Calendar.YEAR) * 10000 +
+                (gcalendar.get(Calendar.MONTH) + 1) * 100 +
+                gcalendar.get(Calendar.DATE);
+    }
+
+    private int getTomorrowAsYYYYMMDD() {
+        GregorianCalendar gcalendar = new GregorianCalendar();
+        gcalendar.add(Calendar.DATE, +1);
         return gcalendar.get(Calendar.YEAR) * 10000 +
                 (gcalendar.get(Calendar.MONTH) + 1) * 100 +
                 gcalendar.get(Calendar.DATE);
@@ -284,12 +328,13 @@ public class UsageStatsHandler {
                 gcalendar.get(Calendar.DATE);
     }
 
-    private int getTomorrowAsYYYYMMDD() {
-        GregorianCalendar gcalendar = new GregorianCalendar();
-        gcalendar.add(Calendar.DATE, +1);
-        return gcalendar.get(Calendar.YEAR) * 10000 +
-                (gcalendar.get(Calendar.MONTH) + 1) * 100 +
-                gcalendar.get(Calendar.DATE);
+    private int getYYYYMMDDFromMs(long timeInMillis) {
+        GregorianCalendar gcal = new GregorianCalendar();
+        gcal.setTimeInMillis(timeInMillis);
+
+        return gcal.get( Calendar.YEAR ) * 10000 +
+                (gcal.get( Calendar.MONTH ) + 1 )  * 100 +
+                gcal.get( Calendar.DATE ) ;
     }
 
     private void updateAppToProcessCache(){
