@@ -44,10 +44,12 @@ public class MainActivity extends FragmentActivity {
     public static String SHOW_CHART = "show_chart";
     public static String SHOW_LOG = "show_log";
     public static String ASK_FOR_USAGE_PERMISSION = "ask_for_usage_permission";
+
     public static String SHOW_HIST_PREFS = "show_hist_prefs";
     public static String SHOW_HIST_PREF_TODAY = "s_h_p_today";
     public static String SHOW_HIST_PREF_24_H = "s_h_p_24h";
     public static String SHOW_HIST_PREF_ALL = "s_h_p_all";
+
     public static String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
     public static String SYNC_ACCOUNT_CREATED = "sync_account_created";
 
@@ -239,8 +241,9 @@ public class MainActivity extends FragmentActivity {
             menu.findItem(R.id.item_add_sync_account).setVisible(true);
         }
 
-        // If new usage handler is active, do not let users do audit.
+        // If new usage handler is active, block some things.
         if (m_usage_handler.getIsActive()) {
+            // Block audit screen
             menu.findItem(R.id.item_show_log).setEnabled(false);
             menu.findItem(R.id.item_show_log).setVisible(false);
         }
@@ -550,12 +553,28 @@ public class MainActivity extends FragmentActivity {
         m_optionsMenu.findItem(R.id.show_today).setEnabled(true);
         m_optionsMenu.findItem(R.id.show_24_hours).setEnabled(true);
         m_optionsMenu.findItem(R.id.show_all).setEnabled(true);
-        if (hist_pref.equals(SHOW_HIST_PREF_TODAY)) {
-            m_optionsMenu.findItem(R.id.show_today).setEnabled(false);
-        } else if (hist_pref.equals(SHOW_HIST_PREF_24_H)) {
+
+        if (m_usage_handler.getIsActive()) {
+            // Block 24 hour look up
             m_optionsMenu.findItem(R.id.show_24_hours).setEnabled(false);
-        } else if (hist_pref.equals(SHOW_HIST_PREF_ALL)) {
-            m_optionsMenu.findItem(R.id.show_all).setEnabled(false);
+            m_optionsMenu.findItem(R.id.show_24_hours).setVisible(false);
+
+            if (hist_pref.equals(SHOW_HIST_PREF_TODAY)) {
+                m_optionsMenu.findItem(R.id.show_today).setEnabled(false);
+            } else if (hist_pref.equals(SHOW_HIST_PREF_24_H)) {
+                m_optionsMenu.findItem(R.id.show_today).setEnabled(false);
+                //m_optionsMenu.findItem(R.id.show_24_hours).setEnabled(false);
+            } else if (hist_pref.equals(SHOW_HIST_PREF_ALL)) {
+                m_optionsMenu.findItem(R.id.show_all).setEnabled(false);
+            }
+        } else {
+            if (hist_pref.equals(SHOW_HIST_PREF_TODAY)) {
+                m_optionsMenu.findItem(R.id.show_today).setEnabled(false);
+            } else if (hist_pref.equals(SHOW_HIST_PREF_24_H)) {
+                m_optionsMenu.findItem(R.id.show_24_hours).setEnabled(false);
+            } else if (hist_pref.equals(SHOW_HIST_PREF_ALL)) {
+                m_optionsMenu.findItem(R.id.show_all).setEnabled(false);
+            }
         }
     }
 
