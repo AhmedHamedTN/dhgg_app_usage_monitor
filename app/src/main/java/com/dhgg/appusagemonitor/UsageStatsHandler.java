@@ -29,6 +29,7 @@ public class UsageStatsHandler {
     private DbHandler m_dbHandler;
     private boolean m_isAbleToRun = false;
     private boolean m_hasPermission = false;
+    private final int MS_IN_DAY = 24 * 60 * 60 * 1000;
     private UsageStatsManager m_usageStatsManager;
 
 
@@ -53,35 +54,30 @@ public class UsageStatsHandler {
     }
 
     public ArrayList<DataValue> getAccumulatedUsage(String dateRange) {
-        String logCat = "UsageStatsHandler::getAccumulatedUsage: ";
+        //String logCat = "UsageStatsHandler::getAccumulatedUsage: ";
+        String logCat = " >>> ";
         if (!m_isAbleToRun) {
             return m_dbHandler.getData(dateRange, "");
         }
 
-        long end = System.currentTimeMillis();
-
+        // Get Date Range
+        DateHandler dHandler = new DateHandler();
+        long end = dHandler.getCurrentMs();
         long start = 0;
+        long start24 = dHandler.get24HoursAgoMs() - (MS_IN_DAY * 5);
+        long startToday = dHandler.getStartOfDayTodayMs();
+
         if (dateRange.equals(MainActivity.SHOW_HIST_PREF_24_H)) {
-            start = end - 24 * 60 * 60 * 1000;
+            start = start24;
         } else if (dateRange.equals(MainActivity.SHOW_HIST_PREF_TODAY)) {
-
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.HOUR_OF_DAY, 0);
-            c.set(Calendar.MINUTE, 0);
-            c.set(Calendar.SECOND, 0);
-            c.set(Calendar.MILLISECOND, 0);
-            start = c.getTimeInMillis();
+            start = startToday;
         }
 
-        //Log.i(Consts.LOGTAG, logCat + " start:" + start + " end:" + end);
+        // Get Date Range
+        int interval = UsageStatsManager.INTERVAL_DAILY;
+        List<UsageStats> myStats = m_usageStatsManager.queryUsageStats(interval, start, end);
 
-        List<UsageStats> myStats = m_usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, start, end);
-        if (myStats.size() == 0) {
-            m_hasPermission = false;
-        } else {
-            m_hasPermission = true;
-        }
-
+        // Package results
         Map<String, DataValue> mp_obj=new HashMap<String, DataValue>();
         for (int i = 0; i < myStats.size(); ++i) {
             String packageName = myStats.get(i).getPackageName();
@@ -96,7 +92,6 @@ public class UsageStatsHandler {
                 DataValue dv = new DataValue(appName, packageName, value);
                 mp_obj.put(appName, dv);
             }
-
         }
 
         ArrayList <DataValue> data = new ArrayList<DataValue>();
@@ -124,6 +119,7 @@ public class UsageStatsHandler {
             m_hasPermission = true;
         }
 
+        DateHandler dHandler = new DateHandler();
         int today = getTodayAsYYYYMMDD();
         int yest = getYestAsYYYYMMDD();
         int tomorrow = getTomorrowAsYYYYMMDD();
@@ -143,8 +139,8 @@ public class UsageStatsHandler {
             }
 
             if (packageName.equals(goodPackageName)) {
-                long datetime = myStats.get(i).getLastTimeUsed();
-                int yyyymmdd = getYYYYMMDDFromMs(datetime);
+                long datetime = myStats.get(i).getFirstTimeStamp();
+                int yyyymmdd = dHandler.getGmtYYYYMMDDFromMs(datetime);
                 int value = (int) (myStats.get(i).getTotalTimeInForeground()/1000);
                 data.add(new Point(yyyymmdd, value));
 
@@ -169,17 +165,21 @@ public class UsageStatsHandler {
             return m_dbHandler.getTimeLogFromTime(lastAppDate, lastAppName);
         }
 
-        // Need to figure out how this time interval works.
-        // Want to do updates using a sliding range
-        // and only do updates for a day once.
-        GregorianCalendar gcal = new GregorianCalendar();
+        // Get date range to do the sync.
         DateHandler dateHandler =  new DateHandler();
-        long end = (dateHandler.getStartOfDayTodayMs() -1); // get data up to end of day yesterday
-        long start = dateHandler.getMillisFromYYYYMMDD(lastAppDate);
+        long start = dateHandler.getStartOfDayYYYYMMDDGmtMs((int)lastAppDate);
+        long end = dateHandler.getStartOfDayTodayGmtMs();
         //Log.w(Consts.LOGTAG, "Getting data from start :" + start + " to end: " + end);
-        List<UsageStats> myStats = m_usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
-
         ArrayList<TimeLog> returnData = new ArrayList<TimeLog>();
+        if (start == end) {
+            return returnData;
+        }
+
+        // Query for data
+        List<UsageStats> myStats = m_usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY, start, end);
+
+        // Package the results
         Map<String, String> packageToAppMap = new HashMap<String, String>();
         for (int i = 0; i < myStats.size(); ++i) {
             String packageName = myStats.get(i).getPackageName();
@@ -200,7 +200,7 @@ public class UsageStatsHandler {
             TimeLog t = new TimeLog(
                     appName,
                     packageName,
-                    getYYYYMMDDFromMs(myStats.get(i).getLastTimeStamp()),
+                    dateHandler.getGmtYYYYMMDDFromMs(myStats.get(i).getFirstTimeStamp()),
                     myStats.get(i).getTotalTimeInForeground() / 1000);
             returnData.add(t);
         }
@@ -231,7 +231,7 @@ public class UsageStatsHandler {
         }
 
         long end = System.currentTimeMillis();
-        long start = end - 24 * 60 * 60 * 3600;
+        long start = end - MS_IN_DAY;
 
         m_usageStatsManager = (UsageStatsManager) m_context.getSystemService("usagestats");
         //Log.i(Consts.LOGTAG, logCat + " start:" + start + " end:" + end);

@@ -23,7 +23,7 @@ public class DateHandlerTest extends  TestCase {
     protected void tearDown() {
     }
 
-    public void testEmpty() {
+    public void testConsistency() {
         GregorianCalendar gcal = new GregorianCalendar();
         int todayYYYYMMDD = mDateHandler.getYYYYMMDD(gcal);
 
@@ -32,5 +32,37 @@ public class DateHandlerTest extends  TestCase {
                 mDateHandler.getStartOfDayTodayMs(),
                 mDateHandler.getMillisFromYYYYMMDD(todayYYYYMMDD));
     }
+
+    public void test24HoursAgoIsOlderThanStartOfDay() {
+        long startOfDayMs = mDateHandler.getStartOfDayTodayMs();
+        long twenty4HourAgoMs = mDateHandler.get24HoursAgoMs();
+
+        // Verify
+        assertTrue(startOfDayMs > twenty4HourAgoMs);
+    }
+
+    public void testGetGmtTimeRelativeToLocalIsGood() {
+        long gmtStartOfToday = mDateHandler.getStartOfDayTodayGmtMs();
+        long localStartOfToday = mDateHandler.getStartOfDayTodayMs();
+
+        GregorianCalendar gcal = new GregorianCalendar();
+        int offset = gcal.getTimeZone().getRawOffset();
+
+        assertEquals(gmtStartOfToday, localStartOfToday + offset);
+    }
+
+    /*
+    public void testGetYYYYMMDDGmtRelativeToLocalIsGood() {
+        long gmtStart = mDateHandler.getMillisFromYYYYMMDD(20141123);
+        long localStart = mDateHandler.getStartOfDayYYYYMMDDGmtMs(20141123);
+
+        GregorianCalendar gcal = new GregorianCalendar();
+        int offset = gcal.getTimeZone().getRawOffset();
+
+        assertEquals(gmtStart, localStart + offset);
+    }
+    */
+
+
 }
 
