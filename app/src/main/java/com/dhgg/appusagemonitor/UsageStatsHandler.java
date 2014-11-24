@@ -201,7 +201,7 @@ public class UsageStatsHandler {
                     appName,
                     packageName,
                     dateHandler.getGmtYYYYMMDDFromMs(myStats.get(i).getFirstTimeStamp()),
-                    myStats.get(i).getTotalTimeInForeground() / 1000);
+                    myStats.get(i).getTotalTimeInForeground() );
             returnData.add(t);
         }
 
