@@ -65,16 +65,16 @@ public class UsageStatsHandler {
         long end = dHandler.getCurrentMs();
         long start = 0;
         long start24 = dHandler.get24HoursAgoMs() - (MS_IN_DAY * 5);
-        long startToday = dHandler.getStartOfDayTodayMs();
+        //long startToday = dHandler.getStartOfDayTodayMs(); //
+        int interval = UsageStatsManager.INTERVAL_BEST;
 
-        if (dateRange.equals(MainActivity.SHOW_HIST_PREF_24_H)) {
+        if (dateRange.equals(MainActivity.SHOW_HIST_PREF_24_H) ||
+            dateRange.equals(MainActivity.SHOW_HIST_PREF_TODAY) ){
+            interval = UsageStatsManager.INTERVAL_DAILY;
             start = start24;
-        } else if (dateRange.equals(MainActivity.SHOW_HIST_PREF_TODAY)) {
-            start = startToday;
         }
 
         // Get Date Range
-        int interval = UsageStatsManager.INTERVAL_DAILY;
         List<UsageStats> myStats = m_usageStatsManager.queryUsageStats(interval, start, end);
 
         // Package results

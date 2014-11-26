@@ -6,6 +6,7 @@
 *.ap_
 *.dex
 *.class
+app/release/*apk*
 
 .DS_Store
 
