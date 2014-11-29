@@ -66,7 +66,7 @@ public class UsageStatsHandler {
         long start = 0;
         long start24 = dHandler.get24HoursAgoMs() - (MS_IN_DAY * 5);
         //long startToday = dHandler.getStartOfDayTodayMs(); //
-        int interval = UsageStatsManager.INTERVAL_BEST;
+        int interval = UsageStatsManager.INTERVAL_YEARLY;
 
         if (dateRange.equals(MainActivity.SHOW_HIST_PREF_24_H) ||
             dateRange.equals(MainActivity.SHOW_HIST_PREF_TODAY) ){
